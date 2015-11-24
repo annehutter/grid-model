@@ -1,6 +1,6 @@
 CC = mpicc
-CFLAGS = -c -std=c99 -D __MPI -pg
-LDFLAGS = -lfftw3_mpi -lfftw3 -lm -lmpi -pg
+CFLAGS = -c -std=c99 -D __MPI -march=native -O3
+LDFLAGS = -lfftw3_mpi -lfftw3 -lm -lmpi 
 SOURCES = 	./main.c \
 		./confObj.c \
 		./parse_ini.c \

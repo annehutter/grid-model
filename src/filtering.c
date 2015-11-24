@@ -79,6 +79,8 @@ void convolve_fft(grid_t *thisGrid, fftw_complex *filter, fftw_complex *nion_smo
 	double factor;
 	ptrdiff_t alloc_local, local_n0, local_0_start;
 	
+// 	ptrdiff_t n0, n1, n2, local_n1, local_1_start, local_n0x, local_0x_start;
+	
 	fftw_complex *nion;
 	fftw_complex *nion_ft, *filter_ft;
 	fftw_plan plan_nion, plan_filter, plan_back;
@@ -88,6 +90,10 @@ void convolve_fft(grid_t *thisGrid, fftw_complex *filter, fftw_complex *nion_smo
 	local_0_start = thisGrid->local_0_start;
 	local_n0 = thisGrid->local_n0;
 	
+// 	n0 = nbins;
+// 	n1 = nbins;
+// 	n2 = nbins;
+	
 #ifdef __MPI
 	alloc_local = fftw_mpi_local_size_3d(nbins, nbins, nbins, MPI_COMM_WORLD, &local_n0, &local_0_start);
 	assert(local_0_start == thisGrid->local_0_start);
@@ -96,8 +102,8 @@ void convolve_fft(grid_t *thisGrid, fftw_complex *filter, fftw_complex *nion_smo
 	nion_ft = fftw_alloc_complex(alloc_local);
 	filter_ft = fftw_alloc_complex(alloc_local);
 	
-	plan_nion = fftw_mpi_plan_dft_3d(nbins, nbins, nbins, nion, nion_ft, MPI_COMM_WORLD, FFTW_FORWARD, FFTW_ESTIMATE);
-	plan_filter = fftw_mpi_plan_dft_3d(nbins, nbins, nbins, filter, filter_ft, MPI_COMM_WORLD, FFTW_FORWARD, FFTW_ESTIMATE);
+	plan_nion = fftw_mpi_plan_dft_3d(nbins, nbins, nbins, nion, nion_ft, MPI_COMM_WORLD, FFTW_FORWARD, FFTW_MPI_TRANSPOSED_OUT); //FFTW_MPI_TRANSPOSED_OUT
+	plan_filter = fftw_mpi_plan_dft_3d(nbins, nbins, nbins, filter, filter_ft, MPI_COMM_WORLD, FFTW_FORWARD, FFTW_MPI_TRANSPOSED_OUT);
 #else 
 	nion_ft = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 	filter_ft = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
@@ -108,6 +114,10 @@ void convolve_fft(grid_t *thisGrid, fftw_complex *filter, fftw_complex *nion_smo
 	
 	fftw_execute(plan_nion);
 	fftw_execute(plan_filter);
+	
+// 	fftw_mpi_local_size_3d_transposed(n0, n1, n2, MPI_COMM_WORLD, &local_n0x, &local_0x_start, &local_n1, &local_1_start);
+	
+// 	printf("local_n0 = %d\tlocal_0_start = %d\tlocal_n0x = %d\tlocal_0x_start = %d\tlocal_n1 = %d\tlocal_1_start = %d\n",local_n0,local_0_start,local_n0x,local_0x_start,local_n1,local_1_start);
 	
 	for(int i=0; i<local_n0; i++)
 	{
@@ -121,7 +131,7 @@ void convolve_fft(grid_t *thisGrid, fftw_complex *filter, fftw_complex *nion_smo
 	}
 	
 #ifdef __MPI
-	plan_back = fftw_mpi_plan_dft_3d(nbins, nbins, nbins, nion_ft, nion_smooth, MPI_COMM_WORLD, FFTW_BACKWARD, FFTW_ESTIMATE);
+	plan_back = fftw_mpi_plan_dft_3d(nbins, nbins, nbins, nion_ft, nion_smooth, MPI_COMM_WORLD, FFTW_BACKWARD, FFTW_MPI_TRANSPOSED_IN);
 #else
 	plan_back = fftw_plan_dft_3d(nbins, nbins, nbins, nion_ft, nion_smooth, FFTW_BACKWARD, FFTW_ESTIMATE);
 #endif
