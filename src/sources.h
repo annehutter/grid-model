@@ -9,11 +9,17 @@ typedef struct
 	float fesc;
 } source_t;
 
+typedef struct
+{
+	int numSources;
+	int Nallocated;
+	source_t *source;
+} sourcelist_t;
 
 /*functions*/
-source_t *source_init();
-void source_free(source_t *thisSource);
+// source_t *source_init();
+// void deallocate_source(source_t *thisSource);
+sourcelist_t *allocate_sourcelist(int num_sources);
+void deallocate_sourcelist(sourcelist_t *thisSourcelist);
+sourcelist_t *read_sources(char * filename);
 int count_sources(char *filename);
-source_t *allocate_source_list(int num_sources);
-void deallocate_source_list(source_t thisSource[]);
-void read_sources(char * filename, int num_sources, source_t *thisSource);

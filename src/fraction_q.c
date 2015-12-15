@@ -18,7 +18,6 @@
 void compute_Q(grid_t *thisGrid, confObj_t simParam)
 {
 	int nbins;
-	int local_0_start;
 	int local_n0;
 	double box_size;
 	
@@ -28,7 +27,6 @@ void compute_Q(grid_t *thisGrid, confObj_t simParam)
 	double h;
 	
 	nbins = thisGrid->nbins;
-	local_0_start = thisGrid->local_0_start;
 	local_n0 = thisGrid->local_n0;
 	box_size = thisGrid->box_size;
 	
@@ -48,6 +46,8 @@ void compute_Q(grid_t *thisGrid, confObj_t simParam)
 // 				thisGrid->nion[i*nbins*nbins+j*nbins+k] = creal(thisGrid->nion[i*nbins*nbins+j*nbins+k])*evol_time/(creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k])*creal(thisGrid->igm_clump[i*nbins*nbins+j*nbins+k])*mean_numdensity*pow(box_size/(h*(double)nbins*(1+z))*Mpc_cm,3))+0.*I;
 							
 				thisGrid->nion[i*nbins*nbins+j*nbins+k] = creal(thisGrid->nion[i*nbins*nbins+j*nbins+k])*evol_time/((1.+creal(thisGrid->igm_clump[i*nbins*nbins+j*nbins+k])*creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k])*mean_numdensity*evol_time*recomb_HII)*creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k])*mean_numdensity*volume)+0.*I;
+				
+// 				printf("%e\t%e\t%e\t%e\n",creal(thisGrid->igm_clump[i*nbins*nbins+j*nbins+k]),creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k])*mean_numdensity,evol_time,creal(thisGrid->igm_clump[i*nbins*nbins+j*nbins+k])*creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k])*mean_numdensity*evol_time*recomb_HII);
 			}
 		}
 	}

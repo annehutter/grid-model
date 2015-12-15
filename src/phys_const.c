@@ -12,3 +12,4 @@ const double me_g = 9.11e-28;		//mass of eletron [gramms]
 const double crossSecThom_cm = 6.6524e-25;		//Thomson cross sections [cm^2]
 
 const double recomb_HII = 2.6e-13;	//at T = 1.e4 K
+const double sigma_HI = 6.3e-18;		//in cm^2

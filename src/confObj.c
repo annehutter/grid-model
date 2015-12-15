@@ -70,6 +70,17 @@ confObj_new(parse_ini_t ini)
 	
 	getFromIni(&(config->out_XHII_file), parse_ini_get_string,
 		   ini, "output_XHII_file", "General");
+	
+	getFromIni(&(config->use_web_model), parse_ini_get_int32,
+		   ini, "useWebModel", "General");
+	getFromIni(&(config->photHI_bg), parse_ini_get_double,
+		   ini, "photionRateHI_bg", "General");
+	getFromIni(&(config->compute_photHIfield), parse_ini_get_int32,
+		   ini, "computePhotionHIfield_opticallyThin", "General");
+	getFromIni(&(config->mfp), parse_ini_get_double,
+	           ini, "meanFreePathInIonizedMedium", "General");
+	getFromIni(&(config->out_photHI_file), parse_ini_get_string,
+		   ini, "output_photHI_file", "General");
 
 	return config;
 }

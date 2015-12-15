@@ -1,7 +1,5 @@
 #include <stdio.h>
 #include <math.h>
-#include <gsl/gsl_sort.h>
-#include <gsl/gsl_integration.h>
 #include <time.h>
 #include <complex.h>
 
@@ -17,22 +15,27 @@
 #include "sources.h"
 
 /* map number of ionizing photons to grid --------------------------------------------------------*/
-void map_nion_to_grid(int myRank, grid_t *thisGrid, int num_sources, source_t *thisSourceList)
+void map_nion_to_grid(grid_t *thisGrid, sourcelist_t *thisSourcelist)
 {
+	int num_sources;
 	int comx, comy, comz;
 	int nbins;
 	int local_0_start;
 	int local_n0;
 	
+	int i=0;
+	
+	num_sources = thisSourcelist->numSources;
+	
 	nbins = thisGrid->nbins;
 	local_0_start = thisGrid->local_0_start;
 	local_n0 = thisGrid->local_n0;
 	
-	for(int source=0; source<num_sources; source++)
+	for(source_t *source=thisSourcelist->source; i<num_sources; i++, source++)
 	{
-		comx = (int)(thisSourceList[source].pos[0]*nbins);
-		comy = (int)(thisSourceList[source].pos[1]*nbins);
-		comz = (int)(thisSourceList[source].pos[2]*nbins);
+		comx = (int)(source->pos[0]*nbins);
+		comy = (int)(source->pos[1]*nbins);
+		comz = (int)(source->pos[2]*nbins);
 				
 		if(comx==nbins) comx = comx-1;
 		if(comy==nbins) comy = comy-1;
@@ -40,7 +43,7 @@ void map_nion_to_grid(int myRank, grid_t *thisGrid, int num_sources, source_t *t
 		
 		if(comz>=local_0_start && comz<local_0_start+local_n0)
 		{
-			thisGrid->nion[(comz-local_0_start)*nbins*nbins + comy*nbins + comx] += thisSourceList[source].Nion*thisSourceList[source].fesc+0.*I;
+			thisGrid->nion[(comz-local_0_start)*nbins*nbins + comy*nbins + comx] += source->Nion*source->fesc+0.*I;
 // 			thisGrid->igm_clump[(comz-local_0_start)*nbins*nbins + comy*nbins + comx] = 1.+0.*I;
 		}
 	}

@@ -12,4 +12,5 @@ extern const double me_g;
 extern const double crossSecThom_cm;
 
 extern const double recomb_HII;
+extern const double sigma_HI;
 #endif

@@ -2,4 +2,4 @@
 #define SOURCES_TO_GRID_H
 #endif
  
-void map_nion_to_grid(int myRank, grid_t *thisGrid, int num_sources, source_t *thisSourceList);
+void map_nion_to_grid(grid_t *thisGrid, sourcelist_t *thisSourceList);

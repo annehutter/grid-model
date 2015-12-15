@@ -18,6 +18,9 @@ typedef struct
 	
 	fftw_complex *XHII;
 	
+	fftw_complex *photHI;
+	double mean_photHI;
+	
 	int local_n0;
 	int local_0_start;
 } grid_t;
@@ -32,3 +35,4 @@ void deallocate_grid(grid_t *thisGrid);
 void write_grid_to_file_float(fftw_complex *thisArray, int nbins, int local_n0, int local_0_start, char *filename);
 void write_grid_to_file_double(fftw_complex *thisArray, int nbins, int local_n0, int local_0_start, char *filename);
 void save_to_file_XHII(grid_t *thisGrid, char *filename);
+void save_to_file_photHI(grid_t *thisGrid, char *filename);

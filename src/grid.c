@@ -38,6 +38,9 @@ grid_t *initGrid()
 	
 	newGrid->XHII = NULL;
 	
+	newGrid->photHI = NULL;
+	newGrid->mean_photHI = 0.;
+	
 	newGrid->local_n0 = 0;
 	newGrid->local_0_start = 0;
 	
@@ -71,12 +74,14 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
 	thisGrid->igm_clump = fftw_alloc_complex(alloc_local);
 	thisGrid->nion = fftw_alloc_complex(alloc_local);
 	thisGrid->XHII = fftw_alloc_complex(alloc_local);
+	thisGrid->photHI = fftw_alloc_complex(alloc_local);
 #else
 	thisGrid->igm_density = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 	thisGrid->halo_density = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 	thisGrid->igm_clump = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 	thisGrid->nion = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 	thisGrid->XHII = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+	thisGrid->photHI = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 
 #endif
 	read_grid(thisGrid->igm_density, nbins, local_n0, local_0_start, thisInput->igm_density_file);
@@ -85,6 +90,7 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
 // 	initialize_grid(thisGrid->igm_clump, nbins, local_n0, local_0_start, 1.);
 	initialize_grid(thisGrid->nion, nbins, local_n0, local_0_start, 0.);
 	initialize_grid(thisGrid->XHII, nbins, local_n0, local_0_start, 0.);
+	initialize_grid(thisGrid->photHI, nbins, local_n0, local_0_start, 0.);
 	
 #ifdef __MPI
 	MPI_Barrier(MPI_COMM_WORLD);
@@ -94,17 +100,26 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
 void read_grid(fftw_complex *toThisArray, int nbins, int local_n0, int local_0_start, char *filename)
 {
 	float *tmparray;
-	FILE * fp;
 		
 	tmparray = (float*)malloc(sizeof(float)*local_n0*nbins*nbins);
 #ifdef __MPI
+	int success;
+	int resultlen;
+	char msg[MPI_MAX_ERROR_STRING];
+
 	MPI_File mpifile;
 	MPI_Offset offset;
 	MPI_Status status;
 	
 	offset = (local_0_start*nbins*nbins*sizeof(float));
 	
-	MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY,MPI_INFO_NULL, &mpifile);
+	success = MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY,MPI_INFO_NULL, &mpifile);
+	if(success != MPI_SUCCESS)
+	{
+		MPI_Error_string(success, msg, &resultlen);
+		fprintf(stderr, "MPI_File_open(): %s\n", msg);
+		exit(-1);
+	}
 	MPI_File_read_at_all(mpifile,offset,tmparray, local_n0*nbins*nbins,MPI_FLOAT,&status);
 	MPI_File_close(&mpifile);
 #else
@@ -147,6 +162,7 @@ void deallocate_grid(grid_t *thisGrid)
 	fftw_free(thisGrid->igm_clump);
 	fftw_free(thisGrid->nion);
 	fftw_free(thisGrid->XHII);
+	fftw_free(thisGrid->photHI);
 	free(thisGrid);
 }
 
@@ -230,4 +246,9 @@ void write_grid_to_file_double(fftw_complex *thisArray, int nbins, int local_n0,
 void save_to_file_XHII(grid_t *thisGrid, char *filename)
 {
 	write_grid_to_file_float(thisGrid->XHII, thisGrid->nbins, thisGrid->local_n0, thisGrid->local_0_start, filename);
+}
+
+void save_to_file_photHI(grid_t *thisGrid, char *filename)
+{
+	write_grid_to_file_float(thisGrid->photHI, thisGrid->nbins, thisGrid->local_n0, thisGrid->local_0_start, filename);
 }

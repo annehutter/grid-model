@@ -96,6 +96,7 @@ void convolve_fft(grid_t *thisGrid, fftw_complex *filter, fftw_complex *nion_smo
 	
 #ifdef __MPI
 	alloc_local = fftw_mpi_local_size_3d(nbins, nbins, nbins, MPI_COMM_WORLD, &local_n0, &local_0_start);
+// 	printf("local_0_start = %d\t %d\t local_n0 = %d\t %d", local_0_start, thisGrid->local_0_start, local_n0, thisGrid->local_n0);
 	assert(local_0_start == thisGrid->local_0_start);
 	assert(local_n0 == thisGrid->local_n0);
 	
@@ -209,14 +210,12 @@ void choose_ion_fraction(fftw_complex *nion_smooth, grid_t *thisGrid)
 void compute_ionization_field(grid_t *thisGrid)
 {
 	int nbins;
-	int half_nbins;
 	float smooth_scale;
 	fftw_complex *filter;
 	fftw_complex *nion_smooth;
 	ptrdiff_t alloc_local, local_n0, local_0_start;
 
 	nbins = thisGrid->nbins;
-	half_nbins = nbins*0.5;
 	
 #ifdef __MPI
 	alloc_local = fftw_mpi_local_size_3d(nbins, nbins, nbins, MPI_COMM_WORLD, &local_n0, &local_0_start);

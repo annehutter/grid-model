@@ -46,6 +46,12 @@ struct confObj_struct {
 	double			sigma8;
 	
 	char			*out_XHII_file;
+	
+	int			use_web_model;
+	double			photHI_bg;
+	int			compute_photHIfield;
+	double			mfp;
+	char			*out_photHI_file;
 };
 
 
