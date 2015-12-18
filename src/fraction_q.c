@@ -19,6 +19,7 @@ void compute_Q(grid_t *thisGrid, confObj_t simParam)
 {
 	int nbins;
 	int local_n0;
+	int local_0_start;
 	double box_size;
 	
 	double evol_time;
@@ -28,6 +29,7 @@ void compute_Q(grid_t *thisGrid, confObj_t simParam)
 	
 	nbins = thisGrid->nbins;
 	local_n0 = thisGrid->local_n0;
+	local_0_start = thisGrid->local_0_start;
 	box_size = thisGrid->box_size;
 	
 	evol_time = simParam->evol_time*Myr_s;
@@ -51,6 +53,8 @@ void compute_Q(grid_t *thisGrid, confObj_t simParam)
 			}
 		}
 	}
+	
+// 	write_grid_to_file_float(thisGrid->nion, nbins, local_n0, local_0_start, "Q.out");
 }
 
 

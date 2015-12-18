@@ -179,7 +179,6 @@ void write_grid_to_file_float(fftw_complex *thisArray, int nbins, int local_n0, 
 			for(int k=0; k<nbins; k++)
 			{
 				tmparray[i*nbins*nbins+j*nbins+k] = (float)creal(thisArray[i*nbins*nbins+j*nbins+k]);
-// 				if(creal(thisArray[i*nbins*nbins+j*nbins+k])>1.e-13) printf("tmparray = %e\n",creal(thisArray[i*nbins*nbins+j*nbins+k]));
 			}
 		}
 	}
@@ -245,10 +244,10 @@ void write_grid_to_file_double(fftw_complex *thisArray, int nbins, int local_n0,
 
 void save_to_file_XHII(grid_t *thisGrid, char *filename)
 {
-	write_grid_to_file_float(thisGrid->XHII, thisGrid->nbins, thisGrid->local_n0, thisGrid->local_0_start, filename);
+	write_grid_to_file_double(thisGrid->XHII, thisGrid->nbins, thisGrid->local_n0, thisGrid->local_0_start, filename);
 }
 
 void save_to_file_photHI(grid_t *thisGrid, char *filename)
 {
-	write_grid_to_file_float(thisGrid->photHI, thisGrid->nbins, thisGrid->local_n0, thisGrid->local_0_start, filename);
+	write_grid_to_file_double(thisGrid->photHI, thisGrid->nbins, thisGrid->local_n0, thisGrid->local_0_start, filename);
 }

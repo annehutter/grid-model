@@ -119,7 +119,7 @@ void convolve_fft(grid_t *thisGrid, fftw_complex *filter, fftw_complex *nion_smo
 // 	fftw_mpi_local_size_3d_transposed(n0, n1, n2, MPI_COMM_WORLD, &local_n0x, &local_0x_start, &local_n1, &local_1_start);
 	
 // 	printf("local_n0 = %d\tlocal_0_start = %d\tlocal_n0x = %d\tlocal_0x_start = %d\tlocal_n1 = %d\tlocal_1_start = %d\n",local_n0,local_0_start,local_n0x,local_0x_start,local_n1,local_1_start);
-	
+		
 	for(int i=0; i<local_n0; i++)
 	{
 		for(int j=0; j<nbins; j++)
@@ -149,7 +149,7 @@ void convolve_fft(grid_t *thisGrid, fftw_complex *filter, fftw_complex *nion_smo
 				nion_smooth[i*nbins*nbins+j*nbins+k] = factor*nion_smooth[i*nbins*nbins+j*nbins+k];
 			}
 		}
-	}
+	}	
 	
 	fftw_destroy_plan(plan_nion);
 	fftw_destroy_plan(plan_filter);
@@ -231,10 +231,22 @@ void compute_ionization_field(grid_t *thisGrid)
 	
 	for(int scale=0; scale<nbins; scale++)
 	{
+	  	for(int i=0; i<local_n0; i++)
+		{
+			for(int j=0; j<nbins; j++)
+			{
+				for(int k=0; k<nbins; k++)
+				{
+// 					if(creal(thisGrid->nion[i*nbins*nbins+j*nbins+k])!=0. && scale==0) printf("before: nion_smooth[%d] = %e\n",i*nbins*nbins+j*nbins+k, creal(nion_smooth[i*nbins*nbins+j*nbins+k]));
+					nion_smooth[i*nbins*nbins+j*nbins+k] = thisGrid->nion[i*nbins*nbins+j*nbins+k];
+// 					if(creal(thisGrid->nion[i*nbins*nbins+j*nbins+k])!=0. && scale==0) printf("after: nion_smooth[%d] = %e\n",i*nbins*nbins+j*nbins+k, creal(nion_smooth[i*nbins*nbins+j*nbins+k]));
+
+				}
+			}
+		}
 		printf("scale = %d\n",scale);
 		smooth_scale = nbins - (float)scale;
 		construct_tophat_filter(filter, nbins, local_0_start, local_n0, smooth_scale);
-		if(scale==126) write_grid_to_file_float(filter, thisGrid->nbins, thisGrid->local_n0, thisGrid->local_0_start, "filter.out");
 		
 		convolve_fft(thisGrid, filter, nion_smooth);
 		if(scale==nbins-1)

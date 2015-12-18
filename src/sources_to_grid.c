@@ -24,7 +24,7 @@ void map_nion_to_grid(grid_t *thisGrid, sourcelist_t *thisSourcelist)
 	int local_n0;
 	
 	int i=0;
-	
+		
 	num_sources = thisSourcelist->numSources;
 	
 	nbins = thisGrid->nbins;

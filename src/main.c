@@ -12,6 +12,7 @@
 #include <fftw3.h>
 #endif
 
+#include "phys_const.h"
 #include "confObj.h"
 #include "grid.h"
 #include "sources.h"
@@ -19,6 +20,50 @@
 #include "fraction_q.h"
 #include "filtering.h"
 #include "self_shielding.h"
+
+void print_mean_photHI(grid_t *thisGrid, confObj_t simParam)
+{
+  	int nbins;
+	int local_n0;
+	
+	double sum_clump = 0.;
+	double sum_XHII = 0.;
+	
+	double mean_clump;
+	double mean_XHII;
+	double mean_photHI;
+	
+	double redshift = simParam->redshift;
+	double mean_density = simParam->mean_density*(1.+redshift)*(1.+redshift)*(1.+redshift);
+	
+	nbins = thisGrid->nbins;
+	local_n0 = thisGrid->local_n0;
+	
+	for(int i=0; i<local_n0; i++)
+	{
+		for(int j=0; j<nbins; j++)
+		{
+			for(int k=0; k<nbins; k++)
+			{
+				sum_clump += thisGrid->igm_clump[i*nbins*nbins+j*nbins+k];
+				sum_XHII += thisGrid->XHII[i*nbins*nbins+j*nbins+k];
+			}
+		}
+	}
+	
+	mean_clump = sum_clump;
+	mean_XHII = sum_XHII;
+	
+#ifdef __MPI
+	MPI_Allreduce(&sum_clump, &mean_clump, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Allreduce(&sum_XHII, &mean_XHII, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+#endif
+	mean_clump = mean_clump/(nbins*nbins*nbins);
+	mean_XHII = mean_XHII/(nbins*nbins*nbins);
+	
+	mean_photHI = mean_XHII*mean_XHII*mean_density*mean_clump*recomb_HII/(1.-mean_XHII);
+	printf("dens = %e\t clump = %e\t XHII = %e\t photHI = %e\n",mean_density, mean_clump, mean_XHII, mean_photHI);
+}
 
 int main (int argc, /*const*/ char * argv[]) { 
 	int size = 1;
@@ -32,6 +77,8 @@ int main (int argc, /*const*/ char * argv[]) {
 	
 	double t1, t2;
 	
+	double mean_photHI;
+		
 #ifdef __MPI
 	MPI_Init(&argc, &argv); 
 	MPI_Comm_size(MPI_COMM_WORLD, &size); 
@@ -73,6 +120,10 @@ int main (int argc, /*const*/ char * argv[]) {
 	map_nion_to_grid(grid, sourcelist);
 	if(myRank==0) printf("done\n");
 	
+	if(myRank==0) printf("compute mean photoionization rate... ");
+	mean_photHI = get_mean_photHI(grid, simParam);
+	if(myRank==0) printf("done\n");
+
 	//compute fraction Q
 	if(myRank==0) printf("computing relation between number of ionizing photons and absorptions... ");
 	compute_Q(grid, simParam);
@@ -81,7 +132,7 @@ int main (int argc, /*const*/ char * argv[]) {
 	//apply filtering
 	if(myRank==0) printf("apply tophat filter routine for ionization field... ");
 	compute_ionization_field(grid);
-	if(myRank==0) printf("done\n");
+	if(myRank==0) printf("done\n");	
 	
 	if(simParam->use_web_model == 1)
 	{
@@ -95,13 +146,8 @@ int main (int argc, /*const*/ char * argv[]) {
 		compute_web_ionfraction(grid, simParam);
 		if(myRank==0) printf("done\n");
 		
-		if(simParam->compute_photHIfield ==1)
+		if(simParam->compute_photHIfield == 1)
 		{
-			//compute photoionization field
-			if(myRank==0) printf("compute photoionization field (this may take a while)... ");
-			compute_photoionization_field(grid, sourcelist, simParam);
-			if(myRank==0) printf("done\n");
-			
 			//write photoionization rate field to file
 			if(myRank==0) printf("writing photoionization field to file... ");
 			save_to_file_photHI(grid, simParam->out_photHI_file);
