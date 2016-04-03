@@ -1,6 +1,6 @@
 CC = mpicc
-CFLAGS = -c -std=c99 -D __MPI -march=native -O3 -Wall -Wextra -Wshadow -ftree-vectorize 
-LDFLAGS = -lfftw3_mpi -lfftw3 -lm -lmpich 
+CFLAGS = -c -std=c99 -D __MPI -march=native -O3 -Wall -Wextra -Wshadow -ftree-vectorize -lm
+LDFLAGS = -lfftw3_mpi -lfftw3 -lm -lmpich -lgsl -lgslcblas
 SOURCES = 	./main.c \
 		./confObj.c \
 		./parse_ini.c \
@@ -12,7 +12,9 @@ SOURCES = 	./main.c \
 		./fraction_q.c \
 		./filtering.c \
 		./phys_const.c \
-		./self_shielding.c
+		./self_shielding.c \
+		./density_distribution.c \
+		./recombination.c 
 OBJECTS = $(SOURCES:.c=.o)
 DOBJECTS = $(SOURCES:.c=.d)
 EXECUTABLE = cifog

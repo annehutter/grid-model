@@ -21,6 +21,9 @@
 #include "filtering.h"
 #include "self_shielding.h"
 
+#include "density_distribution.h"
+#include "recombination.h"
+
 void print_mean_photHI(grid_t *thisGrid, confObj_t simParam)
 {
   	int nbins;
@@ -78,7 +81,7 @@ int main (int argc, /*const*/ char * argv[]) {
 	double t1, t2;
 	
 	double mean_photHI;
-		
+	
 #ifdef __MPI
 	MPI_Init(&argc, &argv); 
 	MPI_Comm_size(MPI_COMM_WORLD, &size); 
@@ -100,6 +103,9 @@ int main (int argc, /*const*/ char * argv[]) {
 		strcpy(iniFile, argv[1]);
 	}
 	
+	//-------------------------------------------------------------------------------
+	// reading input files and prepare grid
+	//-------------------------------------------------------------------------------
 	
 	//read paramter file
 	simParam = readConfObj(iniFile);
@@ -120,45 +126,83 @@ int main (int argc, /*const*/ char * argv[]) {
 	map_nion_to_grid(grid, sourcelist);
 	if(myRank==0) printf("done\n");
 	
-	if(myRank==0) printf("compute mean photoionization rate... ");
-	mean_photHI = get_mean_photHI(grid, simParam);
-	if(myRank==0) printf("done\n");
+	//------------------------------------------------------------------------------
+	// compute web model
+	//------------------------------------------------------------------------------
+	
+	if(simParam->use_web_model == 1)
+	{
+		//set mean free paths
+		//this mean free path is an overestimate at high redshifts, becomes correct at z~6
+		if(myRank==0) printf("\n\ncompute mean free path... ");
+		printf("mean free path at z=%e is %e Mpc... ", simParam->redshift, calc_mfp(simParam));
+		if(myRank==0) printf("done\n");
+	  
+		//set photoionization rate to background value
+		if(myRank==0) printf("\n\nsetting photoionization rate to background value... ");
+		set_value_to_photoionization_field(grid, simParam);
+		if(myRank==0) printf("done\n");
+		
+		if(myRank==0) printf("compute mean photoionization rate... ");
+		mean_photHI = get_mean_photHI(grid, simParam);
+		if(myRank==0) printf("done\n");
+		
+// 		if(simParam->compute_photHIfield == 1)
+// 		{
+			//write photoionization rate field to file
+			if(myRank==0) printf("writing photoionization field to file... ");
+			save_to_file_photHI(grid, simParam->out_photHI_file);
+			if(myRank==0) printf("done\n");
+// 		}
+		
+		//apply web model
+		if(myRank==0) printf("\n\napply web model... ");
+		compute_web_ionfraction(grid, simParam);
+		if(myRank==0) printf("done\n");
+		
+// 		//compute number of recombinations
+// 		if(myRank==0) printf("\n\ncompute number of recombinations... ");
+// 		compute_number_recobinations(grid, simParam);
+// 		if(myRank==0) printf("done\n");
+		
+		//compute mean free paths
+	}
+	
+// 	//this mean free path is an overestimate at high redshifts, becomes correct at z~6
+// 	if(myRank==0) printf("compte mean free path... ");
+// 	printf("mean free path at z=%e is %e Mpc... ", simParam->redshift, calc_mfp(simParam));
+// 	if(myRank==0) printf("done\n");
+// 	
+// 	if(myRank==0) printf("compute mean photoionization rate... ");
+// 	mean_photHI = get_mean_photHI(grid, simParam);
+// 	if(myRank==0) printf("done\n");
 
+	//--------------------------------------------------------------------------------
+	// apply tophat filter
+	//--------------------------------------------------------------------------------
+	
 	//compute fraction Q
-	if(myRank==0) printf("computing relation between number of ionizing photons and absorptions... ");
+	if(myRank==0) printf("\n\ncomputing relation between number of ionizing photons and absorptions... ");
 	compute_Q(grid, simParam);
 	if(myRank==0) printf("done\n");
 	
 	//apply filtering
 	if(myRank==0) printf("apply tophat filter routine for ionization field... ");
 	compute_ionization_field(grid);
-	if(myRank==0) printf("done\n");	
+	if(myRank==0) printf("done\n");
 	
-	if(simParam->use_web_model == 1)
-	{
-		//set photoionization rate to background value
-		if(myRank==0) printf("setting photoionization rate to background value... ");
-		set_value_to_photoionization_field(grid, simParam);
-		if(myRank==0) printf("done\n");
-		
-		//apply web model
-		if(myRank==0) printf("apply web model... ");
-		compute_web_ionfraction(grid, simParam);
-		if(myRank==0) printf("done\n");
-		
-		if(simParam->compute_photHIfield == 1)
-		{
-			//write photoionization rate field to file
-			if(myRank==0) printf("writing photoionization field to file... ");
-			save_to_file_photHI(grid, simParam->out_photHI_file);
-			if(myRank==0) printf("done\n");
-		}
-	}
+	//--------------------------------------------------------------------------------
+	// writing data to files
+	//--------------------------------------------------------------------------------
 	
 	//write ionization field to file
 	if(myRank==0) printf("writing ionization field to file... ");
 	save_to_file_XHII(grid, simParam->out_XHII_file);
 	if(myRank==0) printf("done\n");
+	
+	//--------------------------------------------------------------------------------
+	// deallocating grids
+	//--------------------------------------------------------------------------------
 	
 	//deallocate grid
 	if(myRank==0) printf("deallocating grid ...");

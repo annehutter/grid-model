@@ -17,6 +17,7 @@ typedef struct
 	fftw_complex *nion;
 	
 	fftw_complex *XHII;
+	fftw_complex *nrec;
 	
 	fftw_complex *photHI;
 	double mean_photHI;

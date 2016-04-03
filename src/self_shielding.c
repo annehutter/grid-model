@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <gsl/gsl_math.h>	//included because M_PI is not defined in <math.h>
 #include <assert.h>
 #include <complex.h>
 
@@ -15,10 +15,9 @@
 #include "confObj.h"
 #include "grid.h"
 #include "sources.h"
-#include "filtering.h"
 
 #define SQR(X) ((X) * (X))
-
+#define CUB(X) ((X) * (X) * (X))
 
 double calc_modPhotHI(double densH, double densSS)
 {
@@ -28,9 +27,31 @@ double calc_modPhotHI(double densH, double densSS)
 	return 0.98*pow(1.+pow(quot,1.64),-2.28)+0.02*pow(1.+quot,-0.84);
 }
 
-double calc_densSS(double photHI, double temperature, double redshift)
+double calc_densSS(confObj_t simParam, double photHI, double temperature, double redshift)
 {
-	return 15.*pow(photHI*10.,2./3.)*pow(temperature*1.e-4,-0.13)*pow((1.+redshift)/7.,-3);
+// 	return 15.*pow(photHI*10.,2./3.)*pow(temperature*1.e-4,-0.13)*pow((1.+redshift)/7.,-3);
+	
+	double tmp, tmp2, rec_rate;
+	const double omega_b = simParam->omega_b;
+	const double omega_m = simParam->omega_m;
+	const double h = simParam->h;
+	const double Y = simParam->Y;
+	const double fg = omega_b/omega_m;
+	const double mu = 4./(8.-5.*Y);
+	double rho;
+	
+	if(simParam->default_mean_density == 1){
+		rho = rho_g_cm;
+	}else{
+		rho = simParam->mean_density;
+	}
+// 	printf("%e\t%e\t%e\n", photHI, temperature, redshift);
+	
+	tmp = mu*G/(M_PI*gamma_gas*boltzman_cgs);
+	tmp2 = pow(mp_g,5)/fg*pow(1.-Y,-4)/SQR(sigma_HI);
+	rec_rate = recomb_HII*pow(temperature*1.e-4,-0.8);	//definition of the HII recombination rate (Fukugita & Kawasaki 1994)
+	
+	return pow(tmp*tmp2*SQR(photHI)/temperature/SQR(rec_rate),1./3.)/(omega_b*SQR(h)*rho*CUB(1.+redshift));	//checked against Mesinger 2015!
 }
 
 double calc_XHII(double dens, double clump, double photHI)
@@ -216,17 +237,17 @@ void convolve_fft_photHI(grid_t *thisGrid, fftw_complex *filter, fftw_complex *n
 	plan_filter = fftw_plan_dft_3d(nbins, nbins, nbins, filter, filter_ft, FFTW_FORWARD, FFTW_ESTIMATE);
 #endif
 	
-	write_grid_to_file_double(nion_smooth, nbins, local_n0, local_0_start, "nion_input_test.out");
+// 	write_grid_to_file_double(nion_smooth, nbins, local_n0, local_0_start, "nion_input_test.out");
 
 	fftw_execute(plan_nion);
 	fftw_execute(plan_filter);
 	
-	write_grid_to_file_double(nion_ft, nbins, local_n0, local_0_start, "nion_ft_test.out");
-	write_grid_to_file_double(filter_ft, nbins, local_n0, local_0_start, "filter_ft_test.out");
+// 	write_grid_to_file_double(nion_ft, nbins, local_n0, local_0_start, "nion_ft_test.out");
+// 	write_grid_to_file_double(filter_ft, nbins, local_n0, local_0_start, "filter_ft_test.out");
 	
 	fftw_mpi_local_size_3d_transposed(n0, n1, n2, MPI_COMM_WORLD, &local_n0x, &local_0x_start, &local_n1, &local_1_start);
 	
-	printf("local_n0 = %d\tlocal_0_start = %d\tlocal_n0x = %d\tlocal_0x_start = %d\tlocal_n1 = %d\tlocal_1_start = %d\n",local_n0,local_0_start,local_n0x,local_0x_start,local_n1,local_1_start);
+// 	printf("local_n0 = %d\tlocal_0_start = %d\tlocal_n0x = %d\tlocal_0x_start = %d\tlocal_n1 = %d\tlocal_1_start = %d\n",local_n0,local_0_start,local_n0x,local_0x_start,local_n1,local_1_start);
 	
 	for(int i=0; i<local_n0; i++)
 	{
@@ -262,7 +283,7 @@ void convolve_fft_photHI(grid_t *thisGrid, fftw_complex *filter, fftw_complex *n
 	mean_photHI = creal(nion_smooth[0])*sigma_HI/(Mpc_cm*Mpc_cm);
 	printf("mean = %e\n",mean_photHI);
 	
-	write_grid_to_file_double(nion_smooth, nbins, local_n0, local_0_start, "nion_output_test.out");
+// 	write_grid_to_file_double(nion_smooth, nbins, local_n0, local_0_start, "nion_output_test.out");
 
 	fftw_destroy_plan(plan_nion);
 	fftw_destroy_plan(plan_filter);
@@ -282,11 +303,12 @@ void convolve_fft_photHI(grid_t *thisGrid, fftw_complex *filter, fftw_complex *n
 double get_mean_photHI(grid_t *thisGrid, confObj_t simParam)
 {
 	ptrdiff_t alloc_local, local_n0, local_0_start;
-	int nbins;
+	int nbins = thisGrid->nbins;
 	fftw_complex *filter;
 	fftw_complex *nion_smooth;
-		
-	nbins = thisGrid->nbins;
+	
+	const double factor=sigma_HI/(SQR(Mpc_cm));
+
 	
 #ifdef __MPI
 	alloc_local = fftw_mpi_local_size_3d(nbins, nbins, nbins, MPI_COMM_WORLD, &local_n0, &local_0_start);
@@ -330,13 +352,10 @@ double get_mean_photHI(grid_t *thisGrid, confObj_t simParam)
 		{
 			for(int k=0; k<nbins; k++)
 			{
-				nion_smooth[i*nbins*nbins+j*nbins+k] = creal(nion_smooth[i*nbins*nbins+j*nbins+k])*sigma_HI/(Mpc_cm*Mpc_cm) + 0.*I;
-// 				if(creal(thisGrid->nion[i*nbins*nbins+j*nbins+k])>0.) printf("%e\t%e\n",creal(nion_smooth[i*nbins*nbins+j*nbins+k]),creal(nion_smooth[i*nbins*nbins+j*nbins+k-1]));
+				thisGrid->photHI[i*nbins*nbins+j*nbins+k] = creal(nion_smooth[i*nbins*nbins+j*nbins+k])*factor + 0.*I;
 			}
 		}
 	}
-	
-	write_grid_to_file_double(nion_smooth, nbins, local_n0, local_0_start, "photHI_test.out");
 	
 	free(filter);
 	free(nion_smooth);
@@ -393,13 +412,14 @@ void compute_web_ionfraction(grid_t *thisGrid, confObj_t simParam)
 			for(int comx=0; comx<nbins; comx++)
 			{
 				cell = comz*nbins*nbins + comy*nbins + comx;
-				if(creal(thisGrid->XHII[cell])==1.)
-				{
+// 				if(creal(thisGrid->XHII[cell])==1.)
+// 				{
 					//compute photHI fluctuations (\delta_{photIon})
 					photHI = creal(thisGrid->photHI[cell])*1.e12;
+// 					printf("photHI = %e\n",photHI);
 					
 					//compute self shielded overdensity
-					densSS = calc_densSS(photHI, temperature, redshift);
+					densSS = calc_densSS(simParam, photHI, temperature, redshift);
 					
 					//compute modified photHI
 					mod_photHI = calc_modPhotHI(creal(thisGrid->igm_density[cell]), densSS);
@@ -407,7 +427,8 @@ void compute_web_ionfraction(grid_t *thisGrid, confObj_t simParam)
 					
 					//compute new XHII
 					thisGrid->XHII[cell] = calc_XHII(creal(thisGrid->igm_density[cell])*mean_density, creal(thisGrid->igm_clump[cell]), mod_photHI*creal(thisGrid->mean_photHI)) + 0.*I;
-				}
+// 					printf("%e\n",creal(thisGrid->XHII[cell]));
+// 				}
 			}
 		}
 	}

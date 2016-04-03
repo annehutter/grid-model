@@ -54,6 +54,8 @@ confObj_new(parse_ini_t ini)
 		   ini, "densityInOverdensity", "General");
 	getFromIni(&(config->mean_density), parse_ini_get_double,
 		   ini, "meanDensity", "General");
+	getFromIni(&(config->default_mean_density), parse_ini_get_int32,
+		   ini, "useDefaultMeanDensity", "General");
 	
 	getFromIni(&(config->inputfiles_comoving), parse_ini_get_int32,
 		   ini, "inputFilesAreComoving", "General");
@@ -67,6 +69,8 @@ confObj_new(parse_ini_t ini)
 	           ini, "omega_l", "General");
 	getFromIni(&(config->sigma8), parse_ini_get_double,
 	           ini, "sigma8", "General");
+	getFromIni(&(config->Y), parse_ini_get_double,
+		   ini, "Y", "General");
 	
 	getFromIni(&(config->out_XHII_file), parse_ini_get_string,
 		   ini, "output_XHII_file", "General");

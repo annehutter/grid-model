@@ -181,14 +181,14 @@ void determine_ion_fractions(fftw_complex *nion_smooth, int nbins, ptrdiff_t loc
 	}
 }
 
-void choose_ion_fraction(fftw_complex *nion_smooth, grid_t *thisGrid)
+void choose_ion_fraction(fftw_complex *nion_smooth, fftw_complex *XHII_tmp, grid_t *thisGrid)
 {
 	int nbins;
-	ptrdiff_t local_0_start, local_n0;
+	ptrdiff_t local_n0;
 	fftw_complex *XHII;
 	
 	nbins = thisGrid->nbins;
-	local_0_start = thisGrid->local_0_start;
+// 	local_0_start = thisGrid->local_0_start;
 	local_n0 = thisGrid->local_n0;
 	XHII = thisGrid->XHII;
 	
@@ -198,10 +198,32 @@ void choose_ion_fraction(fftw_complex *nion_smooth, grid_t *thisGrid)
 		{
 			for(int k=0; k<nbins; k++)
 			{
-				if(creal(nion_smooth[i*nbins*nbins+j*nbins+k])>creal(XHII[i*nbins*nbins+j*nbins+k]))
+				if(creal(nion_smooth[i*nbins*nbins+j*nbins+k])>=creal(XHII_tmp[i*nbins*nbins+j*nbins+k]))
 				{
-					XHII[i*nbins*nbins+j*nbins+k] = nion_smooth[i*nbins*nbins+j*nbins+k];
+					XHII_tmp[i*nbins*nbins+j*nbins+k] =  nion_smooth[i*nbins*nbins+j*nbins+k];
 				}
+			}
+		}
+	}
+}
+
+void combine_bubble_and_web_model(fftw_complex *XHII_tmp, grid_t *thisGrid)
+{
+  	int nbins;
+	ptrdiff_t local_n0;
+	fftw_complex *XHII;
+	
+	nbins = thisGrid->nbins;
+	local_n0 = thisGrid->local_n0;
+	XHII = thisGrid->XHII;
+	
+	for(int i=0; i<local_n0; i++)
+	{
+		for(int j=0; j<nbins; j++)
+		{
+			for(int k=0; k<nbins; k++)
+			{
+				XHII[i*nbins*nbins+j*nbins+k] = XHII[i*nbins*nbins+j*nbins+k]*XHII_tmp[i*nbins*nbins+j*nbins+k];
 			}
 		}
 	}
@@ -213,6 +235,7 @@ void compute_ionization_field(grid_t *thisGrid)
 	float smooth_scale;
 	fftw_complex *filter;
 	fftw_complex *nion_smooth;
+	fftw_complex *XHII_tmp;
 	ptrdiff_t alloc_local, local_n0, local_0_start;
 
 	nbins = thisGrid->nbins;
@@ -221,13 +244,15 @@ void compute_ionization_field(grid_t *thisGrid)
 	alloc_local = fftw_mpi_local_size_3d(nbins, nbins, nbins, MPI_COMM_WORLD, &local_n0, &local_0_start);
 	filter = fftw_alloc_complex(alloc_local);
 	nion_smooth = fftw_alloc_complex(alloc_local);
+	XHII_tmp = fftw_alloc_complex(alloc_local);
 #else
 	local_0_start = thisGrid->local_0_start;
 	local_n0 = thisGrid->local_n0;
 	filter = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 	nion_smooth = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+	XHII_tmp = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 #endif
-
+	initialize_grid(XHII_tmp, nbins, local_n0, local_0_start, 0.);
 	
 	for(int scale=0; scale<nbins; scale++)
 	{
@@ -240,15 +265,16 @@ void compute_ionization_field(grid_t *thisGrid)
 // 					if(creal(thisGrid->nion[i*nbins*nbins+j*nbins+k])!=0. && scale==0) printf("before: nion_smooth[%d] = %e\n",i*nbins*nbins+j*nbins+k, creal(nion_smooth[i*nbins*nbins+j*nbins+k]));
 					nion_smooth[i*nbins*nbins+j*nbins+k] = thisGrid->nion[i*nbins*nbins+j*nbins+k];
 // 					if(creal(thisGrid->nion[i*nbins*nbins+j*nbins+k])!=0. && scale==0) printf("after: nion_smooth[%d] = %e\n",i*nbins*nbins+j*nbins+k, creal(nion_smooth[i*nbins*nbins+j*nbins+k]));
-
 				}
 			}
 		}
+		
 		printf("scale = %d\n",scale);
 		smooth_scale = nbins - (float)scale;
 		construct_tophat_filter(filter, nbins, local_0_start, local_n0, smooth_scale);
 		
 		convolve_fft(thisGrid, filter, nion_smooth);
+
 		if(scale==nbins-1)
 		{
 			determine_ion_fractions(nion_smooth, nbins, local_0_start, local_n0, 1);
@@ -256,11 +282,14 @@ void compute_ionization_field(grid_t *thisGrid)
 			determine_ion_fractions(nion_smooth, nbins, local_0_start, local_n0, 0);
 		}
 		
-		choose_ion_fraction(nion_smooth, thisGrid);
+		choose_ion_fraction(nion_smooth, XHII_tmp, thisGrid);
 	}
 	
+	combine_bubble_and_web_model(XHII_tmp, thisGrid);
+
 	fftw_free(filter);
 	fftw_free(nion_smooth);
+	fftw_free(XHII_tmp);
 }
 
 

@@ -22,4 +22,4 @@ typedef struct
 sourcelist_t *allocate_sourcelist(int num_sources);
 void deallocate_sourcelist(sourcelist_t *thisSourcelist);
 sourcelist_t *read_sources(char * filename);
-int count_sources(char *filename);
+int count_sources(char *filename); 

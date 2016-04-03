@@ -37,6 +37,7 @@ grid_t *initGrid()
 	newGrid->nion = NULL;
 	
 	newGrid->XHII = NULL;
+	newGrid->nrec = NULL;
 	
 	newGrid->photHI = NULL;
 	newGrid->mean_photHI = 0.;
@@ -74,6 +75,7 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
 	thisGrid->igm_clump = fftw_alloc_complex(alloc_local);
 	thisGrid->nion = fftw_alloc_complex(alloc_local);
 	thisGrid->XHII = fftw_alloc_complex(alloc_local);
+	thisGrid->nrec = fftw_alloc_complex(alloc_local);
 	thisGrid->photHI = fftw_alloc_complex(alloc_local);
 #else
 	thisGrid->igm_density = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
@@ -81,6 +83,7 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
 	thisGrid->igm_clump = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 	thisGrid->nion = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 	thisGrid->XHII = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+	thisGrid->nrec = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 	thisGrid->photHI = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 
 #endif
@@ -90,6 +93,7 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
 // 	initialize_grid(thisGrid->igm_clump, nbins, local_n0, local_0_start, 1.);
 	initialize_grid(thisGrid->nion, nbins, local_n0, local_0_start, 0.);
 	initialize_grid(thisGrid->XHII, nbins, local_n0, local_0_start, 0.);
+	initialize_grid(thisGrid->nrec, nbins, local_n0, local_0_start, 0.);
 	initialize_grid(thisGrid->photHI, nbins, local_n0, local_0_start, 0.);
 	
 #ifdef __MPI
@@ -162,6 +166,7 @@ void deallocate_grid(grid_t *thisGrid)
 	fftw_free(thisGrid->igm_clump);
 	fftw_free(thisGrid->nion);
 	fftw_free(thisGrid->XHII);
+	fftw_free(thisGrid->nrec);
 	fftw_free(thisGrid->photHI);
 	free(thisGrid);
 }

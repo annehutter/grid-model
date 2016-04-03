@@ -36,6 +36,7 @@ struct confObj_struct {
 	
 	int 			dens_in_overdensity;
 	double			mean_density;
+	int			default_mean_density;
 	
 	int 			inputfiles_comoving;
 	
@@ -44,6 +45,7 @@ struct confObj_struct {
 	double 			omega_m;
 	double 			omega_l;
 	double			sigma8;
+	double			Y;
 	
 	char			*out_XHII_file;
 	
