@@ -43,7 +43,7 @@ double calc_densSS(confObj_t simParam, double photHI, double temperature, double
 	if(simParam->default_mean_density == 1){
 		rho = rho_g_cm;
 	}else{
-		rho = simParam->mean_density;
+		rho = simParam->mean_density*mp_g;
 	}
 // 	printf("%e\t%e\t%e\n", photHI, temperature, redshift);
 	

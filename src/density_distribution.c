@@ -85,7 +85,7 @@ double calc_integral_mass(pdf_params_t params, double upLim)
 	return result;
 }
 
-void set_norm_pdf(pdf_params_t * params, confObj_t simParam)
+void set_norm_pdf(pdf_params_t * params, double redshift)
 {
 	double result, result_mass;
 	double old_result, old_result_mass;
@@ -93,13 +93,15 @@ void set_norm_pdf(pdf_params_t * params, confObj_t simParam)
 	double old_chi, chi;
 	
 	int rand_amp, rand_const;
-	double precision = 1.e-4;
+	double precision = 1.e-3;
+	
+	int counter;
 	
 	// construct struct
 // 	pdf_params_t *params;
 // 	params = malloc(sizeof(pdf_params_t));
 	
-	params->redshift = simParam->redshift;
+	params->redshift = redshift;
 	params->amplitude = 1.;
 	params->constant = 1.;
 	params->beta = 2.5;
@@ -110,7 +112,8 @@ void set_norm_pdf(pdf_params_t * params, confObj_t simParam)
 	chi = (result-1.)*(result-1.)+(result_mass-1.)*(result_mass-1.);
 
 	// adapt struct, so integral is 1
-	while(fabs(result_mass-1.)>=precision || fabs(result-1.)>=precision)
+	counter = 0;
+	while((fabs(result_mass-1.)>=precision || fabs(result-1.)>=precision) && counter<300000)
 	{
 		rand_amp = 2*(rand()%2)-1;
 		rand_const = 2*(rand()%2)-1;
@@ -135,7 +138,9 @@ void set_norm_pdf(pdf_params_t * params, confObj_t simParam)
 			result_mass = old_result_mass;
 			chi = old_chi;
 		}
+		counter++;
 	}
+	printf("counter = %d\n", counter);
 	
 	printf("%e\t%e\t A = %e\t C = %e\n", result, result_mass, params->amplitude, params->constant);
 }

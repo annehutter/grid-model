@@ -127,6 +127,7 @@ void read_grid(fftw_complex *toThisArray, int nbins, int local_n0, int local_0_s
 	MPI_File_read_at_all(mpifile,offset,tmparray, local_n0*nbins*nbins,MPI_FLOAT,&status);
 	MPI_File_close(&mpifile);
 #else
+	FILE *fp;
 	fp = fopen(filename, "rb");
 	fread(tmparray, sizeof(float), nbins*nbins*nbins, fp);
 	fclose(fp);

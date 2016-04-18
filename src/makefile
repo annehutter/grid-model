@@ -1,7 +1,7 @@
-CC = mpicc
-CFLAGS = -c -std=c99 -D __MPI -march=native -O3 -Wall -Wextra -Wshadow -ftree-vectorize -lm
-LDFLAGS = -lfftw3_mpi -lfftw3 -lm -lmpich -lgsl -lgslcblas
-SOURCES = 	./main.c \
+CC := mpicc
+CFLAGS := -c -std=c99 -D __MPI -march=native -lm -Wall -Wextra -Wshadow #-ftree-vectorize  -O3 
+LDFLAGS := -lfftw3_mpi -lfftw3 -lm -lmpich -lgsl -lgslcblas
+SOURCES := 	./main.c \
 		./confObj.c \
 		./parse_ini.c \
 		./xmem.c \
@@ -15,9 +15,9 @@ SOURCES = 	./main.c \
 		./self_shielding.c \
 		./density_distribution.c \
 		./recombination.c 
-OBJECTS = $(SOURCES:.c=.o)
-DOBJECTS = $(SOURCES:.c=.d)
-EXECUTABLE = cifog
+OBJECTS := $(SOURCES:.c=.o)
+DOBJECTS := $(SOURCES:.c=.d)
+EXECUTABLE := cifog
 
 .PHONY: all clean
 

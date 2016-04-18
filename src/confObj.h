@@ -54,6 +54,8 @@ struct confObj_struct {
 	int			compute_photHIfield;
 	double			mfp;
 	char			*out_photHI_file;
+	
+	int			generate_recomb_tables;
 };
 
 

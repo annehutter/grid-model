@@ -37,7 +37,7 @@ void compute_Q(grid_t *thisGrid, confObj_t simParam)
 	evol_time = simParam->evol_time*Myr_s;
 	z = simParam->redshift;
 	if(simParam->default_mean_density == 1){
-		mean_numdensity = rho_g_cm/mp_g*0.2*(1.+z)*(1.+z)*(1.+z)*0.01;
+		mean_numdensity = rho_g_cm/mp_g*simParam->h*simParam->h*simParam->omega_b*(1.+z)*(1.+z)*(1.+z);
 	}else{
 		mean_numdensity = simParam->mean_density*(1.+z)*(1.+z)*(1.+z);
 	}

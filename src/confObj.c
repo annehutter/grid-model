@@ -86,6 +86,8 @@ confObj_new(parse_ini_t ini)
 	getFromIni(&(config->out_photHI_file), parse_ini_get_string,
 		   ini, "output_photHI_file", "General");
 
+	getFromIni(&(config->generate_recomb_tables), parse_ini_get_int32,
+		   ini, "generateRecombinationTables", "General");
 	return config;
 }
 
