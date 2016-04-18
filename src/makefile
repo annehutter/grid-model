@@ -1,6 +1,3 @@
-CC := mpicc
-CFLAGS := -c -std=c99 -D __MPI -march=native -lm -Wall -Wextra -Wshadow #-ftree-vectorize  -O3 
-LDFLAGS := -lfftw3_mpi -lfftw3 -lm -lmpich -lgsl -lgslcblas
 SOURCES := 	./main.c \
 		./confObj.c \
 		./parse_ini.c \
@@ -18,6 +15,22 @@ SOURCES := 	./main.c \
 OBJECTS := $(SOURCES:.c=.o)
 DOBJECTS := $(SOURCES:.c=.d)
 EXECUTABLE := cifog
+
+USE-MPI = no
+
+OPTIMIZE = -O3 -ftree-vectorize
+WARNING = -Wall -Wextra -Wshadow
+
+ifdef USE-MPI
+	CC := mpicc
+	CFLAGS := -c -std=c99 -march=native -lm $(WARNING) $(OPTIMIZE) -D __MPI
+	LDFLAGS := -lfftw3_mpi -lfftw3 -lm -lmpich -lgsl -lgslcblas
+
+else
+	CC := gcc
+	CFLAGS := -c -std=c99 -march=native -lm $(WARNING) $(OPTIMIZE) 
+	LDFLAGS := -lfftw3 -lm -lgsl -lgslcblas
+endif
 
 .PHONY: all clean
 

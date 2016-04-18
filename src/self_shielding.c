@@ -244,9 +244,10 @@ void convolve_fft_photHI(grid_t *thisGrid, fftw_complex *filter, fftw_complex *n
 	
 // 	write_grid_to_file_double(nion_ft, nbins, local_n0, local_0_start, "nion_ft_test.out");
 // 	write_grid_to_file_double(filter_ft, nbins, local_n0, local_0_start, "filter_ft_test.out");
-	
+
+#ifdef __MPI
 	fftw_mpi_local_size_3d_transposed(n0, n1, n2, MPI_COMM_WORLD, &local_n0x, &local_0x_start, &local_n1, &local_1_start);
-	
+#endif
 // 	printf("local_n0 = %d\tlocal_0_start = %d\tlocal_n0x = %d\tlocal_0x_start = %d\tlocal_n1 = %d\tlocal_1_start = %d\n",local_n0,local_0_start,local_n0x,local_0x_start,local_n1,local_1_start);
 	
 	for(int i=0; i<local_n0; i++)
