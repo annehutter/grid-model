@@ -16,10 +16,10 @@ OBJECTS := $(SOURCES:.c=.o)
 DOBJECTS := $(SOURCES:.c=.d)
 EXECUTABLE := cifog
 
-USE-MPI = no
+# USE-MPI = 
 
 OPTIMIZE = -O3 -ftree-vectorize
-WARNING = -Wall -Wextra -Wshadow
+WARNING = -Wall -Wextra -Wshadow -g
 
 ifdef USE-MPI
 	CC := mpicc

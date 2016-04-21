@@ -140,8 +140,9 @@ sourcelist_t *read_sources(char * filename)
 			newSourcelist->Nallocated = nallocated;
 		}
 	}
+	assert(numSources == newSourcelist->numSources);
 	numSources = newSourcelist->numSources;
-	newSourcelist->source = realloc(newSourcelist->source, numSources*sizeof(source_t*));
+	newSourcelist->source = realloc(newSourcelist->source, numSources*sizeof(source_t));
 	
 	fclose(fp);
 	

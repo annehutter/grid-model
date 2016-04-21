@@ -97,10 +97,6 @@ void set_norm_pdf(pdf_params_t * params, double redshift)
 	
 	int counter;
 	
-	// construct struct
-// 	pdf_params_t *params;
-// 	params = malloc(sizeof(pdf_params_t));
-	
 	params->redshift = redshift;
 	params->amplitude = 1.;
 	params->constant = 1.;
@@ -195,8 +191,6 @@ double frac_densSS(double densSS, confObj_t simParam)
 			result_mass = old_result_mass;
 			chi = old_chi;
 		}
-// 			printf("in while loop:\t %e\t%e\t%e\t%e\t %e\t %e\n", result, result_mass, fabs(result-1.), fabs(result_mass-1.), chi, old_chi);
-		
 	}
 	
 	printf("%e\t%e\t A = %e\t C = %e\t densSS = %e\n", result, result_mass, params->amplitude, params->constant, densSS);
@@ -209,19 +203,21 @@ double frac_densSS(double densSS, confObj_t simParam)
 	return result;
 }
 
-
-double calc_mfp(confObj_t simParam)
+double calc_mfp(confObj_t simParam, double photHI_bg, double temperature, double redshift)
 {
 	double lambda_0 = 60./Hubble(simParam);	//in Mpc
-	double redshift = simParam->redshift;
 	double densSS;
 	double mfp;
 	
-	densSS = calc_densSS(simParam, simParam->photHI_bg,1.e4,simParam->redshift);
+	densSS = calc_densSS(simParam, photHI_bg, temperature, redshift);
 	
 	mfp = lambda_0*(1.+redshift)*pow(1.-frac_densSS(densSS, simParam),-2./3.); 
-	simParam->mfp = mfp;
 	
 	return mfp;
+}
+
+void set_mfp_Miralda2000(confObj_t simParam)
+{
+	simParam->mfp = calc_mfp(simParam, simParam->photHI_bg, 1.e4, simParam->redshift);
 }
 

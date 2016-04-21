@@ -41,7 +41,12 @@ void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam, char *f
 	local_n0 = thisGrid->local_n0;
 	
 	temp = 1.e4;
-	zstart = 15.;
+	if(simParam->read_nrec_file == 1 || simParam->calc_ion_history == 1)
+	{
+		zstart = simParam->redshift_prev_snap;
+	}else{
+		zstart = 15.;
+	}
 	redshift = simParam->redshift;
 		
 	integral_table = read_table_integrals(filename, thisIntegralTable);
@@ -54,7 +59,7 @@ void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam, char *f
 			{
 				dens = creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k]);
 				photHI = creal(thisGrid->photHI[i*nbins*nbins+j*nbins+k]);
-				thisGrid->nrec[i*nbins*nbins+j*nbins+k] =  get_nrec_history(simParam, thisIntegralTable, integral_table, dens, photHI, temp, zstart, redshift)+0.*I;
+				thisGrid->nrec[i*nbins*nbins+j*nbins+k] +=  get_nrec_history(simParam, thisIntegralTable, integral_table, dens, photHI, temp, zstart, redshift)+0.*I;
 // 				printf("nrec = %e\t dens = %e\t photHI = %e\t %e\n", creal(thisGrid->nrec[i*nbins*nbins+j*nbins+k]), dens, photHI, pow(dens, 1./3.));
 			}
 		}
@@ -127,17 +132,18 @@ void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam, char *f
 double get_nrec_history(confObj_t simParam, integral_table_t *thisIntegralTable, double *integral_table, double dens, double photHI, double temp, double zstart, double redshift)
 {
 	double tmp;
-	double mean_numdensity, correctFact;
-	double z, factor, dcell;
+// 	double mean_numdensity; 
+	double correctFact;
+	double factor, dcell;
 	int numz, zstart_index, redshift_index;
 	int numf, factor_index;
 	int numdcell, dcell_index;
 	
 	if(simParam->default_mean_density == 1){
-		mean_numdensity = rho_g_cm/mp_g*simParam->h*simParam->h*simParam->omega_b;
+// 		mean_numdensity = rho_g_cm/mp_g*simParam->h*simParam->h*simParam->omega_b;
 		correctFact = 1.;
 	}else{
-		mean_numdensity = simParam->mean_density;
+// 		mean_numdensity = simParam->mean_density;
 		correctFact = simParam->mean_density/(rho_g_cm/mp_g*simParam->h*simParam->h*simParam->omega_b);
 	}
 
@@ -151,23 +157,18 @@ double get_nrec_history(confObj_t simParam, integral_table_t *thisIntegralTable,
 	numf = (thisIntegralTable->fmax - thisIntegralTable->fmin)/thisIntegralTable->df+1;
 	factor_index = (log10(factor) - thisIntegralTable->fmin)/thisIntegralTable->df;
 	
-	assert(factor_index>=0 && factor_index<numf);
+// 	assert(factor_index>=0 && factor_index<numf);
 
 	numz = (thisIntegralTable->zmax - thisIntegralTable->zmin)/thisIntegralTable->dz+1;
 	zstart_index = (zstart  - thisIntegralTable->zmin)/thisIntegralTable->dz;
 	redshift_index = (redshift - thisIntegralTable->zmin)/thisIntegralTable->dz;
 	
-	assert(redshift_index>=0 && redshift_index<numz);
-
-// 	printf("numdens = %e\tfactor = %e\n",mean_numdensity, factor);
-// 	printf("dcell_index = %d\t factor_index = %d\t redshift_index = %d\n", dcell_index, factor_index, redshift_index);
+// 	assert(redshift_index>=0 && redshift_index<numz);
 
 	tmp = 0.;
 	for(int i=redshift_index; i<zstart_index; i++)
 	{
-		z = thisIntegralTable->zmin + i*thisIntegralTable->dz;
 		tmp += integral_table[numz*numf*dcell_index + numz*factor_index + i];
-// 		printf("z=%e:\t %e\n",z,tmp);
 	}
 	tmp = tmp*photHI*1.e12;
 	
@@ -539,7 +540,6 @@ double *create_table_redshift(redshift_table_t *thisRedshiftTable, confObj_t sim
 		for(int j=0; j<num2; j++)
 		{
 			z = thisRedshiftTable->zmin+j*dz;
-// 			printf("z = %e\t dens_cell = %e\n",z,dens_cell);
 			params->z = z;
 			array[i*num2*3+3*j] = dens_cell;
 			array[i*num2*3+3*j+1] = z;
@@ -610,6 +610,7 @@ void compute_table_redshift(double dens_cell_min, double dens_cell_max, double d
 //------------------------------------------------------------------------------
 // write table
 //------------------------------------------------------------------------------
+
 
 void write_table(int num, int offset, double *array, char *filename)
 {

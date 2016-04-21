@@ -36,16 +36,11 @@ void construct_tophat_filter(fftw_complex *filter, int nbins, ptrdiff_t local_0_
 			  
 			  const double expr = sq_i_expr + sq_j_expr + sq_k_expr - sq_smooth_scale;
 			  normCoeff += (expr<=0.) ? 1.:0.;
-// 			  if(pow((float)(nbins/2-abs(i-nbins/2)),2)+pow((float)(nbins/2-abs(j-nbins/2)),2)+pow((float)(nbins/2-abs(k-nbins/2)),2)<=pow(smooth_scale*0.5,2)){
-// 					normCoeff += 1.;
-// 				}
 			}
 		}
 	}
 	normCoeff = 1./normCoeff;
 	
-// 	printf("normCoeff = %e\n",normCoeff);
-
 	for(int i=0; i<local_n0; i++)
 	{
 		const double i_expr = half_nbins-abs(i + local_0_start - half_nbins);		
@@ -62,12 +57,6 @@ void construct_tophat_filter(fftw_complex *filter, int nbins, ptrdiff_t local_0_
 				const double expr = sq_i_expr + sq_j_expr + sq_k_expr - sq_smooth_scale;
 				
 				filter[i*nbins*nbins+j*nbins+k] = (expr<=0.) ? normCoeff+0.*I : 0.+0.*I;
-// 				if(pow((float)(nbins/2-abs(i+local_0_start-nbins/2)),2)+pow((float)(nbins/2-abs(j-nbins/2)),2)+pow((float)(nbins/2-abs(k-nbins/2)),2)<=pow(smooth_scale*0.5,2))
-// 				{
-// 					filter[i*nbins*nbins+j*nbins+k] = normCoeff+0.*I;
-// 				}else{
-// 					filter[i*nbins*nbins+j*nbins+k] = 0.+0.*I;
-// 				}
 			}
 		}
 	}
@@ -77,26 +66,24 @@ void convolve_fft(grid_t *thisGrid, fftw_complex *filter, fftw_complex *nion_smo
 {
 	int nbins;
 	double factor;
+#ifdef __MPI
 	ptrdiff_t alloc_local, local_n0, local_0_start;
-	
-// 	ptrdiff_t n0, n1, n2, local_n1, local_1_start, local_n0x, local_0x_start;
+#else
+	ptrdiff_t local_n0;
+#endif
 	
 	fftw_complex *nion;
 	fftw_complex *nion_ft, *filter_ft;
 	fftw_plan plan_nion, plan_filter, plan_back;
 	
 	nbins = thisGrid->nbins;
-	nion = thisGrid->nion;
-	local_0_start = thisGrid->local_0_start;
+	nion = thisGrid->frac_Q;
 	local_n0 = thisGrid->local_n0;
 	
-// 	n0 = nbins;
-// 	n1 = nbins;
-// 	n2 = nbins;
-	
 #ifdef __MPI
+	local_0_start = thisGrid->local_0_start;
+	
 	alloc_local = fftw_mpi_local_size_3d(nbins, nbins, nbins, MPI_COMM_WORLD, &local_n0, &local_0_start);
-// 	printf("local_0_start = %d\t %d\t local_n0 = %d\t %d", local_0_start, thisGrid->local_0_start, local_n0, thisGrid->local_n0);
 	assert(local_0_start == thisGrid->local_0_start);
 	assert(local_n0 == thisGrid->local_n0);
 	
@@ -116,10 +103,6 @@ void convolve_fft(grid_t *thisGrid, fftw_complex *filter, fftw_complex *nion_smo
 	fftw_execute(plan_nion);
 	fftw_execute(plan_filter);
 	
-// 	fftw_mpi_local_size_3d_transposed(n0, n1, n2, MPI_COMM_WORLD, &local_n0x, &local_0x_start, &local_n1, &local_1_start);
-	
-// 	printf("local_n0 = %d\tlocal_0_start = %d\tlocal_n0x = %d\tlocal_0x_start = %d\tlocal_n1 = %d\tlocal_1_start = %d\n",local_n0,local_0_start,local_n0x,local_0x_start,local_n1,local_1_start);
-		
 	for(int i=0; i<local_n0; i++)
 	{
 		for(int j=0; j<nbins; j++)
@@ -159,7 +142,7 @@ void convolve_fft(grid_t *thisGrid, fftw_complex *filter, fftw_complex *nion_smo
 	fftw_free(filter_ft);
 }
 
-void determine_ion_fractions(fftw_complex *nion_smooth, int nbins, ptrdiff_t local_0_start, ptrdiff_t local_n0, int smallest_scale)
+void determine_ion_fractions(fftw_complex *nion_smooth, int nbins, ptrdiff_t local_n0, int smallest_scale)
 {
 	for(int i=0; i<local_n0; i++)
 	{
@@ -185,12 +168,9 @@ void choose_ion_fraction(fftw_complex *nion_smooth, fftw_complex *XHII_tmp, grid
 {
 	int nbins;
 	ptrdiff_t local_n0;
-	fftw_complex *XHII;
 	
 	nbins = thisGrid->nbins;
-// 	local_0_start = thisGrid->local_0_start;
 	local_n0 = thisGrid->local_n0;
-	XHII = thisGrid->XHII;
 	
 	for(int i=0; i<local_n0; i++)
 	{
@@ -202,6 +182,27 @@ void choose_ion_fraction(fftw_complex *nion_smooth, fftw_complex *XHII_tmp, grid
 				{
 					XHII_tmp[i*nbins*nbins+j*nbins+k] =  nion_smooth[i*nbins*nbins+j*nbins+k];
 				}
+			}
+		}
+	}
+}
+
+
+void map_bubbles_to_nrec(fftw_complex *XHII_tmp, grid_t *thisGrid)
+{
+  	int nbins;
+	ptrdiff_t local_n0;
+	
+	nbins = thisGrid->nbins;
+	local_n0 = thisGrid->local_n0;
+	
+	for(int i=0; i<local_n0; i++)
+	{
+		for(int j=0; j<nbins; j++)
+		{
+			for(int k=0; k<nbins; k++)
+			{
+				thisGrid->nrec[i*nbins*nbins+j*nbins+k] = thisGrid->nrec[i*nbins*nbins+j*nbins+k]*XHII_tmp[i*nbins*nbins+j*nbins+k];
 			}
 		}
 	}
@@ -229,16 +230,51 @@ void combine_bubble_and_web_model(fftw_complex *XHII_tmp, grid_t *thisGrid)
 	}
 }
 
-void compute_ionization_field(grid_t *thisGrid)
+void copy_grid_array(fftw_complex *XHII_tmp, grid_t *thisGrid)
+{
+  	int nbins;
+	ptrdiff_t local_n0;
+	fftw_complex *XHII;
+	
+	nbins = thisGrid->nbins;
+	local_n0 = thisGrid->local_n0;
+	XHII = thisGrid->XHII;
+	
+	for(int i=0; i<local_n0; i++)
+	{
+		for(int j=0; j<nbins; j++)
+		{
+			for(int k=0; k<nbins; k++)
+			{
+				XHII[i*nbins*nbins+j*nbins+k] = XHII_tmp[i*nbins*nbins+j*nbins+k];
+			}
+		}
+	}
+}
+
+void compute_ionization_field(confObj_t simParam, grid_t *thisGrid)
 {
 	int nbins;
 	float smooth_scale;
+	float box_size;
+	float lin_scales, inc_log_scales;
+	
 	fftw_complex *filter;
 	fftw_complex *nion_smooth;
 	fftw_complex *XHII_tmp;
+#ifdef __MPI
 	ptrdiff_t alloc_local, local_n0, local_0_start;
+#else
+	ptrdiff_t local_n0, local_0_start;
+#endif
+	
+	float inc, factor_exponent, lin_bins;
+	int num_scales;
 
 	nbins = thisGrid->nbins;
+	box_size = thisGrid->box_size;
+	lin_scales = thisGrid->lin_scales;
+	inc_log_scales = thisGrid->inc_log_scales;
 	
 #ifdef __MPI
 	alloc_local = fftw_mpi_local_size_3d(nbins, nbins, nbins, MPI_COMM_WORLD, &local_n0, &local_0_start);
@@ -252,9 +288,15 @@ void compute_ionization_field(grid_t *thisGrid)
 	nion_smooth = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 	XHII_tmp = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 #endif
-	initialize_grid(XHII_tmp, nbins, local_n0, local_0_start, 0.);
+	initialize_grid(XHII_tmp, nbins, local_n0, 0.);
 	
-	for(int scale=0; scale<nbins; scale++)
+	
+	lin_bins = lin_scales/box_size*(float)nbins;
+	factor_exponent = inc_log_scales/lin_bins;
+	num_scales = (log(box_size/lin_scales) + lin_bins*log(1.+factor_exponent))/log(1. + factor_exponent );
+	printf("lin_bins = %e\t factor_exponent = %e\t num_scales = %d\n", lin_bins, factor_exponent, num_scales);
+	
+	for(int scale=0; scale<num_scales; scale++)
 	{
 	  	for(int i=0; i<local_n0; i++)
 		{
@@ -262,30 +304,40 @@ void compute_ionization_field(grid_t *thisGrid)
 			{
 				for(int k=0; k<nbins; k++)
 				{
-// 					if(creal(thisGrid->nion[i*nbins*nbins+j*nbins+k])!=0. && scale==0) printf("before: nion_smooth[%d] = %e\n",i*nbins*nbins+j*nbins+k, creal(nion_smooth[i*nbins*nbins+j*nbins+k]));
-					nion_smooth[i*nbins*nbins+j*nbins+k] = thisGrid->nion[i*nbins*nbins+j*nbins+k];
-// 					if(creal(thisGrid->nion[i*nbins*nbins+j*nbins+k])!=0. && scale==0) printf("after: nion_smooth[%d] = %e\n",i*nbins*nbins+j*nbins+k, creal(nion_smooth[i*nbins*nbins+j*nbins+k]));
+					nion_smooth[i*nbins*nbins+j*nbins+k] = thisGrid->frac_Q[i*nbins*nbins+j*nbins+k];
 				}
 			}
 		}
 		
-		printf("scale = %d\n",scale);
-		smooth_scale = nbins - (float)scale;
+		
+		inc = (float)num_scales - (float)scale;
+		
+		if(inc <= lin_bins) smooth_scale = inc;
+		else smooth_scale = lin_bins*pow(1. + factor_exponent, inc-lin_bins);
+		
+		printf("inc = %e\t lin_bins = %e\t scale = %d\t smooth_scale = %e\n",inc, lin_bins, scale, smooth_scale);
+
 		construct_tophat_filter(filter, nbins, local_0_start, local_n0, smooth_scale);
 		
 		convolve_fft(thisGrid, filter, nion_smooth);
 
-		if(scale==nbins-1)
+		if(scale==num_scales-1)
 		{
-			determine_ion_fractions(nion_smooth, nbins, local_0_start, local_n0, 1);
+			determine_ion_fractions(nion_smooth, nbins, local_n0, 1);
 		}else{
-			determine_ion_fractions(nion_smooth, nbins, local_0_start, local_n0, 0);
+			determine_ion_fractions(nion_smooth, nbins, local_n0, 0);
 		}
 		
 		choose_ion_fraction(nion_smooth, XHII_tmp, thisGrid);
 	}
 	
-	combine_bubble_and_web_model(XHII_tmp, thisGrid);
+	if(simParam->use_web_model == 1)
+	{
+		combine_bubble_and_web_model(XHII_tmp, thisGrid);
+		map_bubbles_to_nrec(XHII_tmp, thisGrid);
+	}else{
+		copy_grid_array(XHII_tmp, thisGrid);
+	}
 
 	fftw_free(filter);
 	fftw_free(nion_smooth);

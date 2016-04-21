@@ -43,6 +43,10 @@ confObj_new(parse_ini_t ini)
 		   ini, "gridsize", "General");
 	getFromIni(&(config->box_size), parse_ini_get_double,
 	           ini, "boxsize", "General");
+	getFromIni(&(config->lin_scales), parse_ini_get_double,
+	           ini, "size_linear_scale", "General");
+	getFromIni(&(config->inc_log_scales), parse_ini_get_double,
+	           ini, "first_increment_in_logscale", "General");
 	
 	getFromIni(&(config->sources_file), parse_ini_get_string,
 	           ini, "inputSourcesFile", "General");
@@ -77,17 +81,56 @@ confObj_new(parse_ini_t ini)
 	
 	getFromIni(&(config->use_web_model), parse_ini_get_int32,
 		   ini, "useWebModel", "General");
+	getFromIni(&(config->const_photHI), parse_ini_get_int32,
+		   ini, "constantPhotHI", "General");
 	getFromIni(&(config->photHI_bg), parse_ini_get_double,
-		   ini, "photionRateHI_bg", "General");
-	getFromIni(&(config->compute_photHIfield), parse_ini_get_int32,
-		   ini, "computePhotionHIfield_opticallyThin", "General");
+		   ini, "photHI_bg", "General");
+	getFromIni(&(config->calc_mfp), parse_ini_get_int32,
+	           ini, "meanFreePathInIonizedMedium", "General");
 	getFromIni(&(config->mfp), parse_ini_get_double,
 	           ini, "meanFreePathInIonizedMedium", "General");
+	getFromIni(&(config->write_photHI_file), parse_ini_get_int32,
+	           ini, "write_photHI_file", "General");
 	getFromIni(&(config->out_photHI_file), parse_ini_get_string,
 		   ini, "output_photHI_file", "General");
 
-	getFromIni(&(config->generate_recomb_tables), parse_ini_get_int32,
-		   ini, "generateRecombinationTables", "General");
+	getFromIni(&(config->calc_recomb), parse_ini_get_int32,
+		   ini, "calcRecombinations", "General");
+	getFromIni(&(config->recomb_table), parse_ini_get_string,
+		   ini, "recombinationTable", "General");
+	getFromIni(&(config->zmin), parse_ini_get_double,
+		   ini, "zmin", "General");
+	getFromIni(&(config->zmax), parse_ini_get_double,
+		   ini, "zmax", "General");
+	getFromIni(&(config->dz), parse_ini_get_double,
+		   ini, "dz", "General");
+	getFromIni(&(config->fmin), parse_ini_get_double,
+		   ini, "fmin", "General");
+	getFromIni(&(config->fmax), parse_ini_get_double,
+		   ini, "fmax", "General");
+	getFromIni(&(config->df), parse_ini_get_double,
+		   ini, "df", "General");
+	getFromIni(&(config->dcellmin), parse_ini_get_double,
+		   ini, "dcellmin", "General");
+	getFromIni(&(config->dcellmax), parse_ini_get_double,
+		   ini, "dcellmax", "General");
+	getFromIni(&(config->ddcell), parse_ini_get_double,
+		   ini, "ddcell", "General");
+	
+	getFromIni(&(config->calc_ion_history), parse_ini_get_int32,
+		   ini, "calcIonHistory", "General");
+	getFromIni(&(config->delta_redshift), parse_ini_get_double,
+		   ini, "delta_redshift", "General");
+	
+	getFromIni(&(config->read_nrec_file), parse_ini_get_int32,
+		   ini, "readNrecFile", "General");
+	getFromIni(&(config->redshift_prev_snap), parse_ini_get_double,
+		   ini, "redshift_prevSnapshot", "General");
+	getFromIni(&(config->nrec_file), parse_ini_get_string,
+		   ini, "inputRecombFile", "General");
+	getFromIni(&(config->output_nrec_file), parse_ini_get_string,
+		   ini, "outputRecombFile", "General");
+	
 	return config;
 }
 
@@ -101,6 +144,11 @@ confObj_del(confObj_t *config)
 	xfree((*config)->halo_density_file);
 	xfree((*config)->igm_clump_file);
 	xfree((*config)->sources_file);
+	xfree((*config)->out_XHII_file);
+	xfree((*config)->out_photHI_file);
+	xfree((*config)->recomb_table);
+	xfree((*config)->nrec_file);
+	xfree((*config)->output_nrec_file);
 	xfree(*config);
 	*config = NULL;
 }

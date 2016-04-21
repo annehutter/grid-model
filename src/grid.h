@@ -8,6 +8,8 @@ typedef struct
 {
 	int nbins;
 	float box_size;
+	float lin_scales;
+	float inc_log_scales;
 	
 	float xmin, ymin, zmin;
 	
@@ -15,6 +17,7 @@ typedef struct
 	fftw_complex *halo_density;
 	fftw_complex *igm_clump;
 	fftw_complex *nion;
+	fftw_complex *frac_Q;
 	
 	fftw_complex *XHII;
 	fftw_complex *nrec;
@@ -31,7 +34,7 @@ typedef struct
 grid_t *initGrid();
 void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput);
 void read_grid(fftw_complex *toThisArray, int nbins, int local_n0, int local_0_start, char *filename);
-void initialize_grid(fftw_complex *thisArray, int nbins, int local_n0, int local_0_start, double value);
+void initialize_grid(fftw_complex *thisArray, int nbins, int local_n0, double value);
 void deallocate_grid(grid_t *thisGrid);
 void write_grid_to_file_float(fftw_complex *thisArray, int nbins, int local_n0, int local_0_start, char *filename);
 void write_grid_to_file_double(fftw_complex *thisArray, int nbins, int local_n0, int local_0_start, char *filename);

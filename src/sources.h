@@ -4,8 +4,8 @@
 
 typedef struct
 {
-	float pos[3];
 	double Nion;
+	float pos[3];
 	float fesc;
 } source_t;
 

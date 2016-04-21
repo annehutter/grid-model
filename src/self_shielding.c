@@ -29,8 +29,6 @@ double calc_modPhotHI(double densH, double densSS)
 
 double calc_densSS(confObj_t simParam, double photHI, double temperature, double redshift)
 {
-// 	return 15.*pow(photHI*10.,2./3.)*pow(temperature*1.e-4,-0.13)*pow((1.+redshift)/7.,-3);
-	
 	double tmp, tmp2, rec_rate;
 	const double omega_b = simParam->omega_b;
 	const double omega_m = simParam->omega_m;
@@ -58,12 +56,8 @@ double calc_XHII(double dens, double clump, double photHI)
 {
 	double tmp, tmp2;
 	
-// 	tmp = 2.*dens*clump*recomb_HII;
-// 	tmp2 = photHI/tmp*(sqrt(1.+2.*tmp/photHI)-1.);
-	
 	tmp = photHI/(dens*clump*recomb_HII);
 	tmp2 = 0.5*(tmp + 2. - sqrt((tmp +2.)*(tmp + 2.)-4.));
-// 	printf("XHII = %e\t dens = %e\t clump = %e\t photHI = %e\n", tmp2, dens, clump, photHI);
 	if((1.-tmp2)>1.) return 1.;
 	else return (1.-tmp2);
 }
@@ -86,7 +80,7 @@ void compute_photoionization_field(grid_t *thisGrid, sourcelist_t *thisSourcelis
 	int numSources;
 	
   	int nbins;
-	double nbins_inv, boxsize_cm, boxsize_cm_inv;
+	double nbins_inv, boxsize_cm_inv;
 	ptrdiff_t local_0_start, local_n0;
 	
 	double mfp_inv;
@@ -97,7 +91,6 @@ void compute_photoionization_field(grid_t *thisGrid, sourcelist_t *thisSourcelis
 	
 	nbins = thisGrid->nbins;
 	nbins_inv = 1./(double)nbins;
-	boxsize_cm = simParam->box_size/(1.+simParam->redshift)*Mpc_cm;	//boxsize at z in cm
 	boxsize_cm_inv = (1.+simParam->redshift)/(simParam->box_size*Mpc_cm);	//inverse boxsize at z in cm
 
 	local_0_start = thisGrid->local_0_start;
@@ -148,10 +141,8 @@ void compute_photoionization_field(grid_t *thisGrid, sourcelist_t *thisSourcelis
 	thisGrid->mean_photHI = sum;
 #ifdef __MPI
 	MPI_Allreduce(&sum, &thisGrid->mean_photHI, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-// 	printf("sum = %e\t sum photHI = %e\n", sum, thisGrid->mean_photHI);
 #endif
 	thisGrid->mean_photHI = thisGrid->mean_photHI*nbins_inv*nbins_inv*nbins_inv;
-// 	printf("mean photHI = %e\n", thisGrid->mean_photHI);
 }
 
 void construct_photHI_filter(fftw_complex *filter, grid_t *thisGrid, confObj_t simParam)
@@ -185,24 +176,26 @@ void construct_photHI_filter(fftw_complex *filter, grid_t *thisGrid, confObj_t s
 				
 				filter[i*nbins*nbins+j*nbins+k] = exp(-sqrt(expr*mfp_inv))/expr + 0.*I;
 				
-				if(creal(filter[i*nbins*nbins+j*nbins+k])<=0.) printf("%d: %e\n",local_0_start,creal(filter[i*nbins*nbins+j*nbins+k]));
+				if(creal(filter[i*nbins*nbins+j*nbins+k])<=0.) printf("%d: %e\n",(int)local_0_start,creal(filter[i*nbins*nbins+j*nbins+k]));
 			}
 		}
 	}
 #ifdef __MPI
 	MPI_Barrier(MPI_COMM_WORLD);
 #endif
-	write_grid_to_file_double(filter, nbins, local_n0, local_0_start, "filter.out");
-
 }
 
 void convolve_fft_photHI(grid_t *thisGrid, fftw_complex *filter, fftw_complex *nion_smooth)
 {
 	int nbins;
 	double factor;
-	ptrdiff_t alloc_local, local_n0, local_0_start;
 	
+#ifdef __MPI
+	ptrdiff_t alloc_local, local_n0, local_0_start;
 	ptrdiff_t n0, n1, n2, local_n1, local_1_start, local_n0x, local_0x_start;
+#else
+	ptrdiff_t local_n0;
+#endif
 	
 	double mean_photHI;
 	
@@ -212,14 +205,15 @@ void convolve_fft_photHI(grid_t *thisGrid, fftw_complex *filter, fftw_complex *n
 	
 	nbins = thisGrid->nbins;
 	nion = thisGrid->nion;
-	local_0_start = thisGrid->local_0_start;
 	local_n0 = thisGrid->local_n0;
+	
+#ifdef __MPI
+	local_0_start = thisGrid->local_0_start;
 	
 	n0 = nbins;
 	n1 = nbins;
 	n2 = nbins;
 	
-#ifdef __MPI
 	alloc_local = fftw_mpi_local_size_3d(nbins, nbins, nbins, MPI_COMM_WORLD, &local_n0, &local_0_start);
 	assert(local_0_start == thisGrid->local_0_start);
 	assert(local_n0 == thisGrid->local_n0);
@@ -237,18 +231,12 @@ void convolve_fft_photHI(grid_t *thisGrid, fftw_complex *filter, fftw_complex *n
 	plan_filter = fftw_plan_dft_3d(nbins, nbins, nbins, filter, filter_ft, FFTW_FORWARD, FFTW_ESTIMATE);
 #endif
 	
-// 	write_grid_to_file_double(nion_smooth, nbins, local_n0, local_0_start, "nion_input_test.out");
-
 	fftw_execute(plan_nion);
 	fftw_execute(plan_filter);
-	
-// 	write_grid_to_file_double(nion_ft, nbins, local_n0, local_0_start, "nion_ft_test.out");
-// 	write_grid_to_file_double(filter_ft, nbins, local_n0, local_0_start, "filter_ft_test.out");
 
 #ifdef __MPI
 	fftw_mpi_local_size_3d_transposed(n0, n1, n2, MPI_COMM_WORLD, &local_n0x, &local_0x_start, &local_n1, &local_1_start);
 #endif
-// 	printf("local_n0 = %d\tlocal_0_start = %d\tlocal_n0x = %d\tlocal_0x_start = %d\tlocal_n1 = %d\tlocal_1_start = %d\n",local_n0,local_0_start,local_n0x,local_0x_start,local_n1,local_1_start);
 	
 	for(int i=0; i<local_n0; i++)
 	{
@@ -282,10 +270,7 @@ void convolve_fft_photHI(grid_t *thisGrid, fftw_complex *filter, fftw_complex *n
 	}
 	
 	mean_photHI = creal(nion_smooth[0])*sigma_HI/(Mpc_cm*Mpc_cm);
-	printf("mean = %e\n",mean_photHI);
 	
-// 	write_grid_to_file_double(nion_smooth, nbins, local_n0, local_0_start, "nion_output_test.out");
-
 	fftw_destroy_plan(plan_nion);
 	fftw_destroy_plan(plan_filter);
 	fftw_destroy_plan(plan_back);
@@ -301,9 +286,13 @@ void convolve_fft_photHI(grid_t *thisGrid, fftw_complex *filter, fftw_complex *n
 	thisGrid->mean_photHI = mean_photHI;
 }
 
-double get_mean_photHI(grid_t *thisGrid, confObj_t simParam)
+void compute_photHI(grid_t *thisGrid, confObj_t simParam)
 {
+#ifdef __MPI
 	ptrdiff_t alloc_local, local_n0, local_0_start;
+#else
+	ptrdiff_t local_n0;
+#endif
 	int nbins = thisGrid->nbins;
 	fftw_complex *filter;
 	fftw_complex *nion_smooth;
@@ -318,7 +307,6 @@ double get_mean_photHI(grid_t *thisGrid, confObj_t simParam)
 	assert(local_n0 == thisGrid->local_n0);
 	assert(local_0_start == thisGrid->local_0_start);
 #else
-	local_0_start = thisGrid->local_0_start;
 	local_n0 = thisGrid->local_n0;
 	filter = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 	nion_smooth = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
@@ -342,8 +330,6 @@ double get_mean_photHI(grid_t *thisGrid, confObj_t simParam)
 		}
 	}
 	
-	write_grid_to_file_double(filter, nbins, local_n0, local_0_start, "filter.out");
-
 	//apply filter to Nion field
 	convolve_fft_photHI(thisGrid, filter, nion_smooth);
 	
@@ -358,28 +344,20 @@ double get_mean_photHI(grid_t *thisGrid, confObj_t simParam)
 		}
 	}
 	
-	free(filter);
-	free(nion_smooth);
-	
-	return thisGrid->mean_photHI;
+	fftw_free(filter);
+	fftw_free(nion_smooth);
 }
 
 void set_value_to_photoionization_field(grid_t *thisGrid, confObj_t simParam)
 {
-	ptrdiff_t local_n0, local_0_start;
+	ptrdiff_t local_n0;
 	int nbins;
 	
 	local_n0 = thisGrid->local_n0;
-	local_0_start = thisGrid->local_0_start;
 	nbins = thisGrid->nbins;
 	
-	if(simParam->compute_photHIfield != 1)
-	{
-		initialize_grid(thisGrid->photHI, nbins, local_n0, local_0_start, simParam->photHI_bg);
-		thisGrid->mean_photHI = simParam->photHI_bg;
-	}else{
-	  	initialize_grid(thisGrid->photHI, nbins, local_n0, local_0_start, thisGrid->mean_photHI);
-	}
+	initialize_grid(thisGrid->photHI, nbins, local_n0, simParam->photHI_bg);
+	thisGrid->mean_photHI = simParam->photHI_bg;
 }
 
 void compute_web_ionfraction(grid_t *thisGrid, confObj_t simParam)
@@ -390,7 +368,6 @@ void compute_web_ionfraction(grid_t *thisGrid, confObj_t simParam)
 	
 	double mean_density;
 	double photHI;
-	double mean_photHI_inv;
 	double densSS;
 	double mod_photHI;
 	double redshift;
@@ -399,7 +376,6 @@ void compute_web_ionfraction(grid_t *thisGrid, confObj_t simParam)
 	nbins = thisGrid->nbins;
 	local_n0 = thisGrid->local_n0;
 	
-	mean_photHI_inv = 1./thisGrid->mean_photHI*1.e-12;
 	redshift = simParam->redshift;
 	temperature = 1.e4;
 	mean_density = simParam->mean_density*(1.+redshift)*(1.+redshift)*(1.+redshift);
@@ -413,23 +389,17 @@ void compute_web_ionfraction(grid_t *thisGrid, confObj_t simParam)
 			for(int comx=0; comx<nbins; comx++)
 			{
 				cell = comz*nbins*nbins + comy*nbins + comx;
-// 				if(creal(thisGrid->XHII[cell])==1.)
-// 				{
 					//compute photHI fluctuations (\delta_{photIon})
 					photHI = creal(thisGrid->photHI[cell])*1.e12;
-// 					printf("photHI = %e\n",photHI);
 					
 					//compute self shielded overdensity
 					densSS = calc_densSS(simParam, photHI, temperature, redshift);
 					
 					//compute modified photHI
 					mod_photHI = calc_modPhotHI(creal(thisGrid->igm_density[cell]), densSS);
-// 					printf("%e\t%e\n",densSS, mod_photHI*creal(thisGrid->mean_photHI));
 					
 					//compute new XHII
 					thisGrid->XHII[cell] = calc_XHII(creal(thisGrid->igm_density[cell])*mean_density, creal(thisGrid->igm_clump[cell]), mod_photHI*creal(thisGrid->mean_photHI)) + 0.*I;
-// 					printf("%e\n",creal(thisGrid->XHII[cell]));
-// 				}
 			}
 		}
 	}

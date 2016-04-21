@@ -69,7 +69,9 @@ void print_mean_photHI(grid_t *thisGrid, confObj_t simParam)
 }
 
 int main (int argc, /*const*/ char * argv[]) { 
+#ifdef __MPI
 	int size = 1;
+#endif
 	int myRank = 0;
 
 	char iniFile[1000];
@@ -82,7 +84,10 @@ int main (int argc, /*const*/ char * argv[]) {
 	
 	double t1, t2;
 	
-	double mean_photHI;
+	double zstart, zend;
+	int num_cycles;
+	
+	char XHIIFile[1000], cycle_string[8];
 	
 #ifdef __MPI
 	MPI_Init(&argc, &argv); 
@@ -112,25 +117,7 @@ int main (int argc, /*const*/ char * argv[]) {
 	//read paramter file
 	simParam = readConfObj(iniFile);
 	
-	if(simParam->generate_recomb_tables == 1)
-	{
-		if(myRank==0) printf("generating recombination tables...\n");
-		compute_table_norm_pdf(3., 20., 0.01, myRank, size, "norm_pdf.dat");
-		compute_table_dens(0.8, 1.2, 0.01, -10., -5., 0.01, myRank, size, "density_integral.dat");
-		compute_table_redshift(-2., 2., 0.001, 6., 20., 0.01, simParam, myRank, size, "redshift_integral.dat");
-		if(myRank==0) printf("done.\n");
-		
-#ifdef __MPI
-		t2 = MPI_Wtime();
-		printf("Execution took %f s\n", t2-t1);
-		MPI_Finalize();
-#else
-		t2 = time(NULL);
-		printf("Execution took %f s\n", t2-t1);
-#endif
-		exit(0);
-	}
-		
+	
 	//read files (allocate grid)
 	grid = initGrid();
 	if(myRank==0) printf("reading files to grid... ");
@@ -147,64 +134,105 @@ int main (int argc, /*const*/ char * argv[]) {
 	map_nion_to_grid(grid, sourcelist);
 	if(myRank==0) printf("done\n");
 	
-	//------------------------------------------------------------------------------
-	// compute web model
-	//------------------------------------------------------------------------------
 	
-	if(simParam->use_web_model == 1)
+	if(simParam->calc_ion_history == 1)
 	{
-		//set mean free paths
-		//this mean free path is an overestimate at high redshifts, becomes correct at z~6
-		if(myRank==0) printf("\n\ncompute mean free path... ");
-		printf("mean free path at z=%e is %e Mpc... ", simParam->redshift, calc_mfp(simParam));
-		if(myRank==0) printf("done\n");
-	  
-		//set photoionization rate to background value
-		if(myRank==0) printf("\n\nsetting photoionization rate to background value... ");
-		set_value_to_photoionization_field(grid, simParam);
-		if(myRank==0) printf("done\n");
+		zstart = simParam->redshift_prev_snap;
+		zend = simParam->redshift;
 		
-// 		if(myRank==0) printf("compute mean photoionization rate... ");
-// 		mean_photHI = get_mean_photHI(grid, simParam);
-// 		if(myRank==0) printf("done\n");
+		num_cycles = ((zstart-zend)/simParam->delta_redshift);
 		
-// 		if(simParam->compute_photHIfield == 1)
-// 		{
-			//write photoionization rate field to file
-			if(myRank==0) printf("writing photoionization field to file... ");
-			save_to_file_photHI(grid, simParam->out_photHI_file);
-			if(myRank==0) printf("done\n");
-// 		}
+		printf("number of cycles = %d\n", num_cycles);
 		
-		//apply web model
-		if(myRank==0) printf("\n\napply web model... ");
-		compute_web_ionfraction(grid, simParam);
-		if(myRank==0) printf("done\n");
-		
-		//compute number of recombinations
-		if(myRank==0) printf("\n\ncompute number of recombinations... ");
-		integralTable = initIntegralTable(6., 20., 0.01, -4., 2., 0.1, -4., 4, 0.1);
-		compute_number_recombinations(grid, simParam, "nrec_values_batch_z6_20_0.01_f-4_2_0.1_d-4_4_0.1.dat", integralTable);
-		free(integralTable);
-		if(myRank==0) printf("done\n");
-		
-		//compute mean free paths
+		simParam->redshift_prev_snap = zstart;
+		simParam->redshift = zstart - simParam->delta_redshift;
+	}else{
+		num_cycles = 1;
 	}
+	
+	for(int cycle=0; cycle<num_cycles; cycle++)
+	{
+		//------------------------------------------------------------------------------
+		// compute web model
+		//------------------------------------------------------------------------------
+		
+		if(simParam->use_web_model == 1)
+		{
+			if(simParam->const_photHI ==1)
+			{
+				//set photoionization rate to background value
+				if(myRank==0) printf("\n\nsetting photoionization rate to background value... ");
+				set_value_to_photoionization_field(grid, simParam);
+				if(myRank==0) printf("done\n");
+			}else{
+				if(simParam->calc_mfp == 1)
+				{
+					//this mean free path is an overestimate at high redshifts, becomes correct at z~6
+					if(myRank==0) printf("\n\ncompute mean free path... ");
+					set_mfp_Miralda2000(simParam);
+					if(myRank==0) printf("done\n");
+				}
+				
+				if(myRank==0) printf("compute mean photoionization rate... ");
+				compute_photHI(grid, simParam);
+				if(myRank==0) printf("done\n");
+			}
 
-	//--------------------------------------------------------------------------------
-	// apply tophat filter
-	//--------------------------------------------------------------------------------
+			if(simParam->write_photHI_file == 1)
+			{
+				//write photoionization rate field to file
+				if(myRank==0) printf("writing photoionization field to file... ");
+				save_to_file_photHI(grid, simParam->out_photHI_file);
+				if(myRank==0) printf("done\n");
+			}
+			
+			
+			//apply web model
+			if(myRank==0) printf("\n\napply web model... ");
+			compute_web_ionfraction(grid, simParam);
+			if(myRank==0) printf("done\n");
+			
+			if(simParam->calc_recomb == 1)
+			{
+				//compute number of recombinations
+				if(myRank==0) printf("\n\ncompute number of recombinations... ");
+				integralTable = initIntegralTable(simParam->zmin, simParam->zmax, simParam->dz, simParam->fmin, simParam->fmax, simParam->df, simParam->dcellmin, simParam->dcellmax, simParam->ddcell);
+				compute_number_recombinations(grid, simParam, simParam->recomb_table, integralTable);
+				free(integralTable);
+				if(myRank==0) printf("done\n");
+			}
+			
+			//compute mean free paths
+
+		}
+
+		//--------------------------------------------------------------------------------
+		// apply tophat filter
+		//--------------------------------------------------------------------------------
+		
+		//compute fraction Q
+		if(myRank==0) printf("\n\ncomputing relation between number of ionizing photons and absorptions... ");
+		compute_Q(grid, simParam);
+		if(myRank==0) printf("done\n");
+		
+		//apply filtering
+		if(myRank==0) printf("apply tophat filter routine for ionization field... ");
+		compute_ionization_field(simParam, grid);
+		if(myRank==0) printf("done\n");
+		
+		//write ionization field to file
+		for(int i=0; i<100; i++) XHIIFile[i] = '\0';
+		strcat(XHIIFile, simParam->out_XHII_file);
+		strcat(XHIIFile, "_");
+		sprintf(cycle_string,"%d",cycle); 
+		strcat(XHIIFile, cycle_string);
+		if(myRank==0) printf("writing ionization field to file %s ... ", XHIIFile);
+		save_to_file_XHII(grid, XHIIFile);
+		if(myRank==0) printf("done\n");
 	
-	//compute fraction Q
-	if(myRank==0) printf("\n\ncomputing relation between number of ionizing photons and absorptions... ");
-	compute_Q(grid, simParam);
-	if(myRank==0) printf("done\n");
-	
-	//apply filtering
-	if(myRank==0) printf("apply tophat filter routine for ionization field... ");
-	compute_ionization_field(grid);
-	if(myRank==0) printf("done\n");
-	
+		simParam->redshift -= simParam->delta_redshift;
+		simParam->redshift_prev_snap -= simParam->delta_redshift;
+	}
 	//--------------------------------------------------------------------------------
 	// writing data to files
 	//--------------------------------------------------------------------------------
@@ -227,6 +255,10 @@ int main (int argc, /*const*/ char * argv[]) {
 	if(myRank==0) printf("deallocating sources ...");
 	deallocate_sourcelist(sourcelist);
 	if(myRank==0) printf("done\n");
+	
+	fftw_cleanup();
+	
+	confObj_del(&simParam);
 	
 	if(myRank==0) printf("Finished\n");
 #ifdef __MPI

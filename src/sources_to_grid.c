@@ -2,6 +2,7 @@
 #include <math.h>
 #include <time.h>
 #include <complex.h>
+#include <assert.h>
 
 #ifdef __MPI
 #include <fftw3-mpi.h>
@@ -22,8 +23,6 @@ void map_nion_to_grid(grid_t *thisGrid, sourcelist_t *thisSourcelist)
 	int nbins;
 	int local_0_start;
 	int local_n0;
-	
-	int i=0;
 		
 	num_sources = thisSourcelist->numSources;
 	
@@ -31,11 +30,14 @@ void map_nion_to_grid(grid_t *thisGrid, sourcelist_t *thisSourcelist)
 	local_0_start = thisGrid->local_0_start;
 	local_n0 = thisGrid->local_n0;
 	
-	for(source_t *source=thisSourcelist->source; i<num_sources; i++, source++)
+	for(int i=0; i<num_sources; i++)
 	{
-		comx = (int)(source->pos[0]*nbins);
-		comy = (int)(source->pos[1]*nbins);
-		comz = (int)(source->pos[2]*nbins);
+		assert(i<num_sources && "map_nion_to_grid: index should be lower than number of sources!");
+		source_t source = thisSourcelist->source[i];
+		
+		comx = (int)(source.pos[0]*nbins);
+		comy = (int)(source.pos[1]*nbins);
+		comz = (int)(source.pos[2]*nbins);
 				
 		if(comx==nbins) comx = comx-1;
 		if(comy==nbins) comy = comy-1;
@@ -43,7 +45,7 @@ void map_nion_to_grid(grid_t *thisGrid, sourcelist_t *thisSourcelist)
 		
 		if(comz>=local_0_start && comz<local_0_start+local_n0)
 		{
-			thisGrid->nion[(comz-local_0_start)*nbins*nbins + comy*nbins + comx] += source->Nion*source->fesc+0.*I;
+			thisGrid->nion[(comz-local_0_start)*nbins*nbins + comy*nbins + comx] += source.Nion*source.fesc+0.*I;
 // 			thisGrid->igm_clump[(comz-local_0_start)*nbins*nbins + comy*nbins + comx] = 1.+0.*I;
 		}
 	}

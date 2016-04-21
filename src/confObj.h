@@ -29,6 +29,8 @@ struct confObj_struct {
 	
 	int			grid_size;
 	double			box_size;
+	double			lin_scales;
+	double			inc_log_scales;
 	
 	char 			*sources_file;
 	double 			evol_time;
@@ -50,12 +52,26 @@ struct confObj_struct {
 	char			*out_XHII_file;
 	
 	int			use_web_model;
+	int			const_photHI;
 	double			photHI_bg;
-	int			compute_photHIfield;
+	int			calc_mfp;
 	double			mfp;
+	int			write_photHI_file;
 	char			*out_photHI_file;
 	
-	int			generate_recomb_tables;
+	int			calc_recomb;
+	char			*recomb_table;
+	double			zmin, zmax, dz;
+	double			fmin, fmax, df;
+	double			dcellmin, dcellmax, ddcell;
+	
+	int			calc_ion_history;
+	double			delta_redshift;
+	
+	int			read_nrec_file;
+	double			redshift_prev_snap;
+	char			*nrec_file;
+	char			*output_nrec_file;
 };
 
 
