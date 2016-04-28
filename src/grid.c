@@ -55,7 +55,7 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
 #ifdef __MPI
 	ptrdiff_t alloc_local, local_n0, local_0_start;
 #else
-	ptrdiff_t local_n0, local_0_start;
+	ptrdiff_t local_n0;
 #endif
 	int nbins;
 	
@@ -96,16 +96,25 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
 	thisGrid->photHI = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 
 #endif
-	read_grid(thisGrid->igm_density, nbins, local_n0, local_0_start,thisInput->igm_density_file);
-	initialize_grid(thisGrid->halo_density, nbins, local_n0, 0.);
+#ifdef __MPI
+	read_grid(thisGrid->igm_density, nbins, local_n0, local_0_start, thisInput->igm_density_file);
 	read_grid(thisGrid->igm_clump, nbins, local_n0, local_0_start, thisInput->igm_clump_file);
+#else
+	read_grid(thisGrid->igm_density, nbins, local_n0, thisInput->igm_density_file);
+	read_grid(thisGrid->igm_clump, nbins, local_n0, thisInput->igm_clump_file);
+#endif
+	initialize_grid(thisGrid->halo_density, nbins, local_n0, 0.);
 // 	initialize_grid(thisGrid->igm_clump, nbins, local_n0, 1.);
 	initialize_grid(thisGrid->nion, nbins, local_n0, 0.);
 	initialize_grid(thisGrid->frac_Q, nbins, local_n0, 0.);
 	initialize_grid(thisGrid->XHII, nbins, local_n0, 0.);
 	if(thisInput->read_nrec_file == 1)
 	{
+#ifdef __MPI
 		read_grid(thisGrid->igm_density, nbins, local_n0, local_0_start, thisInput->nrec_file);
+#else
+		read_grid(thisGrid->igm_density, nbins, local_n0, thisInput->nrec_file);
+#endif
 	}else{
 		initialize_grid(thisGrid->nrec, nbins, local_n0, 0.);
 	}
@@ -116,11 +125,20 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
 #endif
 }
 
+#ifdef __MPI
 void read_grid(fftw_complex *toThisArray, int nbins, int local_n0, int local_0_start, char *filename)
+#else
+void read_grid(fftw_complex *toThisArray, int nbins, int local_n0, char *filename)
+#endif
 {
 	float *tmparray;
 		
 	tmparray = (float*)malloc(sizeof(float)*local_n0*nbins*nbins);
+	if(tmparray == NULL)
+	{
+		fprintf(stderr, "tmparray in read_grid (grid.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
 #ifdef __MPI
 	int success;
 	int resultlen;
@@ -188,11 +206,20 @@ void deallocate_grid(grid_t *thisGrid)
 	free(thisGrid);
 }
 
+#ifdef __MPI
 void write_grid_to_file_float(fftw_complex *thisArray, int nbins, int local_n0, int local_0_start, char *filename)
+#else
+void write_grid_to_file_float(fftw_complex *thisArray, int nbins, int local_n0, char *filename)
+#endif
 {
 	float *tmparray;
 	
 	tmparray = (float*)malloc(sizeof(float)*local_n0*nbins*nbins);
+	if(tmparray == NULL)
+	{
+		fprintf(stderr, "tmparray in write_grid_to_file_float (grid.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
 	
 	for(int i=0; i<local_n0; i++)
 	{
@@ -226,11 +253,20 @@ void write_grid_to_file_float(fftw_complex *thisArray, int nbins, int local_n0, 
 	free(tmparray);
 }
 
+#ifdef __MPI
 void write_grid_to_file_double(fftw_complex *thisArray, int nbins, int local_n0, int local_0_start, char *filename)
+#else
+void write_grid_to_file_double(fftw_complex *thisArray, int nbins, int local_n0, char *filename)
+#endif
 {
 	double *tmparray;
 	
 	tmparray = (double*)malloc(sizeof(double)*local_n0*nbins*nbins);
+	if(tmparray == NULL)
+	{
+		fprintf(stderr, "tmparray in write_grid_to_file_double (grid.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
 	
 	for(int i=0; i<local_n0; i++)
 	{
@@ -266,10 +302,18 @@ void write_grid_to_file_double(fftw_complex *thisArray, int nbins, int local_n0,
 
 void save_to_file_XHII(grid_t *thisGrid, char *filename)
 {
+#ifdef __MPI
 	write_grid_to_file_double(thisGrid->XHII, thisGrid->nbins, thisGrid->local_n0, thisGrid->local_0_start, filename);
+#else
+	write_grid_to_file_double(thisGrid->XHII, thisGrid->nbins, thisGrid->local_n0, filename);
+#endif
 }
 
 void save_to_file_photHI(grid_t *thisGrid, char *filename)
 {
+#ifdef __MPI
 	write_grid_to_file_double(thisGrid->photHI, thisGrid->nbins, thisGrid->local_n0, thisGrid->local_0_start, filename);
+#else
+	write_grid_to_file_double(thisGrid->photHI, thisGrid->nbins, thisGrid->local_n0, filename);
+#endif
 }

@@ -86,7 +86,7 @@ confObj_new(parse_ini_t ini)
 	getFromIni(&(config->photHI_bg), parse_ini_get_double,
 		   ini, "photHI_bg", "General");
 	getFromIni(&(config->calc_mfp), parse_ini_get_int32,
-	           ini, "meanFreePathInIonizedMedium", "General");
+	           ini, "calcMeanFreePath", "General");
 	getFromIni(&(config->mfp), parse_ini_get_double,
 	           ini, "meanFreePathInIonizedMedium", "General");
 	getFromIni(&(config->write_photHI_file), parse_ini_get_int32,

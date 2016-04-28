@@ -94,7 +94,17 @@ void convolve_fft(grid_t *thisGrid, fftw_complex *filter, fftw_complex *nion_smo
 	plan_filter = fftw_mpi_plan_dft_3d(nbins, nbins, nbins, filter, filter_ft, MPI_COMM_WORLD, FFTW_FORWARD, FFTW_MPI_TRANSPOSED_OUT);
 #else 
 	nion_ft = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+	if(nion_ft == NULL)
+	{
+		fprintf(stderr, "nion_ft in convolve_fft (filtering.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
 	filter_ft = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+	if(filter_ft == NULL)
+	{
+		fprintf(stderr, "filter_ft in convolve_fft (filtering.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
 	
 	plan_nion = fftw_plan_dft_3d(nbins, nbins, nbins, nion, nion_ft, FFTW_FORWARD, FFTW_ESTIMATE);
 	plan_filter = fftw_plan_dft_3d(nbins, nbins, nbins, filter, filter_ft, FFTW_FORWARD, FFTW_ESTIMATE);
@@ -285,8 +295,23 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid)
 	local_0_start = thisGrid->local_0_start;
 	local_n0 = thisGrid->local_n0;
 	filter = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+	if(filter == NULL)
+	{
+		fprintf(stderr, "filter in compute_ionization_field (filtering.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
 	nion_smooth = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+	if(nion_smooth == NULL)
+	{
+		fprintf(stderr, "nion_smooth in compute_ionization_field (filtering.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
 	XHII_tmp = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+	if(XHII_tmp == NULL)
+	{
+		fprintf(stderr, "XHII_tmp in compute_ionization_field (filtering.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
 #endif
 	initialize_grid(XHII_tmp, nbins, local_n0, 0.);
 	

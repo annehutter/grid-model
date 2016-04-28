@@ -17,6 +17,7 @@
 #include "grid.h"
 #include "sources.h"
 #include "self_shielding.h"
+#include "recombination.h"
 #include "density_distribution.h"
 
 #define SQR(X) ((X) * (X))
@@ -143,7 +144,7 @@ void set_norm_pdf(pdf_params_t * params, double redshift)
 
 double frac_densSS(double densSS, confObj_t simParam)
 {
-	double result, result_mass;
+	double result, result2, result_mass;
 	double old_result, old_result_mass;
 	double old_amplitude, old_constant;
 	double old_chi, chi;
@@ -154,53 +155,62 @@ double frac_densSS(double densSS, confObj_t simParam)
 	// construct struct
 	pdf_params_t *params;
 	params = malloc(sizeof(pdf_params_t));
-	
-	params->redshift = simParam->redshift;
-	params->amplitude = 1.;
-	params->constant = 1.;
-	params->beta = 2.5;
-	
-	// compute full integrate
-	result = calc_integral(*params, 0.);
-	result_mass = calc_integral_mass(*params, 0.);
-	chi = (result-1.)*(result-1.)+(result_mass-1.)*(result_mass-1.);
-
-	// adapt struct, so integral is 1
-	while(fabs(result_mass-1.)>=precision || fabs(result-1.)>=precision)
+	if(params == NULL)
 	{
-		rand_amp = 2*(rand()%2)-1;
-		rand_const = 2*(rand()%2)-1;
-		
-		old_amplitude = params->amplitude;
-		old_constant = params->constant;
-		old_result = result;
-		old_result_mass = result_mass;
-		old_chi = chi;
-		
-		params->amplitude += rand_amp*precision*params->amplitude;
-		params->constant += rand_const*precision*params->constant;
-		result_mass = calc_integral_mass(*params, 0.);
-		result = calc_integral(*params, 0.);
-		chi = (result-1.)*(result-1.)+(result_mass-1.)*(result_mass-1.);
-		
-		if(old_chi <= chi)
-		{
-			params->amplitude = old_amplitude;
-			params->constant = old_constant;
-			result = old_result;
-			result_mass = old_result_mass;
-			chi = old_chi;
-		}
+		fprintf(stderr, "params in frac_densSS (density_distribution.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
 	}
 	
-	printf("%e\t%e\t A = %e\t C = %e\t densSS = %e\n", result, result_mass, params->amplitude, params->constant, densSS);
+	params->redshift = simParam->redshift;
+	params->amplitude = amplitude_norm_pdf(simParam->redshift);
+	params->constant = constant_norm_pdf(simParam->redshift);
+	params->beta = 2.5;
+	
+// 	// compute full integrate
+// 	result = calc_integral(*params, 0.);
+// 	result_mass = calc_integral_mass(*params, 0.);
+// 	chi = (result-1.)*(result-1.)+(result_mass-1.)*(result_mass-1.);
+
+// 	// adapt struct, so integral is 1
+// 	while(fabs(result_mass-1.)>=precision || fabs(result-1.)>=precision)
+// 	{
+// 		rand_amp = 2*(rand()%2)-1;
+// 		rand_const = 2*(rand()%2)-1;
+// 		
+// 		old_amplitude = params->amplitude;
+// 		old_constant = params->constant;
+// 		old_result = result;
+// 		old_result_mass = result_mass;
+// 		old_chi = chi;
+// 		
+// 		params->amplitude += rand_amp*precision*params->amplitude;
+// 		params->constant += rand_const*precision*params->constant;
+// 		result_mass = calc_integral_mass(*params, 0.);
+// 		result = calc_integral(*params, 0.);
+// 		chi = (result-1.)*(result-1.)+(result_mass-1.)*(result_mass-1.);
+// 		
+// 		if(old_chi <= chi)
+// 		{
+// 			params->amplitude = old_amplitude;
+// 			params->constant = old_constant;
+// 			result = old_result;
+// 			result_mass = old_result_mass;
+// 			chi = old_chi;
+// 		}
+// 	}
+	
+
 
 	// compute partial interval & derive fraction
 	result = calc_integral(*params, densSS);
+	
+	result2 = calc_integral(*params, 0.);
  
+	printf("%e\t%e\t%e\t A = %e\t C = %e\t densSS = %e\n", result/result2, result, result2, params->amplitude, params->constant, densSS);
+		
 	free(params);
 	
-	return result;
+	return result/result2;
 }
 
 double calc_mfp(confObj_t simParam, double photHI_bg, double temperature, double redshift)
@@ -211,7 +221,8 @@ double calc_mfp(confObj_t simParam, double photHI_bg, double temperature, double
 	
 	densSS = calc_densSS(simParam, photHI_bg, temperature, redshift);
 	
-	mfp = lambda_0*(1.+redshift)*pow(1.-frac_densSS(densSS, simParam),-2./3.); 
+	mfp = lambda_0*pow(1.-frac_densSS(densSS, simParam),-2./3.); 
+	printf("\n mfp = %e\t lambda_0 = %e\t%e\n ", mfp,lambda_0,1.-frac_densSS(densSS, simParam));
 	
 	return mfp;
 }

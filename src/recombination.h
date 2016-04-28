@@ -111,4 +111,8 @@ void compute_table_redshift(double dens_cell_min, double dens_cell_max, double d
 // write table
 //------------------------------------------------------------------------------
 
+#ifdef __MPI
 void write_table(int num, int offset, double *array, char *filename);
+#else
+void write_table(int num, double *array, char *filename);
+#endif

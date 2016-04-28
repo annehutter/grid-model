@@ -35,7 +35,7 @@ sourcelist_t *allocate_sourcelist(int Nallocated)
 	newSourcelist = malloc(sizeof(sourcelist_t));
 	if(newSourcelist == NULL)
 	{
-		fprintf(stderr, "ERROR: sourcelist_init: Not enough memory.\n");
+		fprintf(stderr, "newSourcelist in sourcelist_init (sources.c) could not be allocated\n");
 		exit(EXIT_FAILURE);
 	}
 	
@@ -44,7 +44,7 @@ sourcelist_t *allocate_sourcelist(int Nallocated)
 	newSourcelist->source = malloc(Nallocated*sizeof(source_t));
 	if(newSourcelist->source == NULL)
 	{
-		fprintf(stderr, "ERROR: sourcelist->source_init: Not enough memory.\n");
+		fprintf(stderr, "newSourcelist->source in sourcelist_init (sources.c) could not be allocated\n");
 		exit(EXIT_FAILURE);
 	}
 	

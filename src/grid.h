@@ -33,10 +33,19 @@ typedef struct
 
 grid_t *initGrid();
 void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput);
+#ifdef __MPI
 void read_grid(fftw_complex *toThisArray, int nbins, int local_n0, int local_0_start, char *filename);
+#else
+void read_grid(fftw_complex *toThisArray, int nbins, int local_n0, char *filename);
+#endif
 void initialize_grid(fftw_complex *thisArray, int nbins, int local_n0, double value);
 void deallocate_grid(grid_t *thisGrid);
+#ifdef __MPI
 void write_grid_to_file_float(fftw_complex *thisArray, int nbins, int local_n0, int local_0_start, char *filename);
 void write_grid_to_file_double(fftw_complex *thisArray, int nbins, int local_n0, int local_0_start, char *filename);
+#else
+void write_grid_to_file_float(fftw_complex *thisArray, int nbins, int local_n0, char *filename);
+void write_grid_to_file_double(fftw_complex *thisArray, int nbins, int local_n0, char *filename);
+#endif
 void save_to_file_XHII(grid_t *thisGrid, char *filename);
 void save_to_file_photHI(grid_t *thisGrid, char *filename);

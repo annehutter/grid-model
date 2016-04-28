@@ -170,6 +170,7 @@ int main (int argc, /*const*/ char * argv[]) {
 					//this mean free path is an overestimate at high redshifts, becomes correct at z~6
 					if(myRank==0) printf("\n\ncompute mean free path... ");
 					set_mfp_Miralda2000(simParam);
+					printf("\tmfp = %e\t", simParam->mfp);
 					if(myRank==0) printf("done\n");
 				}
 				
@@ -224,7 +225,7 @@ int main (int argc, /*const*/ char * argv[]) {
 		for(int i=0; i<100; i++) XHIIFile[i] = '\0';
 		strcat(XHIIFile, simParam->out_XHII_file);
 		strcat(XHIIFile, "_");
-		sprintf(cycle_string,"%d",cycle); 
+		sprintf(cycle_string,"%02d",cycle); 
 		strcat(XHIIFile, cycle_string);
 		if(myRank==0) printf("writing ionization field to file %s ... ", XHIIFile);
 		save_to_file_XHII(grid, XHIIFile);

@@ -148,7 +148,7 @@ parse_ini_open(const char *fname)
 		line_len = strlen(line);
 		while ((line[i] != '\0') && (isblank(line[i])))
 			i++;
-		if (i == line_len - 1) {
+		if ((size_t)i == line_len - 1) {
 			line[0] = '\0';
 		}
 

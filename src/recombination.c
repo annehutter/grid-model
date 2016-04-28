@@ -23,6 +23,19 @@
 #define SQR(X) ((X) * (X))
 #define CUB(X) ((X) * (X) * (X))
 
+#ifdef NDEBUG
+#define XASSERT(EXP, ...)                                do{} while(0)
+#else
+#define XASSERT(EXP, ...)                                              \
+    do { if (!(EXP)) {                                                  \
+            printf("Error in file: %s\tfunc: %s\tline: %d with expression `"#EXP"'\n", __FILE__, __FUNCTION__, __LINE__); \
+            printf(__VA_ARGS__);                                        \
+            printf(ANSI_COLOR_BLUE "Bug in code: email Anne Hutter <ahutter@swin.edu.au>"ANSI_COLOR_RESET"\n"); \
+            fflush(stdout);                                             \
+            exit(EXIT_FAILURE);                                         \
+        } \
+    } while (0)
+#endif
 
 void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam, char *filename, integral_table_t *thisIntegralTable)
 {
@@ -151,19 +164,49 @@ double get_nrec_history(confObj_t simParam, integral_table_t *thisIntegralTable,
 	numdcell = (thisIntegralTable->dcellmax - thisIntegralTable->dcellmin)/thisIntegralTable->ddcell+1;
 	dcell_index = (log10(dcell) - thisIntegralTable->dcellmin)/thisIntegralTable->ddcell;
 	
+	if(dcell_index<0)
+	{
+		printf("dcell_index = %d, not within limits of %d to %d\n", dcell_index, 0, numdcell);
+		dcell_index = 0;
+	}
+	if(dcell_index>=numdcell)
+	{
+		printf("dcell_index = %d, not within limits of %d to %d\n", dcell_index, 0, numdcell);
+		dcell_index = numdcell-1;
+	}
 	assert(dcell_index>=0 && dcell_index<numdcell);
 	
 	factor = (recomb_HII*correctFact)/photHI;
 	numf = (thisIntegralTable->fmax - thisIntegralTable->fmin)/thisIntegralTable->df+1;
 	factor_index = (log10(factor) - thisIntegralTable->fmin)/thisIntegralTable->df;
 	
-// 	assert(factor_index>=0 && factor_index<numf);
+	if(factor_index<0)
+	{
+		printf("factor_index = %d, not within limits of %d to %d\n", factor_index, 0, numf);
+		factor_index = 0;
+	}
+	if(factor_index>=numf)
+	{
+		printf("factor_index = %d, not within limits of %d to %d\n", factor_index, 0, numf);
+		factor_index = numf-1;
+	}
+	assert(factor_index>=0 && factor_index<numf);
 
 	numz = (thisIntegralTable->zmax - thisIntegralTable->zmin)/thisIntegralTable->dz+1;
 	zstart_index = (zstart  - thisIntegralTable->zmin)/thisIntegralTable->dz;
 	redshift_index = (redshift - thisIntegralTable->zmin)/thisIntegralTable->dz;
 	
-// 	assert(redshift_index>=0 && redshift_index<numz);
+	if(redshift_index<0)
+	{
+		printf("redshift_index = %d, not within limits of %d to %d\n", redshift_index, 0, numz);
+		redshift_index = 0;
+	}
+	if(redshift_index>=numz)
+	{
+		printf("redshift_index = %d, not within limits of %d to %d\n", redshift_index, 0, numz);
+		redshift_index = numz-1;
+	}
+	assert(redshift_index>=0 && redshift_index<numz);
 
 	tmp = 0.;
 	for(int i=redshift_index; i<zstart_index; i++)
@@ -190,8 +233,8 @@ double *read_table_norm_pdf(char *filename)
 	fp = fopen(filename, "rb");
 	if(fp == NULL)
 	{
-		printf("Error: NO File!");
-		exit(1);
+		fprintf(stderr, "Error: NO File!");
+		exit(EXIT_FAILURE);
 	}
 	fseek(fp, 0, SEEK_END);
 	len_byte = ftell(fp);
@@ -199,6 +242,11 @@ double *read_table_norm_pdf(char *filename)
 	
 	num = len_byte/(sizeof(double)*3);
 	data = malloc(num*3*sizeof(double));
+	if(data == NULL)
+	{
+		fprintf(stderr, "data in read_table_norm_pdf (recombination.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
 	fread(data, sizeof(double), 3*num, fp);
 	fclose(fp);
 	
@@ -236,7 +284,18 @@ void compute_table_norm_pdf(double zmin, double zmax, double d, int rank, int si
 	offset_write = num_size*rank + offset;
 	
 	pdf_params = malloc(sizeof(pdf_params_t));
+	if(pdf_params == NULL)
+	{
+		fprintf(stderr, "pdf_params in compute_table_norm_pdf (recombination.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
+	
 	array = malloc(3*num_size*sizeof(double));
+	if(array == NULL)
+	{
+		fprintf(stderr, "array in compute_table_norm_pdf (recombination.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
 	
 	for(int i=0; i<num_size; i++)
 	{
@@ -247,7 +306,11 @@ void compute_table_norm_pdf(double zmin, double zmax, double d, int rank, int si
 		array[3*i+2] = pdf_params->constant;
 	}
 	
+#ifdef __MPI
 	write_table(num_size*3, offset_write*3, array, filename);
+#else
+	write_table(num_size*3, array, filename);
+#endif
 	
 	free(array);
 }
@@ -287,6 +350,12 @@ double *read_table_integrals(char *filename, integral_table_t *thisIntegralTable
 	
 	num = len_byte/(sizeof(double));
 	array = malloc(num*sizeof(double));
+	if(array == NULL)
+	{
+		fprintf(stderr, "array in read_table_integrals (recombination.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
+	
 	fread(array, sizeof(double), num, fp);
 	fclose(fp);
 	
@@ -307,6 +376,11 @@ integral_table_t * initIntegralTable(double zmin, double zmax, double dz, double
 {
 	integral_table_t *newIntegralTable;
 	newIntegralTable = malloc(sizeof(integral_table_t));
+	if(newIntegralTable == NULL)
+	{
+		fprintf(stderr, "newIntegralTable in initIntegralTable (recombination.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
 	
 	newIntegralTable->zmin = zmin;
 	newIntegralTable->zmax = zmax;
@@ -331,6 +405,11 @@ dens_table_t *initDensTable(double constant_min, double constant_max, double dco
 {
 	dens_table_t *newDensTable;
 	newDensTable = malloc(sizeof(dens_table_t));
+	if(newDensTable == NULL)
+	{
+		fprintf(stderr, "newDensTable in initDensTable (recombination.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
 	
 	newDensTable->constant_min = constant_min;
 	newDensTable->constant_max = constant_max;
@@ -388,7 +467,18 @@ double *create_table_dens(dens_table_t *thisDensTable)
 	num2 = (thisDensTable->factor_max - thisDensTable->factor_min)/dfactor;
 	
 	array = malloc(num1*num2*3*sizeof(double));
+	if(array == NULL)
+	{
+		fprintf(stderr, "array in create_table_dens (recombination.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
+	
 	params = malloc(sizeof(dens_integrand_t));
+	if(params == NULL)
+	{
+		fprintf(stderr, "params in create_table_dens (recombination.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
 	
 	for(int i=0; i<num1; i++)
 	{
@@ -440,7 +530,17 @@ void compute_table_dens(double constant_min, double constant_max, double d1, dou
 	offset_write = num1_size*rank + offset;
 	
 	array = malloc(num1*num2*3*sizeof(double));
+	if(array == NULL)
+	{
+		fprintf(stderr, "array in compute_table_dens (recombination.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
 	params = malloc(sizeof(dens_integrand_t));
+	if(params == NULL)
+	{
+		fprintf(stderr, "params in compute_table_dens (recombination.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
 	
 	for(int i=0; i<num1_size; i++)
 	{
@@ -455,8 +555,12 @@ void compute_table_dens(double constant_min, double constant_max, double d1, dou
 			array[i*num2*3+3*j+2]= calc_dens_integral(params);
 		}
 	}
-	
+
+#ifdef __MPI
 	write_table(num1*num2*3, offset_write*num2*3, array, filename);
+#else
+	write_table(num1*num2*3, array, filename);
+#endif
 	
 	free(params);
 	free(array);
@@ -470,6 +574,11 @@ redshift_table_t *initRedshiftTable(double dens_cell_min, double dens_cell_max, 
 {
 	redshift_table_t *newRedshiftTable;
 	newRedshiftTable = malloc(sizeof(redshift_table_t));
+	if(newRedshiftTable == NULL)
+	{
+		fprintf(stderr, "newRedshiftTable in initRedshiftTable (recombination.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
 	
 	newRedshiftTable->dens_cell_min = dens_cell_min;
 	newRedshiftTable->dens_cell_max = dens_cell_max;
@@ -529,7 +638,18 @@ double *create_table_redshift(redshift_table_t *thisRedshiftTable, confObj_t sim
 	num2 = (thisRedshiftTable->zmax - thisRedshiftTable->zmin)/dz;
 	
 	array = malloc(num1*num2*3*sizeof(double));
+	if(array == NULL)
+	{
+		fprintf(stderr, "array in create_table_redshift (recombination.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
+	
 	params = malloc(sizeof(redshift_integrand_t));
+	if(params == NULL)
+	{
+		fprintf(stderr, "params in create_table_redshift (recombination.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
 	
 	params->simParam = simParam;
 	
@@ -583,7 +703,18 @@ void compute_table_redshift(double dens_cell_min, double dens_cell_max, double d
 	offset_write = num1_size * rank + offset;
 	
 	array = malloc(num1*num2*3*sizeof(double));
+	if(array == NULL)
+	{
+		fprintf(stderr, "array in compute_table_redshift (recombination.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
+	
 	params = malloc(sizeof(redshift_integrand_t));
+	if(params == NULL)
+	{
+		fprintf(stderr, "params in compute_table_redshift (recombination.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
 	
 	params->simParam = simParam;
 	
@@ -600,8 +731,12 @@ void compute_table_redshift(double dens_cell_min, double dens_cell_max, double d
 			array[i*num2*3+3*j+2] = calc_redshift_integral(params, d2);
 		}
 	}
-	
+
+#ifdef __MPI
 	write_table(num1*num2*3, offset_write*num2*3, array, filename);
+#else
+	write_table(num1*num2*3, array, filename);
+#endif
 	
 	free(params);
 	free(array);
@@ -611,10 +746,9 @@ void compute_table_redshift(double dens_cell_min, double dens_cell_max, double d
 // write table
 //------------------------------------------------------------------------------
 
-
+#ifdef __MPI
 void write_table(int num, int offset, double *array, char *filename)
 {
-#ifdef __MPI
 	MPI_File mpifile;
 	MPI_Offset offset_mpi;
 	MPI_Status status;
@@ -625,11 +759,14 @@ void write_table(int num, int offset, double *array, char *filename)
 	MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &mpifile);
 	MPI_File_write_at_all(mpifile, offset_mpi, array, num, MPI_DOUBLE, &status);
 	MPI_File_close(&mpifile);
+}
 #else
+void write_table(int num, double *array, char *filename)
+{
 	FILE * fp;
 	
 	fp = fopen(filename, "wb");
 	fwrite(array, sizeof(double), num, fp);
 	fclose(fp);
-#endif
 }
+#endif
