@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <gsl/gsl_math.h>	//included because M_PI is not defined in <math.h>
 #include <complex.h>
 
 #ifdef __MPI
@@ -14,6 +14,8 @@
 #include "confObj.h"
 #include "grid.h"
 #include "sources.h"
+
+#define SQR(X) ((X) * (X))
 
 double time_from_redshift_flatuniverse(confObj_t simParam, double zmin, double zmax)
 {
@@ -31,7 +33,7 @@ void compute_Q(grid_t *thisGrid, confObj_t simParam)
 	
 	double evol_time;
 	double z;
-	double mean_numdensity;
+	double mean_numdensity_H;
 	double h;
 	
 	double Nion, Nabs;
@@ -51,15 +53,15 @@ void compute_Q(grid_t *thisGrid, confObj_t simParam)
 	}
 	z = simParam->redshift;
 	if(simParam->default_mean_density == 1){
-		mean_numdensity = rho_g_cm/mp_g*simParam->h*simParam->h*simParam->omega_b*(1.+z)*(1.+z)*(1.+z);
+		mean_numdensity_H = 3.*SQR(H0)/(8.*M_PI*G)/mp_g*simParam->omega_b*(1.+z)*(1.+z)*(1.+z)*(1.-simParam->Y);
 	}else{
-		mean_numdensity = simParam->mean_density*(1.+z)*(1.+z)*(1.+z);
+		mean_numdensity_H = simParam->mean_density*(1.+z)*(1.+z)*(1.+z)*(1.-simParam->Y);
 	}
 	h = simParam->h;
 	
 	const double volume = pow(box_size/(h*(double)nbins*(1.+z))*Mpc_cm,3);
 	
-	printf("mean_numdensity = %e\n", mean_numdensity);
+	printf("mean_numdensity_H = %e\n", mean_numdensity_H);
 	for(int i=0; i<local_n0; i++)
 	{
 		for(int j=0; j<nbins; j++)
@@ -67,7 +69,7 @@ void compute_Q(grid_t *thisGrid, confObj_t simParam)
 			for(int k=0; k<nbins; k++)
 			{
 				Nion = creal(thisGrid->nion[i*nbins*nbins+j*nbins+k])*evol_time;
-				Nabs = creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k])*mean_numdensity*volume*(1.+creal(thisGrid->nrec[i*nbins*nbins+j*nbins+k]));
+				Nabs = creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k])*mean_numdensity_H*volume*(1.+creal(thisGrid->nrec[i*nbins*nbins+j*nbins+k]));
 				thisGrid->frac_Q[i*nbins*nbins+j*nbins+k] = Nion/Nabs+0.*I;
 // 				if(Nion>0.) printf("%e\t%e\t%e\n", Nion, Nabs, Nion/Nabs);
 			}

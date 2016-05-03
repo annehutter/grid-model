@@ -144,13 +144,14 @@ void set_norm_pdf(pdf_params_t * params, double redshift)
 
 double frac_densSS(double densSS, confObj_t simParam)
 {
-	double result, result2, result_mass;
-	double old_result, old_result_mass;
-	double old_amplitude, old_constant;
-	double old_chi, chi;
+	double result, result2;
+// 	double result_mass;
+// 	double old_result, old_result_mass;
+// 	double old_amplitude, old_constant;
+// 	double old_chi, chi;
 	
-	int rand_amp, rand_const;
-	double precision = 1.e-4;
+// 	int rand_amp, rand_const;
+// 	double precision = 1.e-4;
 	
 	// construct struct
 	pdf_params_t *params;

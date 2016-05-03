@@ -39,24 +39,24 @@ double calc_densSS(confObj_t simParam, double photHI, double temperature, double
 	double rho;
 	
 	if(simParam->default_mean_density == 1){
-		rho = rho_g_cm;
+		rho = 3.*SQR(H0)/(8.*M_PI*G)/SQR(h);
 	}else{
 		rho = simParam->mean_density*mp_g;
 	}
-// 	printf("%e\t%e\t%e\n", photHI, temperature, redshift);
 	
 	tmp = mu*G/(M_PI*gamma_gas*boltzman_cgs);
-	tmp2 = pow(mp_g,5)/fg*pow(1.-Y,-4)/SQR(sigma_HI);
+	tmp2 = SQR(mp_g)/(fg*SQR(1.-Y)*SQR(1.-0.5*Y)*SQR(sigma_HI));
 	rec_rate = recomb_HII*pow(temperature*1.e-4,-0.8);	//definition of the HII recombination rate (Fukugita & Kawasaki 1994)
 	
-	return pow(tmp*tmp2*SQR(photHI)/temperature/SQR(rec_rate),1./3.)/(omega_b*SQR(h)*rho*CUB(1.+redshift));	//checked against Mesinger 2015!
+	return pow(tmp*tmp2*SQR(photHI)/temperature/SQR(rec_rate),1./3.)/(omega_b*SQR(h)*rho/mp_g*CUB(1.+redshift));	//checked against Mesinger 2015!
+	
 }
 
-double calc_XHII(double dens, double clump, double photHI)
+double calc_XHII(double dens, double photHI, double temp, double Y)
 {
 	double tmp, tmp2;
 	
-	tmp = photHI/(dens*clump*recomb_HII);
+	tmp = photHI*(1.-Y)/((1.-0.75*Y)*dens*recomb_HII);
 	tmp2 = 0.5*(tmp + 2. - sqrt((tmp +2.)*(tmp + 2.)-4.));
 	if((1.-tmp2)>1.) return 1.;
 	else return (1.-tmp2);
@@ -366,20 +366,28 @@ void compute_web_ionfraction(grid_t *thisGrid, confObj_t simParam)
 	ptrdiff_t local_n0;
 	int cell;
 	
-	double mean_density;
+	double mean_numdensity_H;
 	double photHI;
 	double densSS;
 	double mod_photHI;
 	double redshift;
 	double temperature;
+	double correct_HeII;
 	
 	nbins = thisGrid->nbins;
 	local_n0 = thisGrid->local_n0;
 	
 	redshift = simParam->redshift;
 	temperature = 1.e4;
-	mean_density = simParam->mean_density*(1.+redshift)*(1.+redshift)*(1.+redshift);
+	mean_numdensity_H = simParam->mean_density*(1.+redshift)*(1.+redshift)*(1.+redshift);
+
+	if(simParam->default_mean_density == 1){
+		mean_numdensity_H = rho_g_cm/mp_g*simParam->h*simParam->h*simParam->omega_b*(1.+redshift)*(1.+redshift)*(1.+redshift)*(1.-simParam->Y);
+	}else{
+		mean_numdensity_H = simParam->mean_density*(1.+redshift)*(1.+redshift)*(1.+redshift)*(1.-simParam->Y);
+	}
 	
+	correct_HeII = (1.-0.75*simParam->Y)/(1.-simParam->Y);
 	//compute modified photoionization fraction & compute new ionization fraction in ionized regions
 
 	for(int comz=0; comz<local_n0; comz++)
@@ -390,16 +398,17 @@ void compute_web_ionfraction(grid_t *thisGrid, confObj_t simParam)
 			{
 				cell = comz*nbins*nbins + comy*nbins + comx;
 					//compute photHI fluctuations (\delta_{photIon})
-					photHI = creal(thisGrid->photHI[cell])*1.e12;
+					photHI = creal(thisGrid->photHI[cell]);
 					
 					//compute self shielded overdensity
 					densSS = calc_densSS(simParam, photHI, temperature, redshift);
+// 					printf("photHI = %e\t densSS = %e\n", photHI, densSS);
 					
 					//compute modified photHI
 					mod_photHI = calc_modPhotHI(creal(thisGrid->igm_density[cell]), densSS);
 					
 					//compute new XHII
-					thisGrid->XHII[cell] = calc_XHII(creal(thisGrid->igm_density[cell])*mean_density, creal(thisGrid->igm_clump[cell]), mod_photHI*creal(thisGrid->photHI[cell])) + 0.*I;
+					thisGrid->XHII[cell] = calc_XHII(creal(thisGrid->igm_density[cell])*mean_numdensity_H*correct_HeII, mod_photHI*creal(thisGrid->photHI[cell]), temperature, simParam->Y) + 0.*I;
 			}
 		}
 	}

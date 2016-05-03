@@ -11,7 +11,8 @@ SOURCES := 	./main.c \
 		./phys_const.c \
 		./self_shielding.c \
 		./density_distribution.c \
-		./recombination.c 
+		./recombination.c \
+		./mean_free_path.c
 OBJECTS := $(SOURCES:.c=.o)
 DOBJECTS := $(SOURCES:.c=.d)
 EXECUTABLE := cifog

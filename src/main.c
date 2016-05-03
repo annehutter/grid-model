@@ -23,6 +23,7 @@
 
 #include "density_distribution.h"
 #include "recombination.h"
+#include "mean_free_path.h"
 
 void print_mean_photHI(grid_t *thisGrid, confObj_t simParam)
 {
@@ -150,6 +151,11 @@ int main (int argc, /*const*/ char * argv[]) {
 		num_cycles = 1;
 	}
 	
+	printf("densSS = %e\n", calc_densSS(simParam, 1.e-13, 1.e4, 6.));
+	printf("densSS = %e\n", calc_densSS(simParam, 5.1e-11, 1.e4, 14.75));
+	printf("densSS = %e\n", calc_densSS(simParam, 1.e-12, 1.e4, 9.));
+	printf("densSS = %e\n", calc_densSS(simParam, 1.e-12, 1.e4, 7.)*simParam->omega_b*simParam->h*simParam->h*rho_g_cm/mp_g*8.*8.*8./(1.-simParam->Y));
+
 	for(int cycle=0; cycle<num_cycles; cycle++)
 	{
 		//------------------------------------------------------------------------------
@@ -203,8 +209,10 @@ int main (int argc, /*const*/ char * argv[]) {
 				if(myRank==0) printf("done\n");
 			}
 			
-			//compute mean free paths
-
+// 			//compute mean free paths
+// 			if(myRank==0) printf("\ncompute mean free paths... ");
+// 			compute_web_mfp(grid, simParam);
+// 			if(myRank==0) printf("done\n");
 		}
 
 		//--------------------------------------------------------------------------------

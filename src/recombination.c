@@ -153,11 +153,10 @@ double get_nrec_history(confObj_t simParam, integral_table_t *thisIntegralTable,
 	int numdcell, dcell_index;
 	
 	if(simParam->default_mean_density == 1){
-// 		mean_numdensity = rho_g_cm/mp_g*simParam->h*simParam->h*simParam->omega_b;
-		correctFact = 1.;
+		correctFact = (1.-0.75*simParam->Y)*(3.*SQR(H0))/(8.*M_PI*G*SQR(simParam->h))/1.8791e-29;
+
 	}else{
-// 		mean_numdensity = simParam->mean_density;
-		correctFact = simParam->mean_density/(rho_g_cm/mp_g*simParam->h*simParam->h*simParam->omega_b);
+		correctFact = (1.-0.75*simParam->Y)*simParam->mean_density/(1.8791e-29/mp_g*simParam->h*simParam->h*simParam->omega_b);
 	}
 
 	dcell = dens;
