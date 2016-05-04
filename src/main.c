@@ -155,6 +155,18 @@ int main (int argc, /*const*/ char * argv[]) {
 	printf("densSS = %e\n", calc_densSS(simParam, 5.1e-11, 1.e4, 14.75));
 	printf("densSS = %e\n", calc_densSS(simParam, 1.e-12, 1.e4, 9.));
 	printf("densSS = %e\n", calc_densSS(simParam, 1.e-12, 1.e4, 7.)*simParam->omega_b*simParam->h*simParam->h*rho_g_cm/mp_g*8.*8.*8./(1.-simParam->Y));
+	printf("z = 6: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 6.));
+	printf("z = 6: mfp(M2000) = %e\n", calc_mfp(simParam, 0.5e-12, 1.e4, 6.));
+	printf("z = 7: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 7.));
+	printf("z = 7: mfp(M2000) = %e\n", calc_mfp(simParam, 0.5e-12, 1.e4, 7.));
+	printf("z = 8: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 8.));
+	printf("z = 8: mfp(M2000) = %e\n", calc_mfp(simParam, 0.5e-12, 1.e4, 8.));
+	printf("z = 9: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 9.));
+	printf("z = 9: mfp(M2000) = %e\n", calc_mfp(simParam, 0.5e-12, 1.e4, 9.));
+	printf("z = 10: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 10.));
+	printf("z = 10: mfp(M2000) = %e\n", calc_mfp(simParam, 0.5e-12, 1.e4, 10.));
+	printf("z = 14.75: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 14.75));
+	printf("z = 14.75: mfp(M2000) = %e\n", calc_mfp(simParam, 0.5e-12, 1.e4, 14.75));
 
 	for(int cycle=0; cycle<num_cycles; cycle++)
 	{
@@ -209,10 +221,13 @@ int main (int argc, /*const*/ char * argv[]) {
 				if(myRank==0) printf("done\n");
 			}
 			
-// 			//compute mean free paths
-// 			if(myRank==0) printf("\ncompute mean free paths... ");
-// 			compute_web_mfp(grid, simParam);
-// 			if(myRank==0) printf("done\n");
+			if(simParam->calc_mfp == -1)
+			{
+				//compute mean free paths
+				if(myRank==0) printf("\ncompute mean free paths... ");
+				compute_web_mfp(grid, simParam);
+				if(myRank==0) printf("done\n");
+			}
 		}
 
 		//--------------------------------------------------------------------------------

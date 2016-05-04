@@ -17,37 +17,40 @@
 #include "grid.h"
 #include "sources.h"
 
+#include "density_distribution.h"
 #include "self_shielding.h"
+#include "recombination.h"
 #include "mean_free_path.h"
 
 #define SQR(X) ((X) * (X))
 #define CUB(X) ((X) * (X) * (X))
 
-double mfp_integrand(double x, void * p)
+double pdf_mfp(double x, void * p)
 {
-	mfp_integrand_t * params = (mfp_integrand_t *)p;
-	double term, term2;
+	pdf_params_t * params = (pdf_params_t *)p;
 	
-	term = exp(-0.019426*SQR(1.+params->redshift)*SQR(pow(x,-2./3.)-1.+6.68589*exp(-0.66*params->redshift))*pow(params->dcell,2./3.))/CUB(x);
-	term2 = 1.-2./(1.+pow(1.+4.*params->nH*x*params->f*CUB(1.+params->redshift),0.5));
-	
-// 	printf("%e\n",params->prefactor*params->prefactor_z*params->factor*term*term2);
-	return params->prefactor*params->prefactor_z*params->factor*term*term2*(1.-calc_modPhotHI(x, params->densSS));
+	double frac = 2./3.;
+	double delta_0 = 7.61/(1.+params->redshift);
+	return params->amplitude*exp(-SQR(pow(x,-frac)-params->constant)/(2.*SQR(frac*delta_0)))*pow(x,0.5-params->beta);
 }
 
-double calc_mfp_integral(mfp_integrand_t *params)
+double calc_integral_mfp(pdf_params_t params, double upLim)
 {
 	gsl_function F;
-	F.function = &mfp_integrand;
-	F.params = (void *)params;
+	F.function = &pdf_mfp;
+	F.params = &params;
 	double result, error;
 
 	gsl_integration_workspace * w = gsl_integration_workspace_alloc(100000); 
 	
-	gsl_integration_qagiu(&F, 0., 1.e-9, 1.e-9, 10000, w, &result, &error);
+	if(upLim <=0.)
+	{
+		gsl_integration_qagiu(&F, 0., 1.e-9, 1.e-9, 10000, w, &result, &error);
+	}else{
+		gsl_integration_qag(&F, 0., upLim, 0., 1.e-9, 10000, 1, w, &result, &error);
+	}
 	
 	gsl_integration_workspace_free(w);
-
 	return result;
 }
 
@@ -57,42 +60,40 @@ double calc_local_mfp(confObj_t simParam, double dens, double photHI, double tem
 	const double omega_m = simParam->omega_m;
 	const double Y = simParam->Y;
 	double fg = omega_b/omega_m;
-	double nH;
-	double f;
-	double mfp;
+	double densSS, modPhotHI;
+	double factor, mfp;
+
+	pdf_params_t *params;
 	
-	if(simParam->default_mean_density == 1){
-		nH = 3.*SQR(H0)/(8.*M_PI*G)/mp_g*omega_b*(1.-Y);
-	}else{
-		nH = simParam->mean_density*(1.-Y);
-	}
-	f = recomb_HII/photHI*(1.-0.75*Y)/(1.-Y);
-	
-	mfp_integrand_t *mfp_integrand;
-	
-	mfp_integrand = malloc(sizeof(mfp_integrand_t));
-	if(mfp_integrand == NULL)
+	params = malloc(sizeof(pdf_params_t));
+	if(params == NULL)
 	{
-		fprintf(stderr, "mfp_integrand in calc_local_mfp (mean_free_path.c) could not be allocated\n");
+		fprintf(stderr, "params in calc_local_mfp (mean_free_path.c) could not be allocated\n");
 		exit(EXIT_FAILURE);
 	}
+	redshift = (1.+redshift)*pow(dens, 1./3.)-1.;
+	params->redshift = redshift;
+	params->amplitude = amplitude_norm_pdf(redshift);
+	params->constant = constant_norm_pdf(redshift);
+	params->beta = 2.5;
 	
-	mfp_integrand->prefactor = 3*clight_cm*H0*pow(CUB(1-Y)*fg*G,0.5)*omega_b/(4.*G*pow(M_PI,1.5)*pow((1.-0.5*Y)*boltzman_cgs*(8.-5.*Y)*gamma_gas,0.5));
-	mfp_integrand->prefactor_z = (1.+6.68589*exp(-0.72*redshift))*(0.03+0.053*redshift)*pow(1.+redshift,-4.5);
-	mfp_integrand->factor = pow(SQR(f)*CUB(nH)*temperature,-0.5);
+	densSS = calc_densSS(simParam, photHI, temperature, redshift);
+// 	printf("densSS = %e\t photHI = %e\t temp = %e\t z = %e\n", densSS, photHI, temperature, redshift);
+	modPhotHI = calc_modPhotHI(dens, densSS);
 	
-	mfp_integrand->densSS = calc_densSS(simParam, photHI, temperature, redshift);
+	factor = pow(3./(8.*M_PI)*omega_b,0.5)*pow((M_PI*gamma_gas*boltzman_cgs*(8.-5.*Y)*fg*temperature)/(4.*mp_g),-0.5)*pow(1.+redshift,-1.5)*(1.-modPhotHI);
+// 	printf("factor = %e\n", factor);
+	mfp = 1./(H0*CUB(1.+redshift)*factor*calc_integral_mfp(*params,0.)*Mpc_cm);
 	
-	mfp_integrand->nH = nH;
-	mfp_integrand->f = f;
-	mfp_integrand->dcell = dens;
-	mfp_integrand->redshift = redshift;
-
-	mfp = clight_cm/(H0*CUB(1.+redshift)*calc_mfp_integral(mfp_integrand)*Mpc_cm);
-	
-	free(mfp_integrand);
+	free(params);
 	
 	return mfp;
+}
+
+void compute_mfp(grid_t *thisGrid, confObj_t simParam)
+{
+	simParam->mfp = calc_local_mfp(simParam, 1., thisGrid->mean_photHI, 1.e4, simParam->redshift);
+	printf("mean free path = %e\n", simParam->mfp);
 }
 
 void compute_web_mfp(grid_t *thisGrid, confObj_t simParam)
@@ -101,6 +102,7 @@ void compute_web_mfp(grid_t *thisGrid, confObj_t simParam)
 	ptrdiff_t local_n0;
 	int cell;
 	double sum=0.;
+	double mfp;
 	
 	double photHI;
 	double dens;
@@ -123,8 +125,10 @@ void compute_web_mfp(grid_t *thisGrid, confObj_t simParam)
 				//compute photHI fluctuations (\delta_{photIon})
 				photHI = creal(thisGrid->photHI[cell]);
 				dens = creal(thisGrid->igm_density[cell]);
-					
-				sum += calc_local_mfp(simParam, dens, photHI, temperature, redshift);
+
+				mfp = calc_local_mfp(simParam, dens, photHI, temperature, redshift);
+				sum = sum + mfp;
+// 				printf("mfp = %e\n", mfp);
 			}
 		}
 	}

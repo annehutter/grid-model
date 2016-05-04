@@ -207,7 +207,7 @@ double frac_densSS(double densSS, confObj_t simParam)
 	
 	result2 = calc_integral(*params, 0.);
  
-	printf("%e\t%e\t%e\t A = %e\t C = %e\t densSS = %e\n", result/result2, result, result2, params->amplitude, params->constant, densSS);
+// 	printf("%e\t%e\t%e\t A = %e\t C = %e\t densSS = %e\n", result/result2, result, result2, params->amplitude, params->constant, densSS);
 		
 	free(params);
 	
@@ -223,7 +223,6 @@ double calc_mfp(confObj_t simParam, double photHI_bg, double temperature, double
 	densSS = calc_densSS(simParam, photHI_bg, temperature, redshift);
 	
 	mfp = lambda_0*pow(1.-frac_densSS(densSS, simParam),-2./3.); 
-	printf("\n mfp = %e\t lambda_0 = %e\t%e\n ", mfp,lambda_0,1.-frac_densSS(densSS, simParam));
 	
 	return mfp;
 }

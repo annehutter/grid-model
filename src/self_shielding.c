@@ -281,7 +281,7 @@ void convolve_fft_photHI(grid_t *thisGrid, fftw_complex *filter, fftw_complex *n
 #ifdef __MPI
 	MPI_Bcast(&mean_photHI, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 #endif
-	printf("mean photHI = %e\n", mean_photHI);
+	printf("mean photHI = %e\t", mean_photHI);
 	
 	thisGrid->mean_photHI = mean_photHI;
 }
