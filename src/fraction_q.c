@@ -44,7 +44,7 @@ void compute_Q(grid_t *thisGrid, confObj_t simParam)
 	
 	if(simParam->calc_ion_history == 1)
 	{
-		evol_time = simParam->evol_time*Myr_s + time_from_redshift_flatuniverse(simParam, simParam->redshift, simParam->redshift_prev_snap);
+		evol_time = /*simParam->evol_time*Myr_s +*/ time_from_redshift_flatuniverse(simParam, simParam->redshift, simParam->redshift_prev_snap);
 		printf("\n zstart = %e\t zend = %e\t evol_time = %e\t %e\n", simParam->redshift_prev_snap, simParam->redshift, simParam->evol_time, time_from_redshift_flatuniverse(simParam, simParam->redshift, simParam->redshift_prev_snap)/Myr_s);
 		simParam->evol_time = evol_time/Myr_s;
 	}else{
@@ -69,8 +69,11 @@ void compute_Q(grid_t *thisGrid, confObj_t simParam)
 			for(int k=0; k<nbins; k++)
 			{
 				Nion = creal(thisGrid->nion[i*nbins*nbins+j*nbins+k])*evol_time;
-				Nabs = creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k])*mean_numdensity_H*volume*(1.+creal(thisGrid->nrec[i*nbins*nbins+j*nbins+k]));
-				thisGrid->frac_Q[i*nbins*nbins+j*nbins+k] = Nion/Nabs+0.*I;
+// 				Nabs = creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k])*mean_numdensity_H*volume*(1.+creal(thisGrid->nrec[i*nbins*nbins+j*nbins+k]));
+				thisGrid->cum_nion[i*nbins*nbins+j*nbins+k] += Nion + 0.*I;
+				thisGrid->cum_nabs[i*nbins*nbins+j*nbins+k] += creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k])*mean_numdensity_H*volume*creal(thisGrid->nrec[i*nbins*nbins+j*nbins+k]);
+				Nabs = creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k])*mean_numdensity_H*volume + creal(thisGrid->cum_nabs[i*nbins*nbins+j*nbins+k]);
+				thisGrid->frac_Q[i*nbins*nbins+j*nbins+k] = creal(thisGrid->cum_nion[i*nbins*nbins+j*nbins+k])/Nabs + 0.*I;
 // 				if(Nion>0.) printf("%e\t%e\t%e\n", Nion, Nabs, Nion/Nabs);
 			}
 		}

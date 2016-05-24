@@ -77,9 +77,9 @@ double calc_local_mfp(confObj_t simParam, double dens, double photHI, double tem
 	params->constant = constant_norm_pdf(redshift);
 	params->beta = 2.5;
 	
-	densSS = calc_densSS(simParam, photHI, temperature, redshift);
+	densSS = ss_calc_densSS(simParam, photHI, temperature, redshift);
 // 	printf("densSS = %e\t photHI = %e\t temp = %e\t z = %e\n", densSS, photHI, temperature, redshift);
-	modPhotHI = calc_modPhotHI(dens, densSS);
+	modPhotHI = ss_calc_modPhotHI(dens, densSS);
 	
 	factor = pow(3./(8.*M_PI)*omega_b,0.5)*pow((M_PI*gamma_gas*boltzman_cgs*(8.-5.*Y)*fg*temperature)/(4.*mp_g),-0.5)*pow(1.+redshift,-1.5)*(1.-modPhotHI);
 // 	printf("factor = %e\n", factor);

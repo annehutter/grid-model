@@ -28,7 +28,7 @@ double Hubble(confObj_t simParam)
 	return Hubble*sqrt(simParam->omega_m*pow(1.+simParam->redshift,3)+simParam->omega_l);
 }
 
-double pdf(double x, void * p)
+double dd_pdf(double x, void * p)
 {
 	pdf_params_t * params = (pdf_params_t *)p;
 	
@@ -37,10 +37,10 @@ double pdf(double x, void * p)
 	return params->amplitude*exp(-SQR(pow(x,-frac)-params->constant)/(2.*SQR(frac*delta_0)))*pow(x,-params->beta);
 }
 
-double calc_integral(pdf_params_t params, double upLim)
+double dd_calc_integral(pdf_params_t params, double upLim)
 {
 	gsl_function F;
-	F.function = &pdf;
+	F.function = &dd_pdf;
 	F.params = &params;
 	double result, error;
 
@@ -57,7 +57,7 @@ double calc_integral(pdf_params_t params, double upLim)
 	return result;
 }
 
-double pdf_mass(double x, void * p)
+double dd_pdf_mass(double x, void * p)
 {
 	pdf_params_t * params = (pdf_params_t *)p;
 	
@@ -66,10 +66,10 @@ double pdf_mass(double x, void * p)
 	return x*params->amplitude*exp(-SQR(pow(x,-frac)-params->constant)/(2.*SQR(frac*delta_0)))*pow(x,-params->beta);
 }
 
-double calc_integral_mass(pdf_params_t params, double upLim)
+double dd_calc_integral_mass(pdf_params_t params, double upLim)
 {
 	gsl_function F;
-	F.function = &pdf_mass;
+	F.function = &dd_pdf_mass;
 	F.params = &params;
 	double result, error;
 
@@ -86,7 +86,7 @@ double calc_integral_mass(pdf_params_t params, double upLim)
 	return result;
 }
 
-void set_norm_pdf(pdf_params_t * params, double redshift)
+void dd_set_norm_pdf(pdf_params_t * params, double redshift)
 {
 	double result, result_mass;
 	double old_result, old_result_mass;
@@ -104,8 +104,8 @@ void set_norm_pdf(pdf_params_t * params, double redshift)
 	params->beta = 2.5;
 	
 	// compute full integrate
-	result = calc_integral(*params, 0.);
-	result_mass = calc_integral_mass(*params, 0.);
+	result = dd_calc_integral(*params, 0.);
+	result_mass = dd_calc_integral_mass(*params, 0.);
 	chi = (result-1.)*(result-1.)+(result_mass-1.)*(result_mass-1.);
 
 	// adapt struct, so integral is 1
@@ -123,8 +123,8 @@ void set_norm_pdf(pdf_params_t * params, double redshift)
 		
 		params->amplitude += rand_amp*precision*params->amplitude;
 		params->constant += rand_const*precision*params->constant;
-		result_mass = calc_integral_mass(*params, 0.);
-		result = calc_integral(*params, 0.);
+		result_mass = dd_calc_integral_mass(*params, 0.);
+		result = dd_calc_integral(*params, 0.);
 		chi = (result-1.)*(result-1.)+(result_mass-1.)*(result_mass-1.);
 		
 		if(old_chi <= chi)
@@ -142,7 +142,7 @@ void set_norm_pdf(pdf_params_t * params, double redshift)
 	printf("%e\t%e\t A = %e\t C = %e\n", result, result_mass, params->amplitude, params->constant);
 }
 
-double frac_densSS(double densSS, confObj_t simParam)
+double dd_frac_densSS(double densSS, confObj_t simParam)
 {
 	double result, result2;
 // 	double result_mass;
@@ -203,9 +203,9 @@ double frac_densSS(double densSS, confObj_t simParam)
 
 
 	// compute partial interval & derive fraction
-	result = calc_integral(*params, densSS);
+	result = dd_calc_integral(*params, densSS);
 	
-	result2 = calc_integral(*params, 0.);
+	result2 = dd_calc_integral(*params, 0.);
  
 // 	printf("%e\t%e\t%e\t A = %e\t C = %e\t densSS = %e\n", result/result2, result, result2, params->amplitude, params->constant, densSS);
 		
@@ -214,21 +214,21 @@ double frac_densSS(double densSS, confObj_t simParam)
 	return result/result2;
 }
 
-double calc_mfp(confObj_t simParam, double photHI_bg, double temperature, double redshift)
+double dd_calc_mfp(confObj_t simParam, double photHI_bg, double temperature, double redshift)
 {
 	double lambda_0 = 60./Hubble(simParam);	//in Mpc
 	double densSS;
 	double mfp;
 	
-	densSS = calc_densSS(simParam, photHI_bg, temperature, redshift);
+	densSS = ss_calc_densSS(simParam, photHI_bg, temperature, redshift);
 	
-	mfp = lambda_0*pow(1.-frac_densSS(densSS, simParam),-2./3.); 
+	mfp = lambda_0*pow(1.-dd_frac_densSS(densSS, simParam),-2./3.); 
 	
 	return mfp;
 }
 
 void set_mfp_Miralda2000(confObj_t simParam)
 {
-	simParam->mfp = calc_mfp(simParam, simParam->photHI_bg, 1.e4, simParam->redshift);
+	simParam->mfp = dd_calc_mfp(simParam, simParam->photHI_bg, 1.e4, simParam->redshift);
 }
 

@@ -73,17 +73,17 @@ sourcelist_t *allocate_sourcelist(int Nallocated)
 
 void deallocate_sourcelist(sourcelist_t *thisSourcelist)
 {	
-	assert(thisSourcelist != NULL);
-	
 // 	numSources = thisSourcelist->numSources;
 // 	
 // 	for(int i=0; i<numSources; i++)
 // 	{
 // 		deallocate_source(thisSourcelist->source[i]);
 // 	}
-	
-	free(thisSourcelist->source);
-	free(thisSourcelist);
+	if(thisSourcelist != NULL)
+	{
+		free(thisSourcelist->source);
+		free(thisSourcelist);
+	}
 }
 
 sourcelist_t *read_sources(char * filename)

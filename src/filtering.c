@@ -14,6 +14,8 @@
 #include "confObj.h"
 #include "grid.h"
 
+#include "convolution_fftw.h"
+
 #define SQR(X) ((X) * (X))
 
 
@@ -62,7 +64,7 @@ void construct_tophat_filter(fftw_complex *filter, int nbins, ptrdiff_t local_0_
 	}
 }
 
-void convolve_fft(grid_t *thisGrid, fftw_complex *filter, fftw_complex *nion_smooth)
+void convolve_fft_XHII(grid_t *thisGrid, fftw_complex *filter, fftw_complex *nion_smooth)
 {
 	int nbins;
 	double factor;
@@ -344,7 +346,8 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid)
 
 		construct_tophat_filter(filter, nbins, local_0_start, local_n0, smooth_scale);
 		
-		convolve_fft(thisGrid, filter, nion_smooth);
+		convolve_fft_XHII(thisGrid, filter, nion_smooth);
+// 		convolve_fft(thisGrid, filter, nion_smooth, thisGrid->nion);
 
 		if(scale==num_scales-1)
 		{

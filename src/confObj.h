@@ -23,9 +23,9 @@ typedef struct confObj_struct *confObj_t;
 /*--- Implemention of main structure ------------------------------------*/
 struct confObj_struct {
 	//General
+	int			num_snapshots;
+	char 			*redshift_file;
 	char 			*igm_density_file;
-	char 			*halo_density_file;
-	char 			*igm_clump_file;
 	
 	int			grid_size;
 	double			box_size;
@@ -33,7 +33,8 @@ struct confObj_struct {
 	double			inc_log_scales;
 	
 	char 			*sources_file;
-	double 			evol_time;
+	char			*nion_file;
+	double			evol_time;
 	double			redshift;
 	
 	int 			dens_in_overdensity;
@@ -66,7 +67,6 @@ struct confObj_struct {
 	double			dcellmin, dcellmax, ddcell;
 	
 	int			calc_ion_history;
-	double			delta_redshift;
 	
 	int			read_nrec_file;
 	double			redshift_prev_snap;

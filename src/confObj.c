@@ -32,12 +32,12 @@ confObj_new(parse_ini_t ini)
 	config = xmalloc(sizeof(struct confObj_struct));
 	
 	//reading mandatory stuff
+	getFromIni(&(config->num_snapshots), parse_ini_get_int32,
+	           ini, "numSnapshots", "General");
+	getFromIni(&(config->redshift_file), parse_ini_get_string,
+	           ini, "redshiftFile", "General");
 	getFromIni(&(config->igm_density_file), parse_ini_get_string,
 	           ini, "inputIgmDensityFile", "General");
-	getFromIni(&(config->halo_density_file), parse_ini_get_string,
-	           ini, "inputHaloDensityFile", "General");
-	getFromIni(&(config->igm_clump_file), parse_ini_get_string,
-	           ini, "inputIgmClumpFile", "General");
 	
 	getFromIni(&(config->grid_size), parse_ini_get_int32,
 		   ini, "gridsize", "General");
@@ -50,10 +50,13 @@ confObj_new(parse_ini_t ini)
 	
 	getFromIni(&(config->sources_file), parse_ini_get_string,
 	           ini, "inputSourcesFile", "General");
+	getFromIni(&(config->nion_file), parse_ini_get_string,
+	           ini, "inputNionFile", "General");
 	getFromIni(&(config->redshift), parse_ini_get_double,
-		   ini, "redshift", "General");
+		   ini, "finalRedshift", "General");
 	getFromIni(&(config->evol_time), parse_ini_get_double,
 		   ini, "evolutionTime", "General");
+	
 	getFromIni(&(config->dens_in_overdensity), parse_ini_get_int32,
 		   ini, "densityInOverdensity", "General");
 	getFromIni(&(config->mean_density), parse_ini_get_double,
@@ -119,8 +122,6 @@ confObj_new(parse_ini_t ini)
 	
 	getFromIni(&(config->calc_ion_history), parse_ini_get_int32,
 		   ini, "calcIonHistory", "General");
-	getFromIni(&(config->delta_redshift), parse_ini_get_double,
-		   ini, "delta_redshift", "General");
 	
 	getFromIni(&(config->read_nrec_file), parse_ini_get_int32,
 		   ini, "readNrecFile", "General");
@@ -141,9 +142,8 @@ confObj_del(confObj_t *config)
 	assert(*config != NULL);
 	
 	xfree((*config)->igm_density_file);
-	xfree((*config)->halo_density_file);
-	xfree((*config)->igm_clump_file);
 	xfree((*config)->sources_file);
+	xfree((*config)->nion_file);
 	xfree((*config)->out_XHII_file);
 	xfree((*config)->out_photHI_file);
 	xfree((*config)->recomb_table);

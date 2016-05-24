@@ -12,6 +12,8 @@
 #include <fftw3.h>
 #endif
 
+#include "utils.h"
+
 #include "phys_const.h"
 #include "confObj.h"
 #include "grid.h"
@@ -24,6 +26,9 @@
 #include "density_distribution.h"
 #include "recombination.h"
 #include "mean_free_path.h"
+
+#include "input_redshifts.h"
+#include "input_grid.h"
 
 void print_mean_photHI(grid_t *thisGrid, confObj_t simParam)
 {
@@ -49,7 +54,7 @@ void print_mean_photHI(grid_t *thisGrid, confObj_t simParam)
 		{
 			for(int k=0; k<nbins; k++)
 			{
-				sum_clump += thisGrid->igm_clump[i*nbins*nbins+j*nbins+k];
+// 				sum_clump += thisGrid->igm_clump[i*nbins*nbins+j*nbins+k];
 				sum_XHII += thisGrid->XHII[i*nbins*nbins+j*nbins+k];
 			}
 		}
@@ -77,16 +82,19 @@ int main (int argc, /*const*/ char * argv[]) {
 
 	char iniFile[1000];
 	confObj_t simParam;
-	grid_t *grid;
 	
-	sourcelist_t *sourcelist;
+	double *redshift_list;
 	
-	integral_table_t *integralTable;
+	grid_t *grid = NULL;
+	
+	sourcelist_t *sourcelist = NULL;
+	
+	integral_table_t *integralTable = NULL;
 	
 	double t1, t2;
 	
-	double zstart, zend;
-	int num_cycles;
+	double zstart = 0., zend = 0., delta_redshift = 0.;
+	int snap = -1, num_cycles;
 	
 	char XHIIFile[1000], cycle_string[8];
 	
@@ -118,6 +126,35 @@ int main (int argc, /*const*/ char * argv[]) {
 	//read paramter file
 	simParam = readConfObj(iniFile);
 	
+	if(simParam->calc_ion_history == 1){
+		num_cycles = simParam->num_snapshots;
+	}else{
+		num_cycles = 1;
+	}
+	
+	printf("densSS = %e\n", ss_calc_densSS(simParam, 1.e-13, 1.e4, 6.));
+	printf("densSS = %e\n", ss_calc_densSS(simParam, 5.1e-11, 1.e4, 14.75));
+	printf("densSS = %e\n", ss_calc_densSS(simParam, 1.e-12, 1.e4, 9.));
+	printf("densSS = %e\n", ss_calc_densSS(simParam, 1.e-12, 1.e4, 7.)*simParam->omega_b*simParam->h*simParam->h*rho_g_cm/mp_g*8.*8.*8./(1.-simParam->Y));
+	printf("z = 6: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 6.));
+	printf("z = 6: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 6.));
+	printf("z = 7: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 7.));
+	printf("z = 7: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 7.));
+	printf("z = 8: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 8.));
+	printf("z = 8: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 8.));
+	printf("z = 9: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 9.));
+	printf("z = 9: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 9.));
+	printf("z = 10: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 10.));
+	printf("z = 10: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 10.));
+	printf("z = 14.75: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 14.75));
+	printf("z = 14.75: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 14.75));
+
+	//read redshift files with outputs
+	redshift_list = NULL;
+	if(myRank==0) printf("reading redshift list of files and outputs... ");
+	redshift_list = read_redshift_list(simParam->redshift_file, num_cycles);
+	if(redshift_list == NULL) printf("redshift_list is NULL!!!\n");
+	if(myRank==0) printf("done\n");
 	
 	//read files (allocate grid)
 	grid = initGrid();
@@ -125,51 +162,43 @@ int main (int argc, /*const*/ char * argv[]) {
 	read_files_to_grid(grid, simParam);
 	if(myRank==0) printf("done\n");
 	
-	//read source files (allocate sources)
-	if(myRank==0) printf("reading sources file... ");
-	sourcelist = read_sources(simParam->sources_file);
-	if(myRank==0) printf("done\n");
-
-	//map sources to grid
-	if(myRank==0) printf("mapping sources to grid... ");
-	map_nion_to_grid(grid, sourcelist);
-	if(myRank==0) printf("done\n");
-	
-	
 	if(simParam->calc_ion_history == 1)
 	{
 		zstart = simParam->redshift_prev_snap;
 		zend = simParam->redshift;
 		
-		num_cycles = ((zstart-zend)/simParam->delta_redshift);
-		
-		printf("number of cycles = %d\n", num_cycles);
-		
-		simParam->redshift_prev_snap = zstart;
-		simParam->redshift = zstart - simParam->delta_redshift;
-	}else{
-		num_cycles = 1;
+		if(redshift_list == NULL)
+		{
+			simParam->redshift_prev_snap = zstart;
+			delta_redshift = (zstart-zend)/(double)num_cycles;
+			simParam->redshift = zstart - delta_redshift;
+		}
 	}
 	
-	printf("densSS = %e\n", calc_densSS(simParam, 1.e-13, 1.e4, 6.));
-	printf("densSS = %e\n", calc_densSS(simParam, 5.1e-11, 1.e4, 14.75));
-	printf("densSS = %e\n", calc_densSS(simParam, 1.e-12, 1.e4, 9.));
-	printf("densSS = %e\n", calc_densSS(simParam, 1.e-12, 1.e4, 7.)*simParam->omega_b*simParam->h*simParam->h*rho_g_cm/mp_g*8.*8.*8./(1.-simParam->Y));
-	printf("z = 6: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 6.));
-	printf("z = 6: mfp(M2000) = %e\n", calc_mfp(simParam, 0.5e-12, 1.e4, 6.));
-	printf("z = 7: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 7.));
-	printf("z = 7: mfp(M2000) = %e\n", calc_mfp(simParam, 0.5e-12, 1.e4, 7.));
-	printf("z = 8: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 8.));
-	printf("z = 8: mfp(M2000) = %e\n", calc_mfp(simParam, 0.5e-12, 1.e4, 8.));
-	printf("z = 9: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 9.));
-	printf("z = 9: mfp(M2000) = %e\n", calc_mfp(simParam, 0.5e-12, 1.e4, 9.));
-	printf("z = 10: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 10.));
-	printf("z = 10: mfp(M2000) = %e\n", calc_mfp(simParam, 0.5e-12, 1.e4, 10.));
-	printf("z = 14.75: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 14.75));
-	printf("z = 14.75: mfp(M2000) = %e\n", calc_mfp(simParam, 0.5e-12, 1.e4, 14.75));
-
-	for(int cycle=0; cycle<num_cycles; cycle++)
+	for(int cycle=0; cycle<num_cycles - 1; cycle++)
 	{
+		if(redshift_list != NULL)
+		{
+			simParam->redshift_prev_snap = redshift_list[2*cycle];
+			simParam->redshift = redshift_list[2*(cycle + 1)];
+			delta_redshift = redshift_list[2*cycle] - redshift_list[2*(cycle + 1)];
+			
+			if((redshift_list[2*cycle+1] == 1) || (cycle == 0)) snap++;
+		}
+		else if(cycle !=0 && redshift_list == NULL)
+		{
+			simParam->redshift -= delta_redshift;
+			simParam->redshift_prev_snap -= delta_redshift;
+		}
+		
+		if(myRank==0) printf("reading sources/nion file for snap = %d... ", snap);
+		read_update_nion(simParam, sourcelist, grid, snap);
+		if(myRank==0) printf("done\n");
+		
+		if(myRank==0) printf("reading igm density file... ");
+		read_update_igm_density(simParam, grid, snap);
+		if(myRank==0) printf("done\n");
+	  
 		//------------------------------------------------------------------------------
 		// compute web model
 		//------------------------------------------------------------------------------
@@ -253,9 +282,6 @@ int main (int argc, /*const*/ char * argv[]) {
 		if(myRank==0) printf("writing ionization field to file %s ... ", XHIIFile);
 		save_to_file_XHII(grid, XHIIFile);
 		if(myRank==0) printf("done\n");
-	
-		simParam->redshift -= simParam->delta_redshift;
-		simParam->redshift_prev_snap -= simParam->delta_redshift;
 	}
 	//--------------------------------------------------------------------------------
 	// writing data to files
@@ -280,6 +306,10 @@ int main (int argc, /*const*/ char * argv[]) {
 	deallocate_sourcelist(sourcelist);
 	if(myRank==0) printf("done\n");
 	
+	if(myRank==0) printf("deallocating redshift list ...");
+	deallocateRedshift_list(redshift_list);
+	if(myRank==0) printf("done\n");
+	   
 	fftw_cleanup();
 	
 	confObj_del(&simParam);

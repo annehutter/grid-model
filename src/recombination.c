@@ -72,7 +72,7 @@ void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam, char *f
 			{
 				dens = creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k]);
 				photHI = creal(thisGrid->photHI[i*nbins*nbins+j*nbins+k]);
-				thisGrid->nrec[i*nbins*nbins+j*nbins+k] +=  get_nrec_history(simParam, thisIntegralTable, integral_table, dens, photHI, temp, zstart, redshift)+0.*I;
+				thisGrid->nrec[i*nbins*nbins+j*nbins+k] =  get_nrec_history(simParam, thisIntegralTable, integral_table, dens, photHI, temp, zstart, redshift)+0.*I;
 // 				printf("nrec = %e\t dens = %e\t photHI = %e\t %e\n", creal(thisGrid->nrec[i*nbins*nbins+j*nbins+k]), dens, photHI, pow(dens, 1./3.));
 			}
 		}
@@ -176,17 +176,18 @@ double get_nrec_history(confObj_t simParam, integral_table_t *thisIntegralTable,
 	assert(dcell_index>=0 && dcell_index<numdcell);
 	
 	factor = (recomb_HII*correctFact)/photHI;
+// 	printf("recomb_HII = %e\tphotHI = %e\tcorrectFact = %e\n", recomb_HII, photHI, correctFact);
 	numf = (thisIntegralTable->fmax - thisIntegralTable->fmin)/thisIntegralTable->df+1;
 	factor_index = (log10(factor) - thisIntegralTable->fmin)/thisIntegralTable->df;
 	
 	if(factor_index<0)
 	{
-		printf("factor_index = %d, not within limits of %d to %d\n", factor_index, 0, numf);
+		printf("factor = %e\tfactor_index = %d, not within limits of %d to %d\n", factor, factor_index, 0, numf);
 		factor_index = 0;
 	}
 	if(factor_index>=numf)
 	{
-		printf("factor_index = %d, not within limits of %d to %d\n", factor_index, 0, numf);
+		printf("factor = %e\tfactor_index = %d, not within limits of %d to %d\n", factor, factor_index, 0, numf);
 		factor_index = numf-1;
 	}
 	assert(factor_index>=0 && factor_index<numf);
@@ -299,7 +300,7 @@ void compute_table_norm_pdf(double zmin, double zmax, double d, int rank, int si
 	for(int i=0; i<num_size; i++)
 	{
 		redshift = zmin + d*(i + offset_write);
-		set_norm_pdf(pdf_params, redshift);
+		dd_set_norm_pdf(pdf_params, redshift);
 		array[3*i] = redshift;
 		array[3*i+1] = pdf_params->amplitude;
 		array[3*i+2] = pdf_params->constant;

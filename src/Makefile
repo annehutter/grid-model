@@ -12,7 +12,11 @@ SOURCES := 	./main.c \
 		./self_shielding.c \
 		./density_distribution.c \
 		./recombination.c \
-		./mean_free_path.c
+		./mean_free_path.c \
+		./convolution_fftw.c \
+		./utils.c\
+		./input_redshifts.c\
+		./input_grid.c
 OBJECTS := $(SOURCES:.c=.o)
 DOBJECTS := $(SOURCES:.c=.d)
 EXECUTABLE := cifog
