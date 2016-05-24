@@ -32,6 +32,8 @@ confObj_new(parse_ini_t ini)
 	config = xmalloc(sizeof(struct confObj_struct));
 	
 	//reading mandatory stuff
+	getFromIni(&(config->input_doubleprecision), parse_ini_get_int32,
+	           ini, "inputFilesAreInDoublePrecision", "General");
 	getFromIni(&(config->num_snapshots), parse_ini_get_int32,
 	           ini, "numSnapshots", "General");
 	getFromIni(&(config->redshift_file), parse_ini_get_string,

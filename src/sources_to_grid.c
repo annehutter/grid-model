@@ -53,7 +53,13 @@ void read_update_nion(confObj_t simParam, sourcelist_t *thisSourcelist, grid_t *
 		//map sources to grid
 		map_nion_to_grid(thisGrid, thisSourcelist);
 	}else if(file_exist(nion_file) == 1){
-		read_nion(thisGrid, nion_file);
+		read_nion(thisGrid, nion_file, simParam->input_doubleprecision);
+		for(int i=0; i<thisGrid->nbins*thisGrid->nbins*thisGrid->nbins; i++){
+			if(creal(thisGrid->nion[i])>0.){
+				thisGrid->nion[i] = pow(10., creal(thisGrid->nion[i])) + 0.*I;
+				printf("nion[%d] = %e\n",i,creal(thisGrid->nion[i]));
+			}
+		}
 	}else{
 		fprintf(stderr, "No source or nion file available, or names are incorrect!\n");
 		exit(EXIT_FAILURE);

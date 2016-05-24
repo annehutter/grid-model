@@ -33,13 +33,15 @@ typedef struct
 
 grid_t *initGrid();
 void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput);
-void read_nion(grid_t *thisGrid, char *filename);
-void read_igm_density(grid_t *thisGrid, char *filename);
+void read_nion(grid_t *thisGrid, char *filename, int double_precision);
+void read_igm_density(grid_t *thisGrid, char *filename, int double_precision);
 
 #ifdef __MPI
 void read_grid(fftw_complex *toThisArray, int nbins, int local_n0, int local_0_start, char *filename);
+void read_grid_doubleprecision(fftw_complex *toThisArray, int nbins, int local_n0, int local_0_start, char *filename);
 #else
 void read_grid(fftw_complex *toThisArray, int nbins, int local_n0, char *filename);
+void read_grid_doubleprecision(fftw_complex *toThisArray, int nbins, int local_n0, char *filename);
 #endif
 
 void initialize_grid(fftw_complex *thisArray, int nbins, int local_n0, double value);

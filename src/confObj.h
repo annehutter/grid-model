@@ -23,6 +23,7 @@ typedef struct confObj_struct *confObj_t;
 /*--- Implemention of main structure ------------------------------------*/
 struct confObj_struct {
 	//General
+	int			input_doubleprecision;
 	int			num_snapshots;
 	char 			*redshift_file;
 	char 			*igm_density_file;

@@ -32,13 +32,15 @@ void read_update_igm_density(confObj_t simParam, grid_t *thisGrid, int snap)
 		strcat(igm_density_file, simParam->igm_density_file);
 		strcat(igm_density_file, "_");
 		strcat(igm_density_file, snap_string);
+		printf("\n reading %s\n", igm_density_file);
 	}else{
 		strcat(igm_density_file, simParam->igm_density_file);
+		printf("\n reading %s\n", igm_density_file);
 	}
   
-	if(file_exist(simParam->igm_density_file) == 1)
+	if(file_exist(igm_density_file) == 1)
 	{
-		read_igm_density(thisGrid, igm_density_file);
+		read_igm_density(thisGrid, igm_density_file, simParam->input_doubleprecision);
 	}
 	else if(file_exist(igm_density_file) == 1)
 	{

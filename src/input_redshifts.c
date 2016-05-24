@@ -31,7 +31,6 @@ double *read_redshift_list(char *redshift_file, int num_snapshots)
 	
 	if(file_exist(redshift_file) == 1)
 	{
-		printf("\n\n here \n\n");
 		file = fopen(redshift_file, "rt");
 		counter = 0;
 		while(fgets(line, 128, file) != NULL)

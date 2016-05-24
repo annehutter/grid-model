@@ -133,7 +133,7 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
 #endif
 }
 
-void read_nion(grid_t *thisGrid, char *filename)
+void read_nion(grid_t *thisGrid, char *filename, int double_precision)
 {
 #ifdef __MPI
 	ptrdiff_t local_n0, local_0_start;
@@ -146,14 +146,23 @@ void read_nion(grid_t *thisGrid, char *filename)
 	local_n0 = thisGrid->local_n0;
 	local_0_start = thisGrid->local_0_start;
 	
+	if(double_precision == 1)
+	{
+#ifdef __MPI
+	read_grid_doubleprecision(thisGrid->nion, nbins, local_n0, local_0_start, filename);
+#else
+	read_grid_doubleprecision(thisGrid->nion, nbins, local_n0, filename);
+#endif
+	}else{
 #ifdef __MPI
 	read_grid(thisGrid->nion, nbins, local_n0, local_0_start, filename);
 #else
 	read_grid(thisGrid->nion, nbins, local_n0, filename);
 #endif
+	}
 }
 
-void read_igm_density(grid_t *thisGrid, char *filename)
+void read_igm_density(grid_t *thisGrid, char *filename, int double_precision)
 {
 #ifdef __MPI
 	ptrdiff_t local_n0, local_0_start;
@@ -166,13 +175,21 @@ void read_igm_density(grid_t *thisGrid, char *filename)
 	local_n0 = thisGrid->local_n0;
 	local_0_start = thisGrid->local_0_start;
 	
+	if(double_precision == 1)
+	{
+#ifdef __MPI
+	read_grid_doubleprecision(thisGrid->igm_density, nbins, local_n0, local_0_start, filename);
+#else
+	read_grid_doubleprecision(thisGrid->igm_density, nbins, local_n0, filename);
+#endif
+	}else{
 #ifdef __MPI
 	read_grid(thisGrid->igm_density, nbins, local_n0, local_0_start, filename);
 #else
 	read_grid(thisGrid->igm_density, nbins, local_n0, filename);
 #endif
+	}
 }
-
 
 #ifdef __MPI
 void read_grid(fftw_complex *toThisArray, int nbins, int local_n0, int local_0_start, char *filename)
@@ -222,6 +239,61 @@ void read_grid(fftw_complex *toThisArray, int nbins, int local_n0, char *filenam
 			for(int k=0; k<nbins; k++)
 			{
 				toThisArray[i*nbins*nbins+j*nbins+k] = (double)tmparray[i*nbins*nbins+j*nbins+k]+0.*I;
+			}
+		}
+	}
+	free(tmparray);
+}
+
+
+#ifdef __MPI
+void read_grid_doubleprecision(fftw_complex *toThisArray, int nbins, int local_n0, int local_0_start, char *filename)
+#else
+void read_grid_doubleprecision(fftw_complex *toThisArray, int nbins, int local_n0, char *filename)
+#endif
+{
+	double *tmparray;
+		
+	tmparray = (double*)malloc(sizeof(double)*local_n0*nbins*nbins);
+	if(tmparray == NULL)
+	{
+		fprintf(stderr, "tmparray in read_grid (grid.c) could not be allocated\n");
+		exit(EXIT_FAILURE);
+	}
+#ifdef __MPI
+	int success;
+	int resultlen;
+	char msg[MPI_MAX_ERROR_STRING];
+
+	MPI_File mpifile;
+	MPI_Offset offset;
+	MPI_Status status;
+	
+	offset = (local_0_start*nbins*nbins*sizeof(double));
+	
+	success = MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY,MPI_INFO_NULL, &mpifile);
+	if(success != MPI_SUCCESS)
+	{
+		MPI_Error_string(success, msg, &resultlen);
+		fprintf(stderr, "MPI_File_open(): %s\n", msg);
+		exit(-1);
+	}
+	MPI_File_read_at_all(mpifile,offset,tmparray, local_n0*nbins*nbins,MPI_FLOAT,&status);
+	MPI_File_close(&mpifile);
+#else
+	FILE *fp;
+	fp = fopen(filename, "rb");
+	fread(tmparray, sizeof(double), nbins*nbins*nbins, fp);
+	fclose(fp);
+#endif
+	
+	for(int i=0; i<local_n0; i++)
+	{
+		for(int j=0; j<nbins; j++)
+		{
+			for(int k=0; k<nbins; k++)
+			{
+				toThisArray[i*nbins*nbins+j*nbins+k] = tmparray[i*nbins*nbins+j*nbins+k]+0.*I;
 			}
 		}
 	}

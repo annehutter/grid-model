@@ -153,7 +153,7 @@ int main (int argc, /*const*/ char * argv[]) {
 	redshift_list = NULL;
 	if(myRank==0) printf("reading redshift list of files and outputs... ");
 	redshift_list = read_redshift_list(simParam->redshift_file, num_cycles);
-	if(redshift_list == NULL) printf("redshift_list is NULL!!!\n");
+// 	for(int i=0; i<simParam->num_snapshots; i++) printf("z = %e\t files exist %e\n", redshift_list[2*i], redshift_list[2*i + 1]);
 	if(myRank==0) printf("done\n");
 	
 	//read files (allocate grid)

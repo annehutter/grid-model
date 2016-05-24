@@ -165,12 +165,12 @@ double get_nrec_history(confObj_t simParam, integral_table_t *thisIntegralTable,
 	
 	if(dcell_index<0)
 	{
-		printf("dcell_index = %d, not within limits of %d to %d\n", dcell_index, 0, numdcell);
+		printf("dcell = %e\tdcell_index = %d, not within limits of %d to %d\n", dcell, dcell_index, 0, numdcell);
 		dcell_index = 0;
 	}
 	if(dcell_index>=numdcell)
 	{
-		printf("dcell_index = %d, not within limits of %d to %d\n", dcell_index, 0, numdcell);
+		printf("dcell = %e\tdcell_index = %d, not within limits of %d to %d\n", dcell, dcell_index, 0, numdcell);
 		dcell_index = numdcell-1;
 	}
 	assert(dcell_index>=0 && dcell_index<numdcell);
