@@ -253,7 +253,7 @@ void read_grid_doubleprecision(fftw_complex *toThisArray, int nbins, int local_n
 #endif
 {
 	double *tmparray;
-		
+	
 	tmparray = (double*)malloc(sizeof(double)*local_n0*nbins*nbins);
 	if(tmparray == NULL)
 	{
@@ -278,7 +278,7 @@ void read_grid_doubleprecision(fftw_complex *toThisArray, int nbins, int local_n
 		fprintf(stderr, "MPI_File_open(): %s\n", msg);
 		exit(-1);
 	}
-	MPI_File_read_at_all(mpifile,offset,tmparray, local_n0*nbins*nbins,MPI_FLOAT,&status);
+	MPI_File_read_at_all(mpifile,offset,tmparray, local_n0*nbins*nbins,MPI_DOUBLE,&status);
 	MPI_File_close(&mpifile);
 #else
 	FILE *fp;

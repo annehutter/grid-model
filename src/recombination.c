@@ -187,7 +187,7 @@ double get_nrec_history(confObj_t simParam, integral_table_t *thisIntegralTable,
 	}
 	if(factor_index>=numf)
 	{
-		printf("factor = %e\tfactor_index = %d, not within limits of %d to %d\n", factor, factor_index, 0, numf);
+		//printf("factor = %e\tfactor_index = %d, not within limits of %d to %d\n", factor, factor_index, 0, numf);
 		factor_index = numf-1;
 	}
 	assert(factor_index>=0 && factor_index<numf);

@@ -41,10 +41,15 @@ void read_update_igm_density(confObj_t simParam, grid_t *thisGrid, int snap)
 	if(file_exist(igm_density_file) == 1)
 	{
 		read_igm_density(thisGrid, igm_density_file, simParam->input_doubleprecision);
+		for(int i=0; i<thisGrid->nbins*thisGrid->nbins*thisGrid->local_n0; i++){
+			if(creal(thisGrid->igm_density[i])<=0.){
+				printf("density[%d] = %e\n",i,creal(thisGrid->igm_density[i]));
+			}
+		}
 	}
 	else if(file_exist(igm_density_file) == 1)
 	{
-		fprintf(stderr, "No source or nion file available, or names are incorrect!\n");
+		fprintf(stderr, "No density file available, or names are incorrect!\n");
 		exit(EXIT_FAILURE);
 	}
 }
