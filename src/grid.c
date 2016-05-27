@@ -144,17 +144,18 @@ void read_nion(grid_t *thisGrid, char *filename, int double_precision)
 	
 	nbins = thisGrid->nbins;
 	local_n0 = thisGrid->local_n0;
-	local_0_start = thisGrid->local_0_start;
 	
 	if(double_precision == 1)
 	{
 #ifdef __MPI
+	local_0_start = thisGrid->local_0_start;
 	read_grid_doubleprecision(thisGrid->nion, nbins, local_n0, local_0_start, filename);
 #else
 	read_grid_doubleprecision(thisGrid->nion, nbins, local_n0, filename);
 #endif
 	}else{
 #ifdef __MPI
+	local_0_start = thisGrid->local_0_start;
 	read_grid(thisGrid->nion, nbins, local_n0, local_0_start, filename);
 #else
 	read_grid(thisGrid->nion, nbins, local_n0, filename);
@@ -173,17 +174,18 @@ void read_igm_density(grid_t *thisGrid, char *filename, int double_precision)
 	
 	nbins = thisGrid->nbins;
 	local_n0 = thisGrid->local_n0;
-	local_0_start = thisGrid->local_0_start;
 	
 	if(double_precision == 1)
 	{
 #ifdef __MPI
+	local_0_start = thisGrid->local_0_start;
 	read_grid_doubleprecision(thisGrid->igm_density, nbins, local_n0, local_0_start, filename);
 #else
 	read_grid_doubleprecision(thisGrid->igm_density, nbins, local_n0, filename);
 #endif
 	}else{
 #ifdef __MPI
+	local_0_start = thisGrid->local_0_start;
 	read_grid(thisGrid->igm_density, nbins, local_n0, local_0_start, filename);
 #else
 	read_grid(thisGrid->igm_density, nbins, local_n0, filename);
