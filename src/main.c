@@ -104,8 +104,12 @@ int main (int argc, /*const*/ char * argv[]) {
 	MPI_Comm_rank(MPI_COMM_WORLD, &myRank); 
 	
 	t1 = MPI_Wtime();
+	
+	fftw_mpi_init();
 #else
 	t1 = time(NULL);
+	
+	fftw_init();
 #endif
 	
 	//parse command line arguments and be nice to user
@@ -309,17 +313,19 @@ int main (int argc, /*const*/ char * argv[]) {
 	if(myRank==0) printf("deallocating redshift list ...");
 	deallocateRedshift_list(redshift_list);
 	if(myRank==0) printf("done\n");
-	   
-	fftw_cleanup();
 	
 	confObj_del(&simParam);
 	
 	if(myRank==0) printf("Finished\n");
 #ifdef __MPI
+	fftw_mpi_cleanup();
+		
 	t2 = MPI_Wtime();
 	printf("Execution took %f s\n", t2-t1);
 	MPI_Finalize();
 #else
+	fftw_cleanup();
+	
 	t2 = time(NULL);
 	printf("Execution took %f s\n", t2-t1);
 #endif

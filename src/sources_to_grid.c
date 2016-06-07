@@ -56,6 +56,7 @@ void read_update_nion(confObj_t simParam, sourcelist_t *thisSourcelist, grid_t *
 		read_nion(thisGrid, nion_file, simParam->input_doubleprecision);
 // 		for(int i=0; i<thisGrid->nbins*thisGrid->nbins*thisGrid->nbins; i++){
 // 			if(creal(thisGrid->nion[i])>0.){
+// 				thisGrid->nion[i] = creal(thisGrid->nion[i])*1.e8 + 0.*I;
 // 				printf("nion[%d] = %e\n",i,creal(thisGrid->nion[i]));
 // 			}
 // 		}
