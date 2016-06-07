@@ -21,8 +21,6 @@ OBJECTS := $(SOURCES:.c=.o)
 DOBJECTS := $(SOURCES:.c=.d)
 EXECUTABLE := cifog
 
-USE-MPI = YES
-
 OPTIMIZE = -O3 -ftree-vectorize
 WARNING = -Wall -Wextra -Wshadow -g
 

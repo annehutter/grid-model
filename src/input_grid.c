@@ -41,11 +41,12 @@ void read_update_igm_density(confObj_t simParam, grid_t *thisGrid, int snap)
 	if(file_exist(igm_density_file) == 1)
 	{
 		read_igm_density(thisGrid, igm_density_file, simParam->input_doubleprecision);
-// 		for(int i=0; i<thisGrid->nbins*thisGrid->nbins*thisGrid->local_n0; i++){
-// 			if(creal(thisGrid->igm_density[i])<=0.){
-// 				printf("density[%d] = %e\n",i,creal(thisGrid->igm_density[i]));
-// 			}
-// 		}
+		for(int i=0; i<thisGrid->nbins*thisGrid->nbins*thisGrid->local_n0; i++){
+			if(creal(thisGrid->igm_density[i])<=0.){
+				printf("density[%d] = %e\n",i,creal(thisGrid->igm_density[i]));
+				thisGrid->igm_density[i] = 1.e-2 + 0.*I;
+			}
+		}
 	}
 	else if(file_exist(igm_density_file) == 1)
 	{

@@ -108,8 +108,6 @@ int main (int argc, /*const*/ char * argv[]) {
 	fftw_mpi_init();
 #else
 	t1 = time(NULL);
-	
-	fftw_init();
 #endif
 	
 	//parse command line arguments and be nice to user
