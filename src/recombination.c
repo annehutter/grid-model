@@ -73,7 +73,9 @@ void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam, char *f
 				dens = creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k]);
 				photHI = creal(thisGrid->photHI[i*nbins*nbins+j*nbins+k]);
 				thisGrid->nrec[i*nbins*nbins+j*nbins+k] =  get_nrec_history(simParam, thisIntegralTable, integral_table, dens, photHI, temp, zstart, redshift)+0.*I;
-// 				printf("nrec = %e\t dens = %e\t photHI = %e\t %e\n", creal(thisGrid->nrec[i*nbins*nbins+j*nbins+k]), dens, photHI, pow(dens, 1./3.));
+#ifdef DEBUG_NREC
+				printf("nrec = %e\t dens = %e\t photHI = %e\t %e\n", creal(thisGrid->nrec[i*nbins*nbins+j*nbins+k]), dens, photHI, pow(dens, 1./3.));
+#endif DEBUG_NREC
 			}
 		}
 	}
@@ -145,7 +147,6 @@ void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam, char *f
 double get_nrec_history(confObj_t simParam, integral_table_t *thisIntegralTable, double *integral_table, double dens, double photHI, double temp, double zstart, double redshift)
 {
 	double tmp;
-// 	double mean_numdensity; 
 	double correctFact;
 	double factor, dcell;
 	int numz, zstart_index, redshift_index;
@@ -176,7 +177,7 @@ double get_nrec_history(confObj_t simParam, integral_table_t *thisIntegralTable,
 	assert(dcell_index>=0 && dcell_index<numdcell);
 	
 	factor = (recomb_HII*correctFact)/photHI;
-// 	printf("recomb_HII = %e\tphotHI = %e\tcorrectFact = %e\n", recomb_HII, photHI, correctFact);
+        
 	numf = (thisIntegralTable->fmax - thisIntegralTable->fmin)/thisIntegralTable->df+1;
 	factor_index = (log10(factor) - thisIntegralTable->fmin)/thisIntegralTable->df;
 	
@@ -187,7 +188,7 @@ double get_nrec_history(confObj_t simParam, integral_table_t *thisIntegralTable,
 	}
 	if(factor_index>=numf)
 	{
-		//printf("factor = %e\tfactor_index = %d, not within limits of %d to %d\n", factor, factor_index, 0, numf);
+		printf("factor = %e\tfactor_index = %d, not within limits of %d to %d\n", factor, factor_index, 0, numf);
 		factor_index = numf-1;
 	}
 	assert(factor_index>=0 && factor_index<numf);
@@ -208,6 +209,22 @@ double get_nrec_history(confObj_t simParam, integral_table_t *thisIntegralTable,
 	}
 	assert(redshift_index>=0 && redshift_index<numz);
 
+	for(int k=0; k<numdcell; k++)
+	{
+		for(int j=0; j<numf; j++)
+		{
+			tmp = 0.;
+			for(int i=redshift_index; i<zstart_index; i++)
+			{
+				tmp += integral_table[numz*numf*k + numz*j + i];
+			}
+			tmp = tmp*photHI*1.e12;
+#ifdef DEBUG_NREC
+			printf("factor = %d\t dcell_index = %d\t tmp = %e\n",j, k, tmp);
+#endif DEBUG_NREC
+		}
+	}
+	
 	tmp = 0.;
 	for(int i=redshift_index; i<zstart_index; i++)
 	{

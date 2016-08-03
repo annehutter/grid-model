@@ -32,7 +32,7 @@ void compute_Q(grid_t *thisGrid, confObj_t simParam)
 	double box_size;
 	
 	double evol_time;
-	double z;
+	double z; 
 	double mean_numdensity_H;
 	double h;
 	

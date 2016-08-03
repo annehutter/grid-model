@@ -59,12 +59,12 @@ void read_update_nion(confObj_t simParam, sourcelist_t *thisSourcelist, grid_t *
 		exit(EXIT_FAILURE);
 	}
 	
-	for(int i=0; i<thisGrid->nbins*thisGrid->nbins*thisGrid->nbins; i++){
+// 	for(int i=0; i<thisGrid->nbins*thisGrid->nbins*thisGrid->nbins; i++){
 // 		if(creal(thisGrid->nion[i])>0.){
-// 			thisGrid->nion[i] = creal(thisGrid->nion[i])*1.e7 + 0.*I;
+// 			thisGrid->nion[i] = creal(thisGrid->nion[i])*5.e0 + 0.*I;
 // 			printf("nion[%d] = %e\n",i,creal(thisGrid->nion[i]));
 // 		}
-	}
+// 	}
 }
 
 /* map number of ionizing photons to grid --------------------------------------------------------*/
