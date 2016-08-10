@@ -52,6 +52,9 @@ void read_update_nion(confObj_t simParam, sourcelist_t *thisSourcelist, grid_t *
 		
 		//map sources to grid
 		map_nion_to_grid(thisGrid, thisSourcelist);
+        
+        //deallocate sources
+        deallocate_sourcelist(thisSourcelist);
 	}else if(file_exist(nion_file) == 1){
 		read_nion(thisGrid, nion_file, simParam->input_doubleprecision);
 	}else{
@@ -59,12 +62,12 @@ void read_update_nion(confObj_t simParam, sourcelist_t *thisSourcelist, grid_t *
 		exit(EXIT_FAILURE);
 	}
 	
-// 	for(int i=0; i<thisGrid->nbins*thisGrid->nbins*thisGrid->nbins; i++){
-// 		if(creal(thisGrid->nion[i])>0.){
-// 			thisGrid->nion[i] = creal(thisGrid->nion[i])*5.e0 + 0.*I;
+	for(int i=0; i<thisGrid->nbins*thisGrid->nbins*thisGrid->nbins; i++){
+		if(creal(thisGrid->nion[i])>0.){
+			thisGrid->nion[i] = creal(thisGrid->nion[i])*5.e0 + 0.*I;
 // 			printf("nion[%d] = %e\n",i,creal(thisGrid->nion[i]));
-// 		}
-// 	}
+		}
+	}
 }
 
 /* map number of ionizing photons to grid --------------------------------------------------------*/

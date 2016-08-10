@@ -44,12 +44,13 @@ void compute_Q(grid_t *thisGrid, confObj_t simParam)
 	
 	if(simParam->calc_ion_history == 1)
 	{
-		evol_time = /*simParam->evol_time*Myr_s +*/ time_from_redshift_flatuniverse(simParam, simParam->redshift, simParam->redshift_prev_snap);
-		printf("\n zstart = %e\t zend = %e\t evol_time = %e\t %e\n", simParam->redshift_prev_snap, simParam->redshift, simParam->evol_time, time_from_redshift_flatuniverse(simParam, simParam->redshift, simParam->redshift_prev_snap)/Myr_s);
+        printf("\n zstart = %e\t zend = %e\t evol_time = %e + %e Myrs\n", simParam->redshift_prev_snap, simParam->redshift, simParam->evol_time, time_from_redshift_flatuniverse(simParam, simParam->redshift, simParam->redshift_prev_snap)/Myr_s);
+
+		evol_time = simParam->evol_time*Myr_s + time_from_redshift_flatuniverse(simParam, simParam->redshift, simParam->redshift_prev_snap);
 		simParam->evol_time = evol_time/Myr_s;
 	}else{
 		evol_time = simParam->evol_time*Myr_s;
-		printf("\nevol_time = %e\n", evol_time/Myr_s);
+		printf("\n evol_time = %e Myrs\n", evol_time/Myr_s);
 	}
 	z = simParam->redshift;
 	if(simParam->default_mean_density == 1){
@@ -57,11 +58,11 @@ void compute_Q(grid_t *thisGrid, confObj_t simParam)
 	}else{
 		mean_numdensity_H = simParam->mean_density*(1.+z)*(1.+z)*(1.+z)*(1.-simParam->Y);
 	}
+    printf(" mean_numdensity_H at z=%e is %e cm^-3\n", z, mean_numdensity_H);
+
 	h = simParam->h;
-	
 	const double volume = pow(box_size/(h*(double)nbins*(1.+z))*Mpc_cm,3);
 	
-	printf("mean_numdensity_H = %e\n", mean_numdensity_H);
 	for(int i=0; i<local_n0; i++)
 	{
 		for(int j=0; j<nbins; j++)

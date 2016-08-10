@@ -321,7 +321,7 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid)
 	lin_bins = lin_scales/box_size*(float)nbins;
 	factor_exponent = inc_log_scales/lin_bins;
 	num_scales = (log(box_size/lin_scales) + lin_bins*log(1.+factor_exponent))/log(1. + factor_exponent );
-	printf("lin_bins = %e\t factor_exponent = %e\t num_scales = %d\n", lin_bins, factor_exponent, num_scales);
+	printf("\n #linear bins = %e\t factor_exponent = %e\t #tophat filter sizes = %d\n", lin_bins, factor_exponent, num_scales);
 	
 	for(int scale=0; scale<num_scales; scale++)
 	{
@@ -342,7 +342,7 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid)
 		if(inc <= lin_bins) smooth_scale = inc;
 		else smooth_scale = lin_bins*pow(1. + factor_exponent, inc-lin_bins);
 		
-		printf("inc = %e\t lin_bins = %e\t scale = %d\t smooth_scale = %e\n",inc, lin_bins, scale, smooth_scale);
+		printf("  inc = %e\t lin_bins = %e\t scale = %d\t smooth_scale = %e\n",inc, lin_bins, scale, smooth_scale);
 
 		construct_tophat_filter(filter, nbins, local_0_start, local_n0, smooth_scale);
 		

@@ -54,3 +54,60 @@ void read_update_igm_density(confObj_t simParam, grid_t *thisGrid, int snap)
 		exit(EXIT_FAILURE);
 	}
 }
+
+void read_update_igm_clump(confObj_t simParam, grid_t *thisGrid, int snap)
+{
+	char igm_clump_file[128];
+	char snap_string[8];
+	
+	for(int i=0; i<128; i++) igm_clump_file[i]='\0';
+	if(snap >= 0)
+	{
+		sprintf(snap_string,"%03d",snap); 
+		strcat(igm_clump_file, simParam->igm_clump_file);
+		strcat(igm_clump_file, "_");
+		strcat(igm_clump_file, snap_string);
+		printf("\n reading %s\n", igm_clump_file);
+	}else{
+		strcat(igm_clump_file, simParam->igm_clump_file);
+		printf("\n reading %s\n", igm_clump_file);
+	}
+  
+	if(file_exist(igm_clump_file) == 1)
+	{
+		read_igm_clump(thisGrid, igm_clump_file, simParam->input_doubleprecision);
+		for(int i=0; i<thisGrid->nbins*thisGrid->nbins*thisGrid->local_n0; i++){
+			if(creal(thisGrid->igm_clump[i])<=0.){
+				printf("clump[%d] = %e\n",i,creal(thisGrid->igm_clump[i]));
+				thisGrid->igm_clump[i] = 1. + 0.*I;
+			}
+		}
+	}
+	else if(file_exist(igm_clump_file) == 1)
+	{
+		printf("no clumping factor file exist; assume a clumping factor = 1\n");
+	}
+	
+	double sum = 0.;
+    double sum_total = 0.;
+    int nbins = thisGrid->nbins;
+    
+	for(int i=0; i<thisGrid->local_n0; i++)
+    {
+        for(int j=0; j<nbins; j++)
+		{
+			for(int k=0; k<nbins; k++)
+			{
+                sum += creal(thisGrid->igm_clump[i*nbins*nbins+j*nbins+k]);
+            }
+        }
+    }
+    
+    sum_total = sum;
+
+#ifdef __MPI
+	MPI_Allreduce(&sum, &sum_total, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+#endif
+    sum_total = sum_total/(nbins*nbins*nbins);
+    printf(" mean clumping factor = %e\n", sum_total);
+}

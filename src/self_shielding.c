@@ -176,7 +176,7 @@ void construct_photHI_filter(fftw_complex *filter, grid_t *thisGrid, confObj_t s
 			  
 				double expr = (sq_i_expr + sq_j_expr + sq_k_expr + 0.25)*sq_factor;
 				
-				filter[i*nbins*nbins+j*nbins+k] = exp(-sqrt(expr*mfp_inv))/expr + 0.*I;
+				filter[i*nbins*nbins+j*nbins+k] = exp(-sqrt(expr)*mfp_inv)/expr + 0.*I;
 				
 				if(creal(filter[i*nbins*nbins+j*nbins+k])<=0.) printf("%d: %e\n",(int)local_0_start,creal(filter[i*nbins*nbins+j*nbins+k]));
 			}
@@ -283,7 +283,7 @@ void convolve_fft_photHI(grid_t *thisGrid, fftw_complex *filter, fftw_complex *n
 #ifdef __MPI
 	MPI_Bcast(&mean_photHI, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 #endif
-	printf("mean photHI = %e\t", mean_photHI);
+	printf("\n mean photHI = %e\t", mean_photHI);
 	
 	thisGrid->mean_photHI = mean_photHI;
 }
@@ -335,16 +335,9 @@ void compute_photHI(grid_t *thisGrid, confObj_t simParam)
 	
 	//apply filter to Nion field
 	convolve_fft_photHI(thisGrid, filter, nion);
-// 	convolve_fft(thisGrid, filter, nion, thisGrid->nion);
 	
-// 	mean_photHI = creal(nion[0])*factor;
-
-// #ifdef __MPI
-// 	MPI_Bcast(&mean_photHI, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-// #endif
-// 	printf("mean photHI = %e\t", mean_photHI);
-// 	
-// 	thisGrid->mean_photHI = mean_photHI;
+    const double rescale_factor = simParam->photHI_bg/thisGrid->mean_photHI;
+    printf("\n fitting the photoionization rate field to the given background value by multiplying with a factor = %e\n", rescale_factor);
 	
 	for(int i=0; i<local_n0; i++)
 	{
@@ -353,7 +346,7 @@ void compute_photHI(grid_t *thisGrid, confObj_t simParam)
 			for(int k=0; k<nbins; k++)
 			{
 				if(creal(nion[i*nbins*nbins+j*nbins+k]) < 0.) printf("photHI = %e < 0. !!!", creal(nion[i*nbins*nbins+j*nbins+k]));
-				thisGrid->photHI[i*nbins*nbins+j*nbins+k] = creal(nion[i*nbins*nbins+j*nbins+k])*factor + 0.*I;
+				thisGrid->photHI[i*nbins*nbins+j*nbins+k] = creal(nion[i*nbins*nbins+j*nbins+k])*factor*rescale_factor + 0.*I;
 			}
 		}
 	}
@@ -422,7 +415,7 @@ void compute_web_ionfraction(grid_t *thisGrid, confObj_t simParam)
 					mod_photHI = ss_calc_modPhotHI(creal(thisGrid->igm_density[cell]), densSS);
 					
 					//compute new XHII
-					thisGrid->XHII[cell] = ss_calc_XHII(creal(thisGrid->igm_density[cell])*mean_numdensity_H*correct_HeII, mod_photHI*creal(thisGrid->photHI[cell]), temperature, simParam->Y) + 0.*I;
+					thisGrid->XHII[cell] = ss_calc_XHII(creal(thisGrid->igm_density[cell])*mean_numdensity_H*correct_HeII*creal(thisGrid->igm_clump[cell]), mod_photHI*creal(thisGrid->photHI[cell]), temperature, simParam->Y) + 0.*I;
 			}
 		}
 	}

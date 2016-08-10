@@ -75,7 +75,7 @@ void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam, char *f
 				thisGrid->nrec[i*nbins*nbins+j*nbins+k] =  get_nrec_history(simParam, thisIntegralTable, integral_table, dens, photHI, temp, zstart, redshift)+0.*I;
 #ifdef DEBUG_NREC
 				printf("nrec = %e\t dens = %e\t photHI = %e\t %e\n", creal(thisGrid->nrec[i*nbins*nbins+j*nbins+k]), dens, photHI, pow(dens, 1./3.));
-#endif DEBUG_NREC
+#endif
 			}
 		}
 	}
@@ -221,7 +221,7 @@ double get_nrec_history(confObj_t simParam, integral_table_t *thisIntegralTable,
 			tmp = tmp*photHI*1.e12;
 #ifdef DEBUG_NREC
 			printf("factor = %d\t dcell_index = %d\t tmp = %e\n",j, k, tmp);
-#endif DEBUG_NREC
+#endif
 		}
 	}
 	

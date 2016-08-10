@@ -26,11 +26,11 @@ double *read_redshift_list(char *redshift_file, int num_snapshots)
 	int counter;
 	double redshift, existFile;
 	char line[128];
-
-	redshift_list = initRedshift_list(num_snapshots);
 	
 	if(file_exist(redshift_file) == 1)
 	{
+        redshift_list = initRedshift_list(num_snapshots);
+
 		file = fopen(redshift_file, "rt");
 		counter = 0;
 		while(fgets(line, 128, file) != NULL)
@@ -71,5 +71,11 @@ double *initRedshift_list(int num_snapshots)
 
 void deallocateRedshift_list(double *redshift_list)
 {
-	if(redshift_list != NULL) free(redshift_list);
+	if(redshift_list != NULL) 
+    {
+        printf("deallocating redshift list!!!\n");
+        free(redshift_list);
+    }else{
+        printf("redshift list is NULL??? \n");
+    }
 }

@@ -73,11 +73,11 @@ sourcelist_t *allocate_sourcelist(int Nallocated)
 
 void deallocate_sourcelist(sourcelist_t *thisSourcelist)
 {	
-// 	numSources = thisSourcelist->numSources;
+// 	int numSources = thisSourcelist->numSources;
 // 	
 // 	for(int i=0; i<numSources; i++)
 // 	{
-// 		deallocate_source(thisSourcelist->source[i]);
+// 		free(thisSourcelist->source[i]);
 // 	}
 	if(thisSourcelist != NULL)
 	{
@@ -128,16 +128,16 @@ sourcelist_t *read_sources(char * filename)
 		
 		if(newSourcelist->numSources == newSourcelist->Nallocated)
 		{
-		  int nallocated = newSourcelist->Nallocated*1.1;
-		  while(nallocated == newSourcelist->Nallocated) nallocated++;
-		    
-		  newSourcelist->source = realloc(newSourcelist->source, nallocated*sizeof(source_t));
-		  if(newSourcelist->source == NULL)
-		  {
-			  fprintf(stderr, "ERROR: additional sources not allocatable\n");
-			  exit(EXIT_FAILURE);
-		  }
-			newSourcelist->Nallocated = nallocated;
+            int nallocated = newSourcelist->Nallocated*1.1;
+            while(nallocated == newSourcelist->Nallocated) nallocated++;
+                
+            newSourcelist->source = realloc(newSourcelist->source, nallocated*sizeof(source_t));
+            if(newSourcelist->source == NULL)
+            {
+                fprintf(stderr, "ERROR: additional sources not allocatable\n");
+                exit(EXIT_FAILURE);
+            }
+                newSourcelist->Nallocated = nallocated;
 		}
 	}
 	assert(numSources == newSourcelist->numSources);

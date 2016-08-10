@@ -40,6 +40,8 @@ confObj_new(parse_ini_t ini)
 	           ini, "redshiftFile", "General");
 	getFromIni(&(config->igm_density_file), parse_ini_get_string,
 	           ini, "inputIgmDensityFile", "General");
+	getFromIni(&(config->igm_clump_file), parse_ini_get_string,
+	           ini, "inputIgmClumpFile", "General");
 	
 	getFromIni(&(config->grid_size), parse_ini_get_int32,
 		   ini, "gridsize", "General");
@@ -143,7 +145,9 @@ confObj_del(confObj_t *config)
 	assert(config != NULL);
 	assert(*config != NULL);
 	
+    xfree((*config)->redshift_file);
 	xfree((*config)->igm_density_file);
+    xfree((*config)->igm_clump_file);
 	xfree((*config)->sources_file);
 	xfree((*config)->nion_file);
 	xfree((*config)->out_XHII_file);

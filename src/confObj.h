@@ -27,6 +27,7 @@ struct confObj_struct {
 	int			num_snapshots;
 	char 			*redshift_file;
 	char 			*igm_density_file;
+    char            *igm_clump_file;
 	
 	int			grid_size;
 	double			box_size;

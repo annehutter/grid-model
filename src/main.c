@@ -83,7 +83,7 @@ int main (int argc, /*const*/ char * argv[]) {
 	char iniFile[1000];
 	confObj_t simParam;
 	
-	double *redshift_list;
+	double *redshift_list = NULL;
 	
 	grid_t *grid = NULL;
 	
@@ -134,36 +134,42 @@ int main (int argc, /*const*/ char * argv[]) {
 		num_cycles = 1;
 	}
 	
-// 	printf("densSS = %e\n", ss_calc_densSS(simParam, 1.e-13, 1.e4, 6.));
-// 	printf("densSS = %e\n", ss_calc_densSS(simParam, 5.1e-11, 1.e4, 14.75));
-// 	printf("densSS = %e\n", ss_calc_densSS(simParam, 1.e-12, 1.e4, 9.));
-// 	printf("densSS = %e\n", ss_calc_densSS(simParam, 1.e-12, 1.e4, 7.)*simParam->omega_b*simParam->h*simParam->h*rho_g_cm/mp_g*8.*8.*8./(1.-simParam->Y));
-// 	printf("z = 6: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 6.));
-// 	printf("z = 6: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 6.));
-// 	printf("z = 7: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 7.));
-// 	printf("z = 7: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 7.));
-// 	printf("z = 8: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 8.));
-// 	printf("z = 8: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 8.));
-// 	printf("z = 9: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 9.));
-// 	printf("z = 9: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 9.));
-// 	printf("z = 10: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 10.));
-// 	printf("z = 10: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 10.));
-// 	printf("z = 14.75: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 14.75));
-// 	printf("z = 14.75: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 14.75));
-
+	if(myRank==0)
+    {
+        printf("\n++++\nTEST OUTPUT\n");
+    // 	printf("densSS = %e\n", ss_calc_densSS(simParam, 1.e-13, 1.e4, 6.));
+    // 	printf("densSS = %e\n", ss_calc_densSS(simParam, 5.1e-11, 1.e4, 14.75));
+    // 	printf("densSS = %e\n", ss_calc_densSS(simParam, 1.e-12, 1.e4, 9.));
+    // 	printf("densSS = %e\n", ss_calc_densSS(simParam, 1.e-12, 1.e4, 7.)*simParam->omega_b*simParam->h*simParam->h*rho_g_cm/mp_g*8.*8.*8./(1.-simParam->Y));
+        printf(" mean free paths for T=10^4K and photHI_bg = 5.e-13 :\n");
+        printf(" z = 6: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 6.));
+        printf(" z = 6: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 6.));
+    // 	printf("z = 7: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 7.));
+    // 	printf("z = 7: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 7.));
+    // 	printf("z = 8: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 8.));
+    // 	printf("z = 8: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 8.));
+    // 	printf("z = 9: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 9.));
+    // 	printf("z = 9: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 9.));
+    // 	printf("z = 10: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 10.));
+    // 	printf("z = 10: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 10.));
+    // 	printf("z = 14.75: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 14.75));
+    // 	printf("z = 14.75: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 14.75));
+        printf("done\n+++\n");
+    }
+    
 	//read redshift files with outputs
 	redshift_list = NULL;
-	if(myRank==0) printf("reading redshift list of files and outputs... ");
+	if(myRank==0) printf("\n++++\nreading redshift list of files and outputs... ");
 	redshift_list = read_redshift_list(simParam->redshift_file, num_cycles);
-	if(myRank==0) printf("done\n");
+	if(myRank==0) printf("done\n+++\n");
 	
 	//read files (allocate grid)
 	grid = initGrid();
-	if(myRank==0) printf("reading files to grid... ");
+	if(myRank==0) printf("\n++++\nreading files to grid... ");
 	read_files_to_grid(grid, simParam);
-	if(myRank==0) printf("done\n");
+	if(myRank==0) printf("done\n+++\n");
 	
-	printf("num_cycles = %d\n", num_cycles);
+	printf("\nThis run computes %d times the ionization field (num_cycles)\n", num_cycles);
 	if(simParam->calc_ion_history == 1)
 	{
 		zstart = simParam->redshift_prev_snap;
@@ -193,14 +199,22 @@ int main (int argc, /*const*/ char * argv[]) {
 			simParam->redshift_prev_snap -= delta_redshift;
 		}
 		
-		if(myRank==0) printf("reading sources/nion file for snap = %d... ", snap);
-		read_update_nion(simParam, sourcelist, grid, snap);
-		if(myRank==0) printf("done\n");
+		if(myRank==0)
+        {
+            printf("\n***************\nSNAP %d\n***************\n", snap);
+        }
 		
-		if(myRank==0) printf("reading igm density file... ");
+		if(myRank==0) printf("\n++++\nreading sources/nion file for snap = %d... ", snap);
+		read_update_nion(simParam, sourcelist, grid, snap);
+		if(myRank==0) printf("done\n+++\n");
+		
+		if(myRank==0) printf("\n++++\nreading igm density file for snap = %d... ", snap);
 		read_update_igm_density(simParam, grid, snap);
-		if(myRank==0) printf("done\n");
+		if(myRank==0) printf("done\n+++\n");
 	  
+		if(myRank==0) printf("\n++++\nreading igm clump file for snap = %d... ", snap);
+		read_update_igm_clump(simParam, grid, snap);
+		if(myRank==0) printf("done\n+++\n");
 		//------------------------------------------------------------------------------
 		// compute web model
 		//------------------------------------------------------------------------------
@@ -210,54 +224,55 @@ int main (int argc, /*const*/ char * argv[]) {
 			if(simParam->const_photHI ==1)
 			{
 				//set photoionization rate to background value
-				if(myRank==0) printf("\n\nsetting photoionization rate to background value... ");
+				if(myRank==0) printf("\n++++\nsetting photoionization rate to background value... ");
 				set_value_to_photoionization_field(grid, simParam);
-				if(myRank==0) printf("done\n");
+                printf("\n photHI_bg = %e s^-1\n", simParam->photHI_bg);
+				if(myRank==0) printf("done\n+++\n");
 			}else{
 				if(simParam->calc_mfp == 1)
 				{
 					//this mean free path is an overestimate at high redshifts, becomes correct at z~6
-					if(myRank==0) printf("\n\ncompute mean free path... ");
+					if(myRank==0) printf("\n++++\ncompute mean free path... ");
 					set_mfp_Miralda2000(simParam);
-					printf("\tmfp = %e\t", simParam->mfp);
-					if(myRank==0) printf("done\n");
+					printf("\n mfp = %e Mpc\t", simParam->mfp);
+					if(myRank==0) printf("done\n+++\n");
 				}
 				
-				if(myRank==0) printf("compute mean photoionization rate... ");
+				if(myRank==0) printf("\n++++\ncompute mean photoionization rate... ");
 				compute_photHI(grid, simParam);
-				if(myRank==0) printf("done\n");
+				if(myRank==0) printf("done\n+++\n");
 			}
 
 			if(simParam->write_photHI_file == 1)
 			{
 				//write photoionization rate field to file
-				if(myRank==0) printf("writing photoionization field to file... ");
+				if(myRank==0) printf("\n++++\nwriting photoionization field to file... ");
 				save_to_file_photHI(grid, simParam->out_photHI_file);
-				if(myRank==0) printf("done\n");
+				if(myRank==0) printf("done\n+++\n");
 			}
 			
 			
 			//apply web model
-			if(myRank==0) printf("\n\napply web model... ");
+			if(myRank==0) printf("\n++++\napply web model... ");
 			compute_web_ionfraction(grid, simParam);
-			if(myRank==0) printf("done\n");
+			if(myRank==0) printf("done\n+++\n");
 			
 			if(simParam->calc_recomb == 1)
 			{
 				//compute number of recombinations
-				if(myRank==0) printf("\n\ncompute number of recombinations... ");
+				if(myRank==0) printf("\n++++\ncompute number of recombinations... ");
 				integralTable = initIntegralTable(simParam->zmin, simParam->zmax, simParam->dz, simParam->fmin, simParam->fmax, simParam->df, simParam->dcellmin, simParam->dcellmax, simParam->ddcell);
 				compute_number_recombinations(grid, simParam, simParam->recomb_table, integralTable);
 				free(integralTable);
-				if(myRank==0) printf("done\n");
+				if(myRank==0) printf("done\n+++\n");
 			}
 			
 			if(simParam->calc_mfp == -1)
 			{
 				//compute mean free paths
-				if(myRank==0) printf("\ncompute mean free paths... ");
+				if(myRank==0) printf("\n++++\ncompute mean free paths... ");
 				compute_web_mfp(grid, simParam);
-				if(myRank==0) printf("done\n");
+				if(myRank==0) printf("done\n+++\n");
 			}
 		}
 
@@ -266,14 +281,14 @@ int main (int argc, /*const*/ char * argv[]) {
 		//--------------------------------------------------------------------------------
 		
 		//compute fraction Q
-		if(myRank==0) printf("\n\ncomputing relation between number of ionizing photons and absorptions... ");
+		if(myRank==0) printf("\n++++\ncomputing relation between number of ionizing photons and absorptions... ");
 		compute_Q(grid, simParam);
-		if(myRank==0) printf("done\n");
+		if(myRank==0) printf("done\n+++\n");
 		
 		//apply filtering
-		if(myRank==0) printf("apply tophat filter routine for ionization field... ");
+		if(myRank==0) printf("\n++++\napply tophat filter routine for ionization field... ");
 		compute_ionization_field(simParam, grid);
-		if(myRank==0) printf("done\n");
+		if(myRank==0) printf("done\n+++\n");
 		
 		//write ionization field to file
 		for(int i=0; i<100; i++) XHIIFile[i] = '\0';
@@ -281,40 +296,36 @@ int main (int argc, /*const*/ char * argv[]) {
 		strcat(XHIIFile, "_");
 		sprintf(cycle_string,"%02d",cycle); 
 		strcat(XHIIFile, cycle_string);
-		if(myRank==0) printf("writing ionization field to file %s ... ", XHIIFile);
+		if(myRank==0) printf("\n++++\nwriting ionization field to file %s ... ", XHIIFile);
 		save_to_file_XHII(grid, XHIIFile);
-		if(myRank==0) printf("done\n");
+		if(myRank==0) printf("done\n+++\n");
 	}
 	//--------------------------------------------------------------------------------
 	// writing data to files
 	//--------------------------------------------------------------------------------
 	
 	//write ionization field to file
-	if(myRank==0) printf("writing ionization field to file... ");
+	if(myRank==0) printf("\n++++\nwriting ionization field to file... ");
 	save_to_file_XHII(grid, simParam->out_XHII_file);
-	if(myRank==0) printf("done\n");
+	if(myRank==0) printf("done\n+++\n");
 	
 	//--------------------------------------------------------------------------------
 	// deallocating grids
 	//--------------------------------------------------------------------------------
 	
 	//deallocate grid
-	if(myRank==0) printf("deallocating grid ...");
+	if(myRank==0) printf("\n++++\ndeallocating grid ...");
 	deallocate_grid(grid);
-	if(myRank==0) printf("done\n");
+	if(myRank==0) printf("done\n+++\n");
 	
-	//deallocate sources
-	if(myRank==0) printf("deallocating sources ...");
-	deallocate_sourcelist(sourcelist);
-	if(myRank==0) printf("done\n");
-	
-	if(myRank==0) printf("deallocating redshift list ...");
+	//deallocate redshift list
+	if(myRank==0) printf("\n++++\ndeallocating redshift list ...");
 	deallocateRedshift_list(redshift_list);
-	if(myRank==0) printf("done\n");
+	if(myRank==0) printf("done\n+++\n");
 	
 	confObj_del(&simParam);
 	
-	if(myRank==0) printf("Finished\n");
+	if(myRank==0) printf("\nFinished\n");
 #ifdef __MPI
 	fftw_mpi_cleanup();
 		

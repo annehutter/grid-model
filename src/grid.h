@@ -14,6 +14,7 @@ typedef struct
 	float xmin, ymin, zmin;
 	
 	fftw_complex *igm_density;
+    fftw_complex *igm_clump;
 	fftw_complex *nion;
 	fftw_complex *cum_nion;
 	fftw_complex *cum_nabs;
@@ -35,6 +36,7 @@ grid_t *initGrid();
 void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput);
 void read_nion(grid_t *thisGrid, char *filename, int double_precision);
 void read_igm_density(grid_t *thisGrid, char *filename, int double_precision);
+void read_igm_clump(grid_t *thisGrid, char *filename, int double_precision);
 
 #ifdef __MPI
 void read_grid(fftw_complex *toThisArray, int nbins, int local_n0, int local_0_start, char *filename);
