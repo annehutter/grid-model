@@ -73,9 +73,6 @@ void deallocateRedshift_list(double *redshift_list)
 {
 	if(redshift_list != NULL) 
     {
-        printf("deallocating redshift list!!!\n");
         free(redshift_list);
-    }else{
-        printf("redshift list is NULL??? \n");
     }
 }

@@ -372,4 +372,4 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid)
 	fftw_free(XHII_tmp);
 }
 
-
+ 
