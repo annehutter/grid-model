@@ -17,6 +17,7 @@ typedef struct
     fftw_complex *igm_clump;
 	fftw_complex *nion;
 	fftw_complex *cum_nion;
+    fftw_complex *cum_nrec;
 	fftw_complex *cum_nabs;
 	fftw_complex *frac_Q;
 	

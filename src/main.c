@@ -282,7 +282,7 @@ int main (int argc, /*const*/ char * argv[]) {
 		
 		//compute fraction Q
 		if(myRank==0) printf("\n++++\ncomputing relation between number of ionizing photons and absorptions... ");
-		compute_Q(grid, simParam);
+		compute_cum_values(grid, simParam);
 		if(myRank==0) printf("done\n+++\n");
 		
 		//apply filtering
