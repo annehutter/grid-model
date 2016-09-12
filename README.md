@@ -20,6 +20,7 @@ Parameters in iniFile.ini
 - numSnapshots: number of outputs (output is automatically created for all redshifts where input files change)
 - redshiftFile: redshifts of outputs, and 1 for new input files & 0 for no new input file
 - inputIgmDensityFile: name of density file containing 3D density grid(if multiple, then of the basename and extensions _00i)
+- inputIgmClumpFile: name of clumping factor file, which is used to calculate the HI fraction at the listed outputs
 
 - gridsize: size of the grid (should be a power of 2)
 - boxsize: comoving boxsize in Mpc/h
@@ -48,8 +49,8 @@ Parameters in iniFile.ini
 
 - useWebModel: set to 1 if web model as outlined in Sobacchi 2014 should be used, otherwise 0
 - constantPhotHI: set to 1 if XHI should be calculated from a constant photoionization field, otherwise 0.
-- photHI_bg: photoionization background value (used when constantPhotHI = 1)
-- calcMeanFreePath: set to 1 if mfp is calculated as in Mirlada 2000, otherwise 0 (only applicable for constantPhotHI = 0)
+- photHI_bg: photoionization background value at output redshifts (only one value possible up to now)
+- calcMeanFreePath: set to 1 if mfp is calculated as in Miralda 2000, otherwise 0 (only applicable for constantPhotHI = 0)
 - meanFreePathInIonizedMedium: mfp in physical Mpc (only applicable for calcMeanFreePath = 0)
 
 - write_photHI_file: set to 1 if photoionization file should be written
@@ -67,8 +68,7 @@ Parameters in iniFile.ini
 - dcellmax = 4.
 - ddcell = 0.1
 
-- calcIonHistory: set to 1 if ionization history should be calculated (either from a single snapshot from
-- redshift_prevSnapshot to redshift, or from the given redshift_file), otherwise 0.
+- calcIonHistory: set to 1 if ionization history should be calculated (either from a single snapshot from redshift_prevSnapshot to redshift, or from the given redshift_file), otherwise 0.
 
 - readNrecFile: set to 1 if you want to provide a 3D grid of number of recombinations, otherwise 0.
 - redshift_prevSnapshot = redshift to start the calculation, if no redshift_file is provided
