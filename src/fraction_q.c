@@ -32,6 +32,7 @@ void compute_cum_values(grid_t *thisGrid, confObj_t simParam)
 	double box_size;
 	
 	double evol_time;
+    double evol_time_fromPrevSnap;
 	double z; 
 	double mean_numdensity_H;
 	double h;
@@ -46,10 +47,12 @@ void compute_cum_values(grid_t *thisGrid, confObj_t simParam)
 	{
         printf("\n zstart = %e\t zend = %e\t evol_time = %e + %e Myrs\n", simParam->redshift_prev_snap, simParam->redshift, simParam->evol_time, time_from_redshift_flatuniverse(simParam, simParam->redshift, simParam->redshift_prev_snap)/Myr_s);
 
-		evol_time = simParam->evol_time*Myr_s + time_from_redshift_flatuniverse(simParam, simParam->redshift, simParam->redshift_prev_snap);
+        evol_time_fromPrevSnap = time_from_redshift_flatuniverse(simParam, simParam->redshift, simParam->redshift_prev_snap);
+		evol_time = simParam->evol_time*Myr_s + evol_time_fromPrevSnap;
 		simParam->evol_time = evol_time/Myr_s;
 	}else{
 		evol_time = simParam->evol_time*Myr_s;
+        evol_time_fromPrevSnap = evol_time;
 		printf("\n evol_time = %e Myrs\n", evol_time/Myr_s);
 	}
 	z = simParam->redshift;
@@ -69,7 +72,7 @@ void compute_cum_values(grid_t *thisGrid, confObj_t simParam)
 		{
 			for(int k=0; k<nbins; k++)
 			{
-				Nion = creal(thisGrid->nion[i*nbins*nbins+j*nbins+k])*evol_time;
+				Nion = creal(thisGrid->nion[i*nbins*nbins+j*nbins+k])*evol_time_fromPrevSnap;
 
 				thisGrid->cum_nion[i*nbins*nbins+j*nbins+k] += Nion + 0.*I;
 //                 if(creal(thisGrid->cum_nion[i*nbins*nbins+j*nbins+k])>0.) printf("Nion = %e\t cumNion = %e\n", Nion/evol_time, creal(thisGrid->cum_nion[i*nbins*nbins+j*nbins+k]));

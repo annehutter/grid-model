@@ -12,4 +12,5 @@ double calc_photHI_source(source_t *thisSource, double mfp_inv, double boxsize_M
 void convolve_fft_photHI(grid_t *thisGrid, fftw_complex *filter, fftw_complex *nion_smooth);
 void compute_photHI(grid_t *thisGrid, confObj_t simParam);
 void set_value_to_photoionization_field(grid_t *thisGrid, confObj_t simParam);
+void set_value_to_photHI_bg(grid_t *thisGrid, confObj_t simParam, double value);
 void compute_web_ionfraction(grid_t *thisGrid, confObj_t simParam);

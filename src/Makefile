@@ -16,12 +16,13 @@ SOURCES := 	./main.c \
 		./convolution_fftw.c \
 		./utils.c\
 		./input_redshifts.c\
-		./input_grid.c
+		./input_grid.c \
+		./photion_background.c
 OBJECTS := $(SOURCES:.c=.o)
 DOBJECTS := $(SOURCES:.c=.d)
 EXECUTABLE := cifog
 
-USE-MPI = YES
+#USE-MPI = YES
 
 OPTIMIZE = -O3 -ftree-vectorize
 WARNING = -Wall -Wextra -Wshadow -g

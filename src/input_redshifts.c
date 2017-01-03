@@ -40,7 +40,7 @@ double *read_redshift_list(char *redshift_file, int num_snapshots)
 		      /* convert the string to a long int */
 		      redshift_list[counter*2] = redshift;
 		      redshift_list[counter*2+1] = existFile;
-		      counter ++;
+              counter ++;
 		      if(counter > num_snapshots)
 		      {
 				fprintf(stderr, "number of snapshots in input file is larger than in redshift list (input_redshifts.c).\n");

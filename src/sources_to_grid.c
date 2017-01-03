@@ -32,7 +32,7 @@ void read_update_nion(confObj_t simParam, sourcelist_t *thisSourcelist, grid_t *
 		sprintf(snap_string,"%03d",snap); 
 		
 		strcat(sources_file, simParam->sources_file);
-		strcat(sources_file, "._");
+		strcat(sources_file, "_");
 		strcat(sources_file, snap_string);
 		
 		strcat(nion_file, simParam->nion_file);

@@ -367,6 +367,12 @@ void set_value_to_photoionization_field(grid_t *thisGrid, confObj_t simParam)
 	thisGrid->mean_photHI = simParam->photHI_bg;
 }
 
+void set_value_to_photHI_bg(grid_t *thisGrid, confObj_t simParam, double value)
+{
+	thisGrid->mean_photHI = value;
+	simParam->photHI_bg = value;
+}
+
 void compute_web_ionfraction(grid_t *thisGrid, confObj_t simParam)
 {
   	int nbins;
