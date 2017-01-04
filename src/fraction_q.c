@@ -59,7 +59,7 @@ void compute_cum_values(grid_t *thisGrid, confObj_t simParam)
 	if(simParam->default_mean_density == 1){
 		mean_numdensity_H = 3.*SQR(H0)/(8.*M_PI*G)/mp_g*simParam->omega_b*(1.+z)*(1.+z)*(1.+z)*(1.-simParam->Y);
 	}else{
-		mean_numdensity_H = simParam->mean_density*(1.+z)*(1.+z)*(1.+z)*(1.-simParam->Y);
+		mean_numdensity_H = simParam->mean_density*(1.+z)*(1.+z)*(1.+z)*(1.-simParam->Y)/(1.-0.75*simParam->Y);
 	}
     printf(" mean_numdensity_H at z=%e is %e cm^-3\n", z, mean_numdensity_H);
 

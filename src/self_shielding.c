@@ -397,7 +397,7 @@ void compute_web_ionfraction(grid_t *thisGrid, confObj_t simParam)
 	if(simParam->default_mean_density == 1){
 		mean_numdensity_H = rho_g_cm/mp_g*simParam->h*simParam->h*simParam->omega_b*(1.+redshift)*(1.+redshift)*(1.+redshift)*(1.-simParam->Y);
 	}else{
-		mean_numdensity_H = simParam->mean_density*(1.+redshift)*(1.+redshift)*(1.+redshift)*(1.-simParam->Y);
+		mean_numdensity_H = simParam->mean_density*(1.+redshift)*(1.+redshift)*(1.+redshift)*(1.-simParam->Y)/(1.-0.75*simParam->Y);
 	}
 	
 	correct_HeII = (1.-0.75*simParam->Y)/(1.-simParam->Y);
