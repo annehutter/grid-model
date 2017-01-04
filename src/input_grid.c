@@ -40,7 +40,8 @@ void read_update_igm_density(confObj_t simParam, grid_t *thisGrid, int snap)
   
 	if(file_exist(igm_density_file) == 1)
 	{
-		read_igm_density(thisGrid, igm_density_file, simParam->input_doubleprecision);
+		read_array(thisGrid->igm_density, thisGrid, igm_density_file, simParam->input_doubleprecision);
+
 		for(int i=0; i<thisGrid->nbins*thisGrid->nbins*thisGrid->local_n0; i++){
 			if(creal(thisGrid->igm_density[i])<=0.){
 				printf("density[%d] = %e\n",i,creal(thisGrid->igm_density[i]));
@@ -75,7 +76,8 @@ void read_update_igm_clump(confObj_t simParam, grid_t *thisGrid, int snap)
   
 	if(file_exist(igm_clump_file) == 1)
 	{
-		read_igm_clump(thisGrid, igm_clump_file, simParam->input_doubleprecision);
+		read_array(thisGrid->igm_clump, thisGrid, igm_clump_file, simParam->input_doubleprecision);
+
 		for(int i=0; i<thisGrid->nbins*thisGrid->nbins*thisGrid->local_n0; i++){
 			if(creal(thisGrid->igm_clump[i])<=0.){
 				printf("clump[%d] = %e\n",i,creal(thisGrid->igm_clump[i]));

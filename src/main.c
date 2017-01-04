@@ -277,7 +277,7 @@ int main (int argc, /*const*/ char * argv[]) {
                 sprintf(cycle_string,"%02d",cycle); 
                 strcat(photHIFile, cycle_string);
                 if(myRank==0) printf("\n++++\nwriting photoionization field to file... ");
-                save_to_file_photHI(grid, photHIFile);
+                save_to_file(grid->photHI, grid, photHIFile);
                 if(myRank==0) printf("done\n+++\n");
             }
             
@@ -310,12 +310,12 @@ int main (int argc, /*const*/ char * argv[]) {
         
         //compute fraction Q
         if(myRank==0) printf("\n++++\ncomputing relation between number of ionizing photons and absorptions... ");
-        compute_cum_values(grid, simParam);
+        compute_cum_values(grid, simParam, 0);
         if(myRank==0) printf("done\n+++\n");
         
         //apply filtering
         if(myRank==0) printf("\n++++\napply tophat filter routine for ionization field... ");
-        compute_ionization_field(simParam, grid);
+        compute_ionization_field(simParam, grid, 0);
         if(myRank==0) printf("done\n+++\n");
         
         //write ionization field to file
@@ -325,7 +325,7 @@ int main (int argc, /*const*/ char * argv[]) {
         sprintf(cycle_string,"%02d",cycle); 
         strcat(XHIIFile, cycle_string);
         if(myRank==0) printf("\n++++\nwriting ionization field to file %s ... ", XHIIFile);
-        save_to_file_XHII(grid, XHIIFile);
+        save_to_file(grid->XHII, grid, XHIIFile);
         if(myRank==0) printf("done\n+++\n");
     }
     

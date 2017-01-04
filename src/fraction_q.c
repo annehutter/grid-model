@@ -25,7 +25,7 @@ double time_from_redshift_flatuniverse(confObj_t simParam, double zmin, double z
 	return prefactor*(asinh(tmp*pow(1.+zmin, -1.5)) - asinh(tmp*pow(1.+zmax, -1.5)));
 }
 
-void compute_cum_values(grid_t *thisGrid, confObj_t simParam)
+void compute_cum_values(grid_t *thisGrid, confObj_t simParam, int specie)
 {
 	int nbins;
 	int local_n0;
@@ -35,6 +35,7 @@ void compute_cum_values(grid_t *thisGrid, confObj_t simParam)
     double evol_time_fromPrevSnap;
 	double z; 
 	double mean_numdensity_H;
+	double mean_numdensity_He;
 	double h;
 	
 	double Nion, Nabs;
@@ -43,6 +44,7 @@ void compute_cum_values(grid_t *thisGrid, confObj_t simParam)
 	local_n0 = thisGrid->local_n0;
 	box_size = thisGrid->box_size;
 	
+    //compute time from previous snapshot, i.e. the time span to evolve ionization fields
 	if(simParam->calc_ion_history == 1)
 	{
         printf("\n zstart = %e\t zend = %e\t evol_time = %e + %e Myrs\n", simParam->redshift_prev_snap, simParam->redshift, simParam->evol_time, time_from_redshift_flatuniverse(simParam, simParam->redshift, simParam->redshift_prev_snap)/Myr_s);
@@ -55,36 +57,80 @@ void compute_cum_values(grid_t *thisGrid, confObj_t simParam)
         evol_time_fromPrevSnap = evol_time;
 		printf("\n evol_time = %e Myrs\n", evol_time/Myr_s);
 	}
+	
 	z = simParam->redshift;
+    
+    //compute mean hydrogen & helium number density
 	if(simParam->default_mean_density == 1){
 		mean_numdensity_H = 3.*SQR(H0)/(8.*M_PI*G)/mp_g*simParam->omega_b*(1.+z)*(1.+z)*(1.+z)*(1.-simParam->Y);
+        mean_numdensity_He = 3.*SQR(H0)/(8.*M_PI*G)/mp_g*simParam->omega_b*(1.+z)*(1.+z)*(1.+z)*simParam->Y;
 	}else{
 		mean_numdensity_H = simParam->mean_density*(1.+z)*(1.+z)*(1.+z)*(1.-simParam->Y)/(1.-0.75*simParam->Y);
+		mean_numdensity_He = simParam->mean_density*(1.+z)*(1.+z)*(1.+z)*0.25*simParam->Y/(1.-0.75*simParam->Y);
 	}
     printf(" mean_numdensity_H at z=%e is %e cm^-3\n", z, mean_numdensity_H);
+    printf(" mean_numdensity_He at z=%e is %e cm^-3\n", z, mean_numdensity_He);
 
+    //compute number of ionizing photons and absorptions in each cell
 	h = simParam->h;
 	const double volume = pow(box_size/(h*(double)nbins*(1.+z))*Mpc_cm,3);
 	
-	for(int i=0; i<local_n0; i++)
-	{
-		for(int j=0; j<nbins; j++)
-		{
-			for(int k=0; k<nbins; k++)
-			{
-				Nion = creal(thisGrid->nion[i*nbins*nbins+j*nbins+k])*evol_time_fromPrevSnap;
+    if(specie == 1){
+        for(int i=0; i<local_n0; i++)
+        {
+            for(int j=0; j<nbins; j++)
+            {
+                for(int k=0; k<nbins; k++)
+                {
+                    Nion = creal(thisGrid->nion_HeI[i*nbins*nbins+j*nbins+k])*evol_time_fromPrevSnap;
 
-				thisGrid->cum_nion[i*nbins*nbins+j*nbins+k] += Nion + 0.*I;
-//                 if(creal(thisGrid->cum_nion[i*nbins*nbins+j*nbins+k])>0.) printf("Nion = %e\t cumNion = %e\n", Nion/evol_time, creal(thisGrid->cum_nion[i*nbins*nbins+j*nbins+k]));
+                    thisGrid->cum_nion_HeI[i*nbins*nbins+j*nbins+k] += Nion + 0.*I;
 
-				thisGrid->cum_nrec[i*nbins*nbins+j*nbins+k] += creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k])*mean_numdensity_H*volume*creal(thisGrid->nrec[i*nbins*nbins+j*nbins+k]);
-                
-				thisGrid->cum_nabs[i*nbins*nbins+j*nbins+k] = creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k])*mean_numdensity_H*volume + creal(thisGrid->cum_nrec[i*nbins*nbins+j*nbins+k]);
-			}
-		}
-	}
+                    thisGrid->cum_nrec_HeI[i*nbins*nbins+j*nbins+k] += creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k])*mean_numdensity_He*volume*creal(thisGrid->nrec_HeI[i*nbins*nbins+j*nbins+k]);
+                    
+                    thisGrid->cum_nabs_HeI[i*nbins*nbins+j*nbins+k] = creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k])*mean_numdensity_He*volume + creal(thisGrid->cum_nrec_HeI[i*nbins*nbins+j*nbins+k]);
+                }
+            }
+        }
+    }else if(specie == 2){
+        for(int i=0; i<local_n0; i++)
+        {
+            for(int j=0; j<nbins; j++)
+            {
+                for(int k=0; k<nbins; k++)
+                {
+                    Nion = creal(thisGrid->nion_HeII[i*nbins*nbins+j*nbins+k])*evol_time_fromPrevSnap;
+
+                    thisGrid->cum_nion_HeII[i*nbins*nbins+j*nbins+k] += Nion + 0.*I;
+
+                    thisGrid->cum_nrec_HeII[i*nbins*nbins+j*nbins+k] += creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k])*mean_numdensity_He*volume*creal(thisGrid->nrec_HeII[i*nbins*nbins+j*nbins+k]);
+                    
+                    thisGrid->cum_nabs_HeII[i*nbins*nbins+j*nbins+k] = creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k])*mean_numdensity_He*volume + creal(thisGrid->cum_nrec_HeII[i*nbins*nbins+j*nbins+k]);
+                }
+            }
+        }
+    }else{
+        for(int i=0; i<local_n0; i++)
+        {
+            for(int j=0; j<nbins; j++)
+            {
+                for(int k=0; k<nbins; k++)
+                {
+                    Nion = creal(thisGrid->nion[i*nbins*nbins+j*nbins+k])*evol_time_fromPrevSnap;
+
+                    thisGrid->cum_nion[i*nbins*nbins+j*nbins+k] += Nion + 0.*I;
+    //                 if(creal(thisGrid->cum_nion[i*nbins*nbins+j*nbins+k])>0.) printf("Nion = %e\t cumNion = %e\n", Nion/evol_time, creal(thisGrid->cum_nion[i*nbins*nbins+j*nbins+k]));
+
+                    thisGrid->cum_nrec[i*nbins*nbins+j*nbins+k] += creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k])*mean_numdensity_H*volume*creal(thisGrid->nrec[i*nbins*nbins+j*nbins+k]);
+                    
+                    thisGrid->cum_nabs[i*nbins*nbins+j*nbins+k] = creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k])*mean_numdensity_H*volume + creal(thisGrid->cum_nrec[i*nbins*nbins+j*nbins+k]);
+                }
+            }
+        }
+    }
 }
 
+// versatile function (thisGrid is only used for grid dimensions and domain decomposition
 void compute_Q(grid_t *thisGrid, fftw_complex *frac_Q, fftw_complex *nion, fftw_complex *nabs)
 {
     int nbins;

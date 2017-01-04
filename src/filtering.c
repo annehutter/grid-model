@@ -65,96 +65,7 @@ void construct_tophat_filter(fftw_complex *filter, int nbins, ptrdiff_t local_0_
 	}
 }
 
-void convolve_fft_XHII(grid_t *thisGrid, fftw_complex *filter, fftw_complex *nion_smooth)
-{
-	int nbins;
-	double factor;
-#ifdef __MPI
-	ptrdiff_t alloc_local, local_n0, local_0_start;
-#else
-	ptrdiff_t local_n0;
-#endif
-	
-	fftw_complex *nion;
-	fftw_complex *nion_ft, *filter_ft;
-	fftw_plan plan_nion, plan_filter, plan_back;
-	
-	nbins = thisGrid->nbins;
-	nion = thisGrid->frac_Q;
-	local_n0 = thisGrid->local_n0;
-	
-#ifdef __MPI
-	local_0_start = thisGrid->local_0_start;
-	
-	alloc_local = fftw_mpi_local_size_3d(nbins, nbins, nbins, MPI_COMM_WORLD, &local_n0, &local_0_start);
-	assert(local_0_start == thisGrid->local_0_start);
-	assert(local_n0 == thisGrid->local_n0);
-	
-	nion_ft = fftw_alloc_complex(alloc_local);
-	filter_ft = fftw_alloc_complex(alloc_local);
-	
-	plan_nion = fftw_mpi_plan_dft_3d(nbins, nbins, nbins, nion, nion_ft, MPI_COMM_WORLD, FFTW_FORWARD, FFTW_MPI_TRANSPOSED_OUT); //FFTW_MPI_TRANSPOSED_OUT
-	plan_filter = fftw_mpi_plan_dft_3d(nbins, nbins, nbins, filter, filter_ft, MPI_COMM_WORLD, FFTW_FORWARD, FFTW_MPI_TRANSPOSED_OUT);
-#else 
-	nion_ft = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
-	if(nion_ft == NULL)
-	{
-		fprintf(stderr, "nion_ft in convolve_fft (filtering.c) could not be allocated\n");
-		exit(EXIT_FAILURE);
-	}
-	filter_ft = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
-	if(filter_ft == NULL)
-	{
-		fprintf(stderr, "filter_ft in convolve_fft (filtering.c) could not be allocated\n");
-		exit(EXIT_FAILURE);
-	}
-	
-	plan_nion = fftw_plan_dft_3d(nbins, nbins, nbins, nion, nion_ft, FFTW_FORWARD, FFTW_ESTIMATE);
-	plan_filter = fftw_plan_dft_3d(nbins, nbins, nbins, filter, filter_ft, FFTW_FORWARD, FFTW_ESTIMATE);
-#endif
-	
-	fftw_execute(plan_nion);
-	fftw_execute(plan_filter);
-	
-	for(int i=0; i<local_n0; i++)
-	{
-		for(int j=0; j<nbins; j++)
-		{
-			for(int k=0; k<nbins; k++)
-			{
-				nion_ft[i*nbins*nbins+j*nbins+k] = nion_ft[i*nbins*nbins+j*nbins+k]*filter_ft[i*nbins*nbins+j*nbins+k];
-			}
-		}
-	}
-	
-#ifdef __MPI
-	plan_back = fftw_mpi_plan_dft_3d(nbins, nbins, nbins, nion_ft, nion_smooth, MPI_COMM_WORLD, FFTW_BACKWARD, FFTW_MPI_TRANSPOSED_IN);
-#else
-	plan_back = fftw_plan_dft_3d(nbins, nbins, nbins, nion_ft, nion_smooth, FFTW_BACKWARD, FFTW_ESTIMATE);
-#endif
-	fftw_execute(plan_back);
-	
-	factor = 1./(nbins*nbins*nbins);
-	
-	for(int i=0; i<local_n0; i++)
-	{
-		for(int j=0; j<nbins; j++)
-		{
-			for(int k=0; k<nbins; k++)
-			{
-				nion_smooth[i*nbins*nbins+j*nbins+k] = factor*nion_smooth[i*nbins*nbins+j*nbins+k];
-			}
-		}
-	}	
-	
-	fftw_destroy_plan(plan_nion);
-	fftw_destroy_plan(plan_filter);
-	fftw_destroy_plan(plan_back);
-	
-	fftw_free(nion_ft);
-	fftw_free(filter_ft);
-}
-
+// versatile function (thisGrid is only used for grid dimensions and domain decomposition
 void determine_ion_fractions(fftw_complex *nion_smooth, int nbins, ptrdiff_t local_n0, int smallest_scale)
 {
 	for(int i=0; i<local_n0; i++)
@@ -177,7 +88,8 @@ void determine_ion_fractions(fftw_complex *nion_smooth, int nbins, ptrdiff_t loc
 	}
 }
 
-void choose_ion_fraction(fftw_complex *nion_smooth, fftw_complex *XHII_tmp, grid_t *thisGrid)
+// versatile function (thisGrid is only used for grid dimensions and domain decomposition
+void choose_ion_fraction(fftw_complex *nion_smooth, fftw_complex *Xion_tmp, grid_t *thisGrid)
 {
 	int nbins;
 	ptrdiff_t local_n0;
@@ -191,17 +103,17 @@ void choose_ion_fraction(fftw_complex *nion_smooth, fftw_complex *XHII_tmp, grid
 		{
 			for(int k=0; k<nbins; k++)
 			{
-				if(creal(nion_smooth[i*nbins*nbins+j*nbins+k])>=creal(XHII_tmp[i*nbins*nbins+j*nbins+k]))
+				if(creal(nion_smooth[i*nbins*nbins+j*nbins+k])>=creal(Xion_tmp[i*nbins*nbins+j*nbins+k]))
 				{
-					XHII_tmp[i*nbins*nbins+j*nbins+k] =  nion_smooth[i*nbins*nbins+j*nbins+k];
+					Xion_tmp[i*nbins*nbins+j*nbins+k] =  nion_smooth[i*nbins*nbins+j*nbins+k];
 				}
 			}
 		}
 	}
 }
 
-
-void map_bubbles_to_nrec(fftw_complex *XHII_tmp, grid_t *thisGrid)
+// versatile function (thisGrid is only used for grid dimensions and domain decomposition
+void map_bubbles_to_nrec(fftw_complex *Xion_tmp, fftw_complex *nrec, grid_t *thisGrid)
 {
   	int nbins;
 	ptrdiff_t local_n0;
@@ -215,21 +127,20 @@ void map_bubbles_to_nrec(fftw_complex *XHII_tmp, grid_t *thisGrid)
 		{
 			for(int k=0; k<nbins; k++)
 			{
-				thisGrid->nrec[i*nbins*nbins+j*nbins+k] = thisGrid->nrec[i*nbins*nbins+j*nbins+k]*XHII_tmp[i*nbins*nbins+j*nbins+k];
+				nrec[i*nbins*nbins+j*nbins+k] = nrec[i*nbins*nbins+j*nbins+k]*Xion_tmp[i*nbins*nbins+j*nbins+k];
 			}
 		}
 	}
 }
 
-void combine_bubble_and_web_model(fftw_complex *XHII_tmp, grid_t *thisGrid)
+// versatile function (thisGrid is only used for grid dimensions and domain decomposition
+void combine_bubble_and_web_model(fftw_complex *Xion_tmp, fftw_complex *Xion, grid_t *thisGrid)
 {
   	int nbins;
 	ptrdiff_t local_n0;
-	fftw_complex *XHII;
 	
 	nbins = thisGrid->nbins;
 	local_n0 = thisGrid->local_n0;
-	XHII = thisGrid->XHII;
 	
 	for(int i=0; i<local_n0; i++)
 	{
@@ -237,21 +148,20 @@ void combine_bubble_and_web_model(fftw_complex *XHII_tmp, grid_t *thisGrid)
 		{
 			for(int k=0; k<nbins; k++)
 			{
-				XHII[i*nbins*nbins+j*nbins+k] = XHII[i*nbins*nbins+j*nbins+k]*XHII_tmp[i*nbins*nbins+j*nbins+k];
+				Xion[i*nbins*nbins+j*nbins+k] = Xion[i*nbins*nbins+j*nbins+k]*Xion_tmp[i*nbins*nbins+j*nbins+k];
 			}
 		}
 	}
 }
 
-void copy_grid_array(fftw_complex *XHII_tmp, grid_t *thisGrid)
+// versatile function (thisGrid is only used for grid dimensions and domain decomposition
+void copy_grid_array(fftw_complex *Xion_tmp, fftw_complex *Xion, grid_t *thisGrid)
 {
   	int nbins;
 	ptrdiff_t local_n0;
-	fftw_complex *XHII;
 	
 	nbins = thisGrid->nbins;
 	local_n0 = thisGrid->local_n0;
-	XHII = thisGrid->XHII;
 	
 	for(int i=0; i<local_n0; i++)
 	{
@@ -259,13 +169,13 @@ void copy_grid_array(fftw_complex *XHII_tmp, grid_t *thisGrid)
 		{
 			for(int k=0; k<nbins; k++)
 			{
-				XHII[i*nbins*nbins+j*nbins+k] = XHII_tmp[i*nbins*nbins+j*nbins+k];
+				Xion[i*nbins*nbins+j*nbins+k] = Xion_tmp[i*nbins*nbins+j*nbins+k];
 			}
 		}
 	}
 }
 
-void compute_ionization_field(confObj_t simParam, grid_t *thisGrid)
+void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
 {
 	int nbins;
 	float smooth_scale;
@@ -276,7 +186,30 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid)
 	fftw_complex *nion_smooth;
     fftw_complex *nabs_smooth;
     fftw_complex *frac_Q_smooth;
-	fftw_complex *XHII_tmp;
+	fftw_complex *Xion_tmp;
+    
+    fftw_complex *cum_nion;
+    fftw_complex *cum_nabs;
+    fftw_complex *nrec;
+    fftw_complex *Xion;
+    
+    if(specie == 1){
+        cum_nion = thisGrid->cum_nion_HeI;
+        cum_nabs = thisGrid->cum_nabs_HeI;
+        nrec = thisGrid->nrec_HeI;
+        Xion = thisGrid->XHeII;
+    }else if(specie == 2){
+        cum_nion = thisGrid->cum_nion_HeII;
+        cum_nabs = thisGrid->cum_nabs_HeII;
+        nrec = thisGrid->nrec_HeII;
+        Xion = thisGrid->XHeIII;
+    }else{
+        cum_nion = thisGrid->cum_nion;
+        cum_nabs = thisGrid->cum_nabs;
+        nrec = thisGrid->nrec;
+        Xion = thisGrid->XHII;
+    }
+    
 #ifdef __MPI
 	ptrdiff_t alloc_local, local_n0, local_0_start;
 #else
@@ -298,7 +231,7 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid)
     nabs_smooth = fftw_alloc_complex(alloc_local);
     frac_Q_smooth = fftw_alloc_complex(alloc_local);
     
-	XHII_tmp = fftw_alloc_complex(alloc_local);
+	Xion_tmp = fftw_alloc_complex(alloc_local);
 #else
 	local_0_start = thisGrid->local_0_start;
 	local_n0 = thisGrid->local_n0;
@@ -326,14 +259,14 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid)
 		fprintf(stderr, "frac_Q_smooth in compute_ionization_field (filtering.c) could not be allocated\n");
 		exit(EXIT_FAILURE);
 	}
-	XHII_tmp = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
-	if(XHII_tmp == NULL)
+	Xion_tmp = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+	if(Xion_tmp == NULL)
 	{
-		fprintf(stderr, "XHII_tmp in compute_ionization_field (filtering.c) could not be allocated\n");
+		fprintf(stderr, "Xion_tmp in compute_ionization_field (filtering.c) could not be allocated\n");
 		exit(EXIT_FAILURE);
 	}
 #endif
-	initialize_grid(XHII_tmp, nbins, local_n0, 0.);
+	initialize_grid(Xion_tmp, nbins, local_n0, 0.);
 	
 	
 	lin_bins = lin_scales/box_size*(float)nbins;
@@ -349,8 +282,8 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid)
 			{
 				for(int k=0; k<nbins; k++)
 				{
-					nion_smooth[i*nbins*nbins+j*nbins+k] = creal(thisGrid->cum_nion[i*nbins*nbins+j*nbins+k])+0.*I;
-                    nabs_smooth[i*nbins*nbins+j*nbins+k] = creal(thisGrid->cum_nabs[i*nbins*nbins+j*nbins+k])+0.*I;
+					nion_smooth[i*nbins*nbins+j*nbins+k] = creal(cum_nion[i*nbins*nbins+j*nbins+k])+0.*I;
+                    nabs_smooth[i*nbins*nbins+j*nbins+k] = creal(cum_nabs[i*nbins*nbins+j*nbins+k])+0.*I;
 				}
 			}
 		}
@@ -365,9 +298,8 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid)
 
 		construct_tophat_filter(filter, nbins, local_0_start, local_n0, smooth_scale);
 		
-// 		convolve_fft_XHII(thisGrid, filter, nion_smooth);
-		convolve_fft(thisGrid, filter, nion_smooth, thisGrid->cum_nion);
-		convolve_fft(thisGrid, filter, nabs_smooth, thisGrid->cum_nabs);
+		convolve_fft(thisGrid, filter, nion_smooth, cum_nion);
+		convolve_fft(thisGrid, filter, nabs_smooth, cum_nabs);
 
         compute_Q(thisGrid, frac_Q_smooth, nion_smooth, nabs_smooth);
         
@@ -378,22 +310,22 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid)
 			determine_ion_fractions(frac_Q_smooth, nbins, local_n0, 0);
 		}
 		
-		choose_ion_fraction(frac_Q_smooth, XHII_tmp, thisGrid);
+		choose_ion_fraction(frac_Q_smooth, Xion_tmp, thisGrid);
 	}
 	
 	if(simParam->use_web_model == 1)
 	{
-		combine_bubble_and_web_model(XHII_tmp, thisGrid);
-		map_bubbles_to_nrec(XHII_tmp, thisGrid);
+		combine_bubble_and_web_model(Xion_tmp, Xion, thisGrid);
+		map_bubbles_to_nrec(Xion_tmp, nrec, thisGrid);
 	}else{
-		copy_grid_array(XHII_tmp, thisGrid);
+		copy_grid_array(Xion_tmp, Xion, thisGrid);
 	}
 
 	fftw_free(filter);
 	fftw_free(nion_smooth);
     fftw_free(nabs_smooth);
     fftw_free(frac_Q_smooth);
-	fftw_free(XHII_tmp);
+	fftw_free(Xion_tmp);
 }
 
  

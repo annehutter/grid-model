@@ -35,8 +35,9 @@ grid_t *initGrid()
 	
 	newGrid->igm_density = NULL;
     newGrid->igm_clump = NULL;
+    
+    //hydrogen
 	newGrid->nion = NULL;
-	
 	newGrid->cum_nion = NULL;
     newGrid->cum_nrec = NULL;
 	newGrid->cum_nabs = NULL;
@@ -47,7 +48,25 @@ grid_t *initGrid()
 	
 	newGrid->photHI = NULL;
 	newGrid->mean_photHI = 0.;
+    
+    //helium
+    newGrid->nion_HeI = NULL;
+    newGrid->nion_HeII = NULL;
+    newGrid->cum_nion_HeI = NULL;
+    newGrid->cum_nion_HeII = NULL;
+    newGrid->cum_nrec_HeI = NULL;
+    newGrid->cum_nrec_HeII = NULL;
+    newGrid->cum_nabs_HeI = NULL;
+    newGrid->cum_nabs_HeII = NULL;
+    newGrid->frac_Q_HeI = NULL;
+    newGrid->frac_Q_HeII = NULL;
+    
+    newGrid->XHeII = NULL;
+    newGrid->XHeIII = NULL;
+    newGrid->nrec_HeI = NULL;
+    newGrid->nrec_HeII = NULL;
 	
+    //domain decomposition
 	newGrid->local_n0 = 0;
 	newGrid->local_0_start = 0;
 	
@@ -140,7 +159,7 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
 #endif
 }
 
-void read_nion(grid_t *thisGrid, char *filename, int double_precision)
+void read_array(fftw_complex *toThisArray, grid_t *thisGrid, char *filename, int double_precision)
 {
 #ifdef __MPI
 	ptrdiff_t local_n0, local_0_start;
@@ -156,76 +175,16 @@ void read_nion(grid_t *thisGrid, char *filename, int double_precision)
 	{
 #ifdef __MPI
 	local_0_start = thisGrid->local_0_start;
-	read_grid_doubleprecision(thisGrid->nion, nbins, local_n0, local_0_start, filename);
+	read_grid_doubleprecision(toThisArray, nbins, local_n0, local_0_start, filename);
 #else
-	read_grid_doubleprecision(thisGrid->nion, nbins, local_n0, filename);
+	read_grid_doubleprecision(toThisArray, nbins, local_n0, filename);
 #endif
 	}else{
 #ifdef __MPI
 	local_0_start = thisGrid->local_0_start;
-	read_grid(thisGrid->nion, nbins, local_n0, local_0_start, filename);
+	read_grid(toThisArray, nbins, local_n0, local_0_start, filename);
 #else
-	read_grid(thisGrid->nion, nbins, local_n0, filename);
-#endif
-	}
-}
-
-void read_igm_density(grid_t *thisGrid, char *filename, int double_precision)
-{
-#ifdef __MPI
-	ptrdiff_t local_n0, local_0_start;
-#else
-	ptrdiff_t local_n0;
-#endif
-	int nbins;
-	
-	nbins = thisGrid->nbins;
-	local_n0 = thisGrid->local_n0;
-	
-	if(double_precision == 1)
-	{
-#ifdef __MPI
-	local_0_start = thisGrid->local_0_start;
-	read_grid_doubleprecision(thisGrid->igm_density, nbins, local_n0, local_0_start, filename);
-#else
-	read_grid_doubleprecision(thisGrid->igm_density, nbins, local_n0, filename);
-#endif
-	}else{
-#ifdef __MPI
-	local_0_start = thisGrid->local_0_start;
-	read_grid(thisGrid->igm_density, nbins, local_n0, local_0_start, filename);
-#else
-	read_grid(thisGrid->igm_density, nbins, local_n0, filename);
-#endif
-	}
-}
-
-void read_igm_clump(grid_t *thisGrid, char *filename, int double_precision)
-{
-#ifdef __MPI
-	ptrdiff_t local_n0, local_0_start;
-#else
-	ptrdiff_t local_n0;
-#endif
-	int nbins;
-	
-	nbins = thisGrid->nbins;
-	local_n0 = thisGrid->local_n0;
-	
-	if(double_precision == 1)
-	{
-#ifdef __MPI
-	local_0_start = thisGrid->local_0_start;
-	read_grid_doubleprecision(thisGrid->igm_clump, nbins, local_n0, local_0_start, filename);
-#else
-	read_grid_doubleprecision(thisGrid->igm_clump, nbins, local_n0, filename);
-#endif
-	}else{
-#ifdef __MPI
-	local_0_start = thisGrid->local_0_start;
-	read_grid(thisGrid->igm_clump, nbins, local_n0, local_0_start, filename);
-#else
-	read_grid(thisGrid->igm_clump, nbins, local_n0, filename);
+	read_grid(toThisArray, nbins, local_n0, filename);
 #endif
 	}
 }
@@ -464,20 +423,11 @@ void write_grid_to_file_double(fftw_complex *thisArray, int nbins, int local_n0,
 	free(tmparray);
 }
 
-void save_to_file_XHII(grid_t *thisGrid, char *filename)
+void save_to_file(fftw_complex *thisArray, grid_t *thisGrid, char *filename)
 {
 #ifdef __MPI
-	write_grid_to_file_double(thisGrid->XHII, thisGrid->nbins, thisGrid->local_n0, thisGrid->local_0_start, filename);
+	write_grid_to_file_double(thisArray, thisGrid->nbins, thisGrid->local_n0, thisGrid->local_0_start, filename);
 #else
-	write_grid_to_file_double(thisGrid->XHII, thisGrid->nbins, thisGrid->local_n0, filename);
-#endif
-}
-
-void save_to_file_photHI(grid_t *thisGrid, char *filename)
-{
-#ifdef __MPI
-	write_grid_to_file_double(thisGrid->photHI, thisGrid->nbins, thisGrid->local_n0, thisGrid->local_0_start, filename);
-#else
-	write_grid_to_file_double(thisGrid->photHI, thisGrid->nbins, thisGrid->local_n0, filename);
+	write_grid_to_file_double(thisArray, thisGrid->nbins, thisGrid->local_n0, filename);
 #endif
 }

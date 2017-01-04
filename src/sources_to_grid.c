@@ -56,7 +56,7 @@ void read_update_nion(confObj_t simParam, sourcelist_t *thisSourcelist, grid_t *
         //deallocate sources
         deallocate_sourcelist(thisSourcelist);
 	}else if(file_exist(nion_file) == 1){
-		read_nion(thisGrid, nion_file, simParam->input_doubleprecision);
+		read_array(thisGrid->nion, thisGrid, nion_file, simParam->input_doubleprecision);
 	}else{
 		fprintf(stderr, "No source or nion file available, or names are incorrect!\n");
 		exit(EXIT_FAILURE);
