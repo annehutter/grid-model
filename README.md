@@ -18,7 +18,7 @@ An input file can be generated with the code in /create_inputfile:
 
 Compilation: make
 
-Usage: ./createInputfile)
+Usage: ./createInputfile
 
 
 Parameters in iniFile.ini
