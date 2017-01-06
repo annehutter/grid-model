@@ -99,7 +99,7 @@ int main (int argc, /*const*/ char * argv[]) {
     double zstart = 0., zend = 0., delta_redshift = 0.;
     int snap = -1, num_cycles;
     
-    char photHIFile[1000], XHIIFile[1000], cycle_string[8];
+    char photHIFile[1000], XionFile[1000], cycle_string[8];
     
 #ifdef __MPI
     MPI_Init(&argc, &argv); 
@@ -229,6 +229,17 @@ int main (int argc, /*const*/ char * argv[]) {
         read_update_nion(simParam, sourcelist, grid, snap);
         if(myRank==0) printf("done\n+++\n");
         
+        if(simParam->solve_He == 1)
+        {
+            if(myRank==0) printf("\n++++\nreading sources/nion file for snap = %d... ", snap);
+            read_update_nion_HeI(simParam, sourcelist, grid, snap);
+            if(myRank==0) printf("done\n+++\n");
+            
+            if(myRank==0) printf("\n++++\nreading sources/nion file for snap = %d... ", snap);
+            read_update_nion_HeII(simParam, sourcelist, grid, snap);
+            if(myRank==0) printf("done\n+++\n");
+        }
+        
         if(myRank==0) printf("\n++++\nreading igm density file for snap = %d... ", snap);
         read_update_igm_density(simParam, grid, snap);
         if(myRank==0) printf("done\n+++\n");
@@ -319,14 +330,49 @@ int main (int argc, /*const*/ char * argv[]) {
         if(myRank==0) printf("done\n+++\n");
         
         //write ionization field to file
-        for(int i=0; i<100; i++) XHIIFile[i] = '\0';
-        strcat(XHIIFile, simParam->out_XHII_file);
-        strcat(XHIIFile, "_");
+        for(int i=0; i<100; i++) XionFile[i] = '\0';
+        strcat(XionFile, simParam->out_XHII_file);
+        strcat(XionFile, "_");
         sprintf(cycle_string,"%02d",cycle); 
-        strcat(XHIIFile, cycle_string);
-        if(myRank==0) printf("\n++++\nwriting ionization field to file %s ... ", XHIIFile);
-        save_to_file(grid->XHII, grid, XHIIFile);
+        strcat(XionFile, cycle_string);
+        if(myRank==0) printf("\n++++\nwriting ionization field to file %s ... ", XionFile);
+        save_to_file(grid->XHII, grid, XionFile);
         if(myRank==0) printf("done\n+++\n");
+        
+        if(simParam->solve_He == 1)
+        {
+            //compute fraction Q
+            if(myRank==0) printf("\n++++\ncomputing relation between number of ionizing photons and absorptions... ");
+            compute_cum_values(grid, simParam, 1);
+            compute_cum_values(grid, simParam, 2);
+            if(myRank==0) printf("done\n+++\n");
+        
+            //apply filtering
+            if(myRank==0) printf("\n++++\napply tophat filter routine for ionization field... ");
+            compute_ionization_field(simParam, grid, 1);
+            compute_ionization_field(simParam, grid, 2);
+            if(myRank==0) printf("done\n+++\n");
+            
+            //write ionization field to file
+            for(int i=0; i<100; i++) XionFile[i] = '\0';
+            strcat(XionFile, simParam->out_XHeII_file);
+            strcat(XionFile, "_");
+            sprintf(cycle_string,"%02d",cycle); 
+            strcat(XionFile, cycle_string);
+            if(myRank==0) printf("\n++++\nwriting ionization field to file %s ... ", XionFile);
+            save_to_file(grid->XHeII, grid, XionFile);
+            if(myRank==0) printf("done\n+++\n");
+        
+            //write ionization field to file
+            for(int i=0; i<100; i++) XionFile[i] = '\0';
+            strcat(XionFile, simParam->out_XHeIII_file);
+            strcat(XionFile, "_");
+            sprintf(cycle_string,"%02d",cycle); 
+            strcat(XionFile, cycle_string);
+            if(myRank==0) printf("\n++++\nwriting ionization field to file %s ... ", XionFile);
+            save_to_file(grid->XHeIII, grid, XionFile);
+            if(myRank==0) printf("done\n+++\n");
+        }
     }
     
     //--------------------------------------------------------------------------------

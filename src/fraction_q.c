@@ -38,7 +38,7 @@ void compute_cum_values(grid_t *thisGrid, confObj_t simParam, int specie)
 	double mean_numdensity_He;
 	double h;
 	
-	double Nion, Nabs;
+	double Nion;
 	
 	nbins = thisGrid->nbins;
 	local_n0 = thisGrid->local_n0;
@@ -52,6 +52,8 @@ void compute_cum_values(grid_t *thisGrid, confObj_t simParam, int specie)
         evol_time_fromPrevSnap = time_from_redshift_flatuniverse(simParam, simParam->redshift, simParam->redshift_prev_snap);
 		evol_time = simParam->evol_time*Myr_s + evol_time_fromPrevSnap;
 		simParam->evol_time = evol_time/Myr_s;
+        
+        printf("evol_time_fromPrevSnap = %e\n", evol_time_fromPrevSnap);
 	}else{
 		evol_time = simParam->evol_time*Myr_s;
         evol_time_fromPrevSnap = evol_time;
@@ -63,7 +65,7 @@ void compute_cum_values(grid_t *thisGrid, confObj_t simParam, int specie)
     //compute mean hydrogen & helium number density
 	if(simParam->default_mean_density == 1){
 		mean_numdensity_H = 3.*SQR(H0)/(8.*M_PI*G)/mp_g*simParam->omega_b*(1.+z)*(1.+z)*(1.+z)*(1.-simParam->Y);
-        mean_numdensity_He = 3.*SQR(H0)/(8.*M_PI*G)/mp_g*simParam->omega_b*(1.+z)*(1.+z)*(1.+z)*simParam->Y;
+        mean_numdensity_He = 3.*SQR(H0)/(8.*M_PI*G)/mp_g*simParam->omega_b*(1.+z)*(1.+z)*(1.+z)*0.25*simParam->Y;
 	}else{
 		mean_numdensity_H = simParam->mean_density*(1.+z)*(1.+z)*(1.+z)*(1.-simParam->Y)/(1.-0.75*simParam->Y);
 		mean_numdensity_He = simParam->mean_density*(1.+z)*(1.+z)*(1.+z)*0.25*simParam->Y/(1.-0.75*simParam->Y);

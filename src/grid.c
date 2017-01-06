@@ -75,6 +75,7 @@ grid_t *initGrid()
 
 void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
 {
+    int solve_He = thisInput->solve_He;
 #ifdef __MPI
 	ptrdiff_t alloc_local, local_n0, local_0_start;
 #else
@@ -102,8 +103,8 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
 	
 	thisGrid->igm_density = fftw_alloc_complex(alloc_local);
 	thisGrid->igm_clump = fftw_alloc_complex(alloc_local);
+    
 	thisGrid->nion = fftw_alloc_complex(alloc_local);
-	
 	thisGrid->cum_nion = fftw_alloc_complex(alloc_local);
 	thisGrid->cum_nrec = fftw_alloc_complex(alloc_local);
 	thisGrid->cum_nabs = fftw_alloc_complex(alloc_local);
@@ -112,11 +113,28 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
 	thisGrid->XHII = fftw_alloc_complex(alloc_local);
 	thisGrid->nrec = fftw_alloc_complex(alloc_local);
 	thisGrid->photHI = fftw_alloc_complex(alloc_local);
+    
+    if(solve_He == 1){
+        thisGrid->nion_HeI = fftw_alloc_complex(alloc_local);
+        thisGrid->nion_HeII = fftw_alloc_complex(alloc_local);
+        thisGrid->cum_nion_HeI = fftw_alloc_complex(alloc_local);
+        thisGrid->cum_nion_HeII = fftw_alloc_complex(alloc_local);
+        thisGrid->cum_nrec_HeI = fftw_alloc_complex(alloc_local);
+        thisGrid->cum_nrec_HeII = fftw_alloc_complex(alloc_local);
+        thisGrid->cum_nabs_HeI = fftw_alloc_complex(alloc_local);
+        thisGrid->cum_nabs_HeII = fftw_alloc_complex(alloc_local);
+        thisGrid->frac_Q_HeI = fftw_alloc_complex(alloc_local);
+        thisGrid->frac_Q_HeII = fftw_alloc_complex(alloc_local);
+        thisGrid->XHeII = fftw_alloc_complex(alloc_local);
+        thisGrid->XHeIII = fftw_alloc_complex(alloc_local);
+        thisGrid->nrec_HeI = fftw_alloc_complex(alloc_local);
+        thisGrid->nrec_HeII = fftw_alloc_complex(alloc_local);
+    }
 #else
 	thisGrid->igm_density = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 	thisGrid->igm_clump = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+    
 	thisGrid->nion = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
-	
 	thisGrid->cum_nion = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 	thisGrid->cum_nrec = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 	thisGrid->cum_nabs = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
@@ -125,17 +143,30 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
 	thisGrid->XHII = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 	thisGrid->nrec = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 	thisGrid->photHI = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+    
+    if(solve_He == 1){
+        thisGrid->nion_HeI = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+        thisGrid->nion_HeII = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+        thisGrid->cum_nion_HeI = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+        thisGrid->cum_nion_HeII = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+        thisGrid->cum_nrec_HeI = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+        thisGrid->cum_nrec_HeII = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+        thisGrid->cum_nabs_HeI = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+        thisGrid->cum_nabs_HeII = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+        thisGrid->frac_Q_HeI = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+        thisGrid->frac_Q_HeII = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+        thisGrid->XHeII = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+        thisGrid->XHeIII = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+        thisGrid->nrec_HeI = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+        thisGrid->nrec_HeII = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+    }
 
 #endif
-// #ifdef __MPI
-// 	read_grid(thisGrid->igm_density, nbins, local_n0, local_0_start, thisInput->igm_density_file);
-// #else
-// 	read_grid(thisGrid->igm_density, nbins, local_n0, thisInput->igm_density_file);
-// #endif
+
 	initialize_grid(thisGrid->igm_density, nbins, local_n0, 0.);
 	initialize_grid(thisGrid->igm_clump, nbins, local_n0, 1.);
+    
 	initialize_grid(thisGrid->nion, nbins, local_n0, 0.);
-	
 	initialize_grid(thisGrid->cum_nion, nbins, local_n0, 0.);
 	initialize_grid(thisGrid->cum_nrec, nbins, local_n0, 0.);
 	initialize_grid(thisGrid->cum_nabs, nbins, local_n0, 0.);
@@ -154,6 +185,24 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
 	}
 	initialize_grid(thisGrid->photHI, nbins, local_n0, 0.);
 	
+    if(solve_He == 1){
+        initialize_grid(thisGrid->nion_HeI, nbins, local_n0, 0.);
+        initialize_grid(thisGrid->nion_HeII, nbins, local_n0, 0.);
+        initialize_grid(thisGrid->cum_nion_HeI, nbins, local_n0, 0.);
+        initialize_grid(thisGrid->cum_nion_HeII, nbins, local_n0, 0.);
+        initialize_grid(thisGrid->cum_nrec_HeI, nbins, local_n0, 0.);
+        initialize_grid(thisGrid->cum_nrec_HeII, nbins, local_n0, 0.);
+        initialize_grid(thisGrid->cum_nabs_HeI, nbins, local_n0, 0.);
+        initialize_grid(thisGrid->cum_nabs_HeII, nbins, local_n0, 0.);
+        initialize_grid(thisGrid->frac_Q_HeI, nbins, local_n0, 0.);
+        initialize_grid(thisGrid->frac_Q_HeII, nbins, local_n0, 0.);
+        
+        initialize_grid(thisGrid->XHeII, nbins, local_n0, 0.);
+        initialize_grid(thisGrid->XHeIII, nbins, local_n0, 0.);
+        initialize_grid(thisGrid->nrec_HeI, nbins, local_n0, 0.);
+        initialize_grid(thisGrid->nrec_HeII, nbins, local_n0, 0.);
+    }
+    
 #ifdef __MPI
 	MPI_Barrier(MPI_COMM_WORLD);
 #endif

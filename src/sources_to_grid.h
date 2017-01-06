@@ -3,4 +3,7 @@
 #endif
 
 void read_update_nion(confObj_t simParam, sourcelist_t *thisSourcelist, grid_t *thisGrid, int snap);
-void map_nion_to_grid(grid_t *thisGrid, sourcelist_t *thisSourceList);
+void read_update_nion_HeI(confObj_t simParam, sourcelist_t *thisSourcelist, grid_t *thisGrid, int snap);
+void read_update_nion_HeII(confObj_t simParam, sourcelist_t *thisSourcelist, grid_t *thisGrid, int snap);
+
+void map_nion_to_grid(fftw_complex *thisNionArray, grid_t *thisGrid, sourcelist_t *thisSourcelist);

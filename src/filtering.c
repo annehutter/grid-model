@@ -181,7 +181,7 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
 	float smooth_scale;
 	float box_size;
 	float lin_scales, inc_log_scales;
-	
+	    
 	fftw_complex *filter;
 	fftw_complex *nion_smooth;
     fftw_complex *nabs_smooth;
@@ -294,7 +294,7 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
 		if(inc <= lin_bins) smooth_scale = inc;
 		else smooth_scale = lin_bins*pow(1. + factor_exponent, inc-lin_bins);
 		
-		printf("  inc = %e\t lin_bins = %e\t scale = %d\t smooth_scale = %e\n",inc, lin_bins, scale, smooth_scale);
+		printf("  inc = %e\t lin_bins = %e\t scale = %d\t smooth_scale = %e bins\n",inc, lin_bins, scale, smooth_scale);
 
 		construct_tophat_filter(filter, nbins, local_0_start, local_n0, smooth_scale);
 		
@@ -313,8 +313,10 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
 		choose_ion_fraction(frac_Q_smooth, Xion_tmp, thisGrid);
 	}
 	
-	if(simParam->use_web_model == 1)
+	
+	if(simParam->use_web_model == 1 && (specie != 1 && specie !=2))
 	{
+        printf("\n\ncombining web and bubbles!\n\n");
 		combine_bubble_and_web_model(Xion_tmp, Xion, thisGrid);
 		map_bubbles_to_nrec(Xion_tmp, nrec, thisGrid);
 	}else{

@@ -23,28 +23,45 @@ typedef struct confObj_struct *confObj_t;
 /*--- Implemention of main structure ------------------------------------*/
 struct confObj_struct {
     //General
-    int            input_doubleprecision;
     int            num_snapshots;
     char           *redshift_file;
-    char           *igm_density_file;
-    char           *igm_clump_file;
-    
-    int            grid_size;
-    double         box_size;
+    double         redshift_prev_snap;
+    double         redshift;
+    double         evol_time;
+
     double         lin_scales;
     double         inc_log_scales;
     
-    char           *sources_file;
-    char           *nion_file;
-    double         evol_time;
-    double         redshift;
+    int            default_mean_density;
+    int            use_web_model;
+    int            calc_ion_history;
+    int            const_photHI;
+    int            calc_mfp;
+    int            calc_recomb;
+    int            solve_He;
+
+    //Input
+    int            grid_size;
+    double         box_size;
     
+    int            input_doubleprecision;
+    int            inputfiles_comoving;
+
+    char           *igm_density_file;
     int            dens_in_overdensity;
     double         mean_density;
-    int            default_mean_density;
+
+    char           *igm_clump_file;
     
-    int            inputfiles_comoving;
+    char           *sources_file;
+    char           *nion_file;
     
+    //Output
+    char           *out_XHII_file;
+    int            write_photHI_file;
+    char           *out_photHI_file;
+    
+    //Cosmology
     double         h;
     double         omega_b;
     double         omega_m;
@@ -52,29 +69,29 @@ struct confObj_struct {
     double         sigma8;
     double         Y;
     
-    char           *out_XHII_file;
-    
-    int            use_web_model;
+    //Photoionization
     char           *photHI_bg_file;
-    int            const_photHI;
     double         photHI_bg;
-    int            calc_mfp;
     double         mfp;
-    int            write_photHI_file;
-    char           *out_photHI_file;
-    
-    int            calc_recomb;
+
+    //Recombinations
     char           *recomb_table;
     double         zmin, zmax, dz;
     double         fmin, fmax, df;
     double         dcellmin, dcellmax, ddcell;
     
-    int            calc_ion_history;
-    
     int            read_nrec_file;
-    double         redshift_prev_snap;
     char           *nrec_file;
     char           *output_nrec_file;
+    
+    //Helium
+    char           *sources_HeI_file;
+    char           *nion_HeI_file;
+    char           *sources_HeII_file;
+    char           *nion_HeII_file;
+    
+    char           *out_XHeII_file;
+    char           *out_XHeIII_file;
 };
 
 
