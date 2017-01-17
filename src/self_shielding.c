@@ -258,7 +258,7 @@ void convolve_fft_photHI(grid_t *thisGrid, fftw_complex *filter, fftw_complex *n
 #endif
 	fftw_execute(plan_back);
 	
-	factor = 1./(nbins*nbins*nbins);
+    factor = 1./(nbins*nbins*nbins);
 	
 	for(int i=0; i<local_n0; i++)
 	{
@@ -288,6 +288,70 @@ void convolve_fft_photHI(grid_t *thisGrid, fftw_complex *filter, fftw_complex *n
 	thisGrid->mean_photHI = mean_photHI;
 }
 
+void replace_convolve_fft_photHI(grid_t *thisGrid, confObj_t simParam, fftw_complex *nion_smooth)
+{
+	int nbins = thisGrid->nbins;
+	ptrdiff_t local_n0 = thisGrid->local_n0;
+    
+    double mean_photHI;
+    
+    const double mfp_inv = 1./simParam->mfp;
+	const double factor = (thisGrid->box_size/simParam->h/(1.+simParam->redshift))/nbins;
+	const double sq_factor = factor*factor;
+    const double expr = 0.25 * sq_factor;
+	const double factor_nion = exp(-sqrt(expr)*mfp_inv)/expr;
+    
+    double sum = 0.;
+    int sum_int = 0;
+    for(int i=0; i<local_n0; i++)
+    {
+        for(int j=0; j<nbins; j++)
+        {
+            for(int k=0; k<nbins; k++)
+            {
+                nion_smooth[i*nbins*nbins+j*nbins+k] = creal(nion_smooth[i*nbins*nbins+j*nbins+k])*factor_nion + 0.*I;
+                sum += creal(nion_smooth[i*nbins*nbins+j*nbins+k]);
+                if(creal(nion_smooth[i*nbins*nbins+j*nbins+k]) > 0.)
+                {
+                    sum_int++;
+                }
+            }
+        }
+    }
+    
+    double mean_sep_cells = nbins/pow(sum_int,1./3.);
+    const double expr_mean = mean_sep_cells * sq_factor;
+    const double factor_mean = exp(-sqrt(expr_mean)*mfp_inv)/expr_mean;
+    const double value = sum / sum_int;
+        
+    sum = 0.;
+    for(int i=0; i<local_n0; i++)
+    {
+        for(int j=0; j<nbins; j++)
+        {
+            for(int k=0; k<nbins; k++)
+            {
+                if(creal(nion_smooth[i*nbins*nbins+j*nbins+k]) <= 0.)
+                {
+                    nion_smooth[i*nbins*nbins+j*nbins+k] = factor_mean*value + 0.*I;
+                }
+                sum += creal(nion_smooth[i*nbins*nbins+j*nbins+k]);
+            }
+        }
+    }
+    
+#ifdef __MPI
+    MPI_Allreduce(&sum, &mean_photHI, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+#endif
+    mean_photHI = mean_photHI/(nbins*nbins*nbins);
+    
+    mean_photHI = mean_photHI*sigma_HI/(Mpc_cm*Mpc_cm);
+
+	printf("\n mean photHI = %e\t", mean_photHI);
+	
+	thisGrid->mean_photHI = mean_photHI;
+}
+
 void compute_photHI(grid_t *thisGrid, confObj_t simParam)
 {
 #ifdef __MPI
@@ -301,58 +365,71 @@ void compute_photHI(grid_t *thisGrid, confObj_t simParam)
 	
 // 	double mean_photHI;
 	const double factor=sigma_HI/(SQR(Mpc_cm));
-	
+    
+    const double cellsize_phys = (thisGrid->box_size/simParam->h/(1.+simParam->redshift))/nbins;
+        
 #ifdef __MPI
-	alloc_local = fftw_mpi_local_size_3d(nbins, nbins, nbins, MPI_COMM_WORLD, &local_n0, &local_0_start);
-	filter = fftw_alloc_complex(alloc_local);
-	nion = fftw_alloc_complex(alloc_local);
-	assert(local_n0 == thisGrid->local_n0);
-	assert(local_0_start == thisGrid->local_0_start);
+    alloc_local = fftw_mpi_local_size_3d(nbins, nbins, nbins, MPI_COMM_WORLD, &local_n0, &local_0_start);
+    filter = fftw_alloc_complex(alloc_local);
+    nion = fftw_alloc_complex(alloc_local);
+    assert(local_n0 == thisGrid->local_n0);
+    assert(local_0_start == thisGrid->local_0_start);
 #else
-	local_n0 = thisGrid->local_n0;
-	filter = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
-	nion = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+    local_n0 = thisGrid->local_n0;
+    filter = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+    nion = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 #endif
-	
-	//construct exp(-r/mfp)/(r*r) filter
-	construct_photHI_filter(filter, thisGrid, simParam);
-	
+    
+    if(simParam->mfp > cellsize_phys)
+    {
+        //construct exp(-r/mfp)/(r*r) filter
+        construct_photHI_filter(filter, thisGrid, simParam);
+    }
+    
 #ifdef __MPI
-	MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
 #endif
-	
-	for(int i=0; i<local_n0; i++)
-	{
-		for(int j=0; j<nbins; j++)
-		{
-			for(int k=0; k<nbins; k++)
-			{
+    
+    for(int i=0; i<local_n0; i++)
+    {
+        for(int j=0; j<nbins; j++)
+        {
+            for(int k=0; k<nbins; k++)
+            {
 // 				if(creal(thisGrid->nion[i*nbins*nbins+j*nbins+k])>0.) printf("grid->nion = %e\n", creal(thisGrid->nion[i*nbins*nbins+j*nbins+k]));
-				nion[i*nbins*nbins+j*nbins+k] = creal(thisGrid->nion[i*nbins*nbins+j*nbins+k]) + 0.*I;
-			}
-		}
-	}
-	
-	//apply filter to Nion field
-	convolve_fft_photHI(thisGrid, filter, nion);
-	
+                nion[i*nbins*nbins+j*nbins+k] = creal(thisGrid->nion[i*nbins*nbins+j*nbins+k]) + 0.*I;
+            }
+        }
+    }
+    
+    if(simParam->mfp > cellsize_phys)
+    {
+        //apply filter to Nion field
+        convolve_fft_photHI(thisGrid, filter, nion);
+    }
+    else
+    {
+        printf("\n mfp too small to do fft mapping...\t");
+        replace_convolve_fft_photHI(thisGrid, simParam, nion);
+    }
+    
     const double rescale_factor = simParam->photHI_bg/thisGrid->mean_photHI;
     printf("\n fitting the photoionization rate field to the given background value by multiplying with a factor = %e\n", rescale_factor);
-	
-	for(int i=0; i<local_n0; i++)
-	{
-		for(int j=0; j<nbins; j++)
-		{
-			for(int k=0; k<nbins; k++)
-			{
-				if(creal(nion[i*nbins*nbins+j*nbins+k]) < 0.) printf("photHI = %e < 0. !!!", creal(nion[i*nbins*nbins+j*nbins+k]));
-				thisGrid->photHI[i*nbins*nbins+j*nbins+k] = creal(nion[i*nbins*nbins+j*nbins+k])*factor*rescale_factor + 0.*I;
-			}
-		}
-	}
-	
-	fftw_free(filter);
-	fftw_free(nion);
+    
+    for(int i=0; i<local_n0; i++)
+    {
+        for(int j=0; j<nbins; j++)
+        {
+            for(int k=0; k<nbins; k++)
+            {
+                if(creal(nion[i*nbins*nbins+j*nbins+k]) < 0.) printf("photHI = %e < 0. !!!", creal(nion[i*nbins*nbins+j*nbins+k]));
+                thisGrid->photHI[i*nbins*nbins+j*nbins+k] = creal(nion[i*nbins*nbins+j*nbins+k])*factor*rescale_factor + 0.*I;
+            }
+        }
+    }
+    
+    fftw_free(filter);
+    fftw_free(nion);
 }
 
 void set_value_to_photoionization_field(grid_t *thisGrid, confObj_t simParam)

@@ -147,16 +147,19 @@ int main (int argc, /*const*/ char * argv[]) {
         printf(" mean free paths for T=10^4K and photHI_bg = 5.e-13 :\n");
         printf(" z = 6: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 6.));
         printf(" z = 6: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 6.));
-    //     printf("z = 7: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 7.));
-    //     printf("z = 7: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 7.));
-    //     printf("z = 8: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 8.));
-    //     printf("z = 8: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 8.));
-    //     printf("z = 9: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 9.));
-    //     printf("z = 9: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 9.));
-    //     printf("z = 10: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 10.));
-    //     printf("z = 10: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 10.));
-    //     printf("z = 14.75: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 14.75));
-    //     printf("z = 14.75: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 14.75));
+        printf("z = 7: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 7.));
+        printf("z = 7: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 7.));
+        printf("z = 8: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 8.));
+        printf("z = 8: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 8.));
+        printf("z = 9: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 9.));
+        printf("z = 9: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 9.));
+        printf("z = 10: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 10.));
+        printf("z = 10: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 10.));
+        printf("z = 14.75: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 14.75));
+        printf("z = 14.75: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 14.75));
+        printf("z = 14.75: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-13, 1.e4, 14.75));
+        printf("z = 14.75: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-14, 1.e4, 14.75));
+        printf("z = 14.75: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-15, 1.e4, 14.75));
         printf("done\n+++\n");
     }
     
@@ -262,18 +265,19 @@ int main (int argc, /*const*/ char * argv[]) {
                 printf("\n photHI_bg = %e s^-1\n", simParam->photHI_bg);
                 if(myRank==0) printf("done\n+++\n");
             }else{
+                set_value_to_photHI_bg(grid, simParam, get_photHI_from_redshift(photIonBgList, simParam->redshift));
+                
                 if(simParam->calc_mfp == 1)
                 {
                     //this mean free path is an overestimate at high redshifts, becomes correct at z~6
                     if(myRank==0) printf("\n++++\ncompute mean free path... ");
                     set_mfp_Miralda2000(simParam);
-                    printf("\n mfp = %e Mpc\t", simParam->mfp);
+                    printf("\n mfp = %e Mpc for a UVB of %e s^-1 at z = %e\t", simParam->mfp, simParam->photHI_bg, simParam->redshift);
                     if(myRank==0) printf("done\n+++\n");
                 }
                 
                 //compute spatial photoionization rate according to source distribution and mean photoionization rate given
                 if(myRank==0) printf("\n++++\ncompute mean photoionization rate & rescale... ");
-                set_value_to_photHI_bg(grid, simParam, get_photHI_from_redshift(photIonBgList, simParam->redshift));
                 printf("\n set mean photHI to %e", get_photHI_from_redshift(photIonBgList, simParam->redshift));
                 compute_photHI(grid, simParam);
                 if(myRank==0) printf("done\n+++\n");

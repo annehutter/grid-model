@@ -72,10 +72,18 @@ void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam, char *f
 			{
 				dens = creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k]);
 				photHI = creal(thisGrid->photHI[i*nbins*nbins+j*nbins+k]);
-				thisGrid->nrec[i*nbins*nbins+j*nbins+k] =  get_nrec_history(simParam, thisIntegralTable, integral_table, dens, photHI, temp, zstart, redshift)+0.*I;
+                if(photHI > 0.)
+                {
+                    thisGrid->nrec[i*nbins*nbins+j*nbins+k] =  get_nrec_history(simParam, thisIntegralTable, integral_table, dens, photHI, temp, zstart, redshift)+0.*I;
+                }
+                else
+                {
+                    thisGrid->nrec[i*nbins*nbins+j*nbins+k] = 0.;
+                }
 #ifdef DEBUG_NREC
 				printf("nrec = %e\t dens = %e\t photHI = %e\t %e\n", creal(thisGrid->nrec[i*nbins*nbins+j*nbins+k]), dens, photHI, pow(dens, 1./3.));
 #endif
+                
 			}
 		}
 	}
@@ -183,12 +191,14 @@ double get_nrec_history(confObj_t simParam, integral_table_t *thisIntegralTable,
 	
 	if(factor_index<0)
 	{
-		printf("factor = %e\tfactor_index = %d, not within limits of %d to %d\n", factor, factor_index, 0, numf);
+		printf("factor = %e\tfactor_index = %d, not within limits of %d to %d\t", factor, factor_index, 0, numf);
+        printf(" photHI = %e\n", photHI);
 		factor_index = 0;
 	}
 	if(factor_index>=numf)
 	{
-		printf("factor = %e\tfactor_index = %d, not within limits of %d to %d\n", factor, factor_index, 0, numf);
+		printf("factor = %e\tfactor_index = %d, not within limits of %d to %d\t", factor, factor_index, 0, numf);
+        printf(" photHI = %e\n", photHI);
 		factor_index = numf-1;
 	}
 	assert(factor_index>=0 && factor_index<numf);
