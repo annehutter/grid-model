@@ -76,8 +76,25 @@ photIonlist_t *read_photIonlist(char *filename)
     newPhotIonlist->Nallocated = numLines;
     
     newPhotIonlist->redshift = malloc(numLines * sizeof(double));
+    if(newPhotIonlist->redshift == NULL)
+    {
+        fprintf(stderr, "newPhotIonlist->redshift in read_photIonlist (photion_background.c) could not be allocated\n");
+        exit(EXIT_FAILURE);
+    }
+    
     newPhotIonlist->photHI = malloc(numLines * sizeof(double));
+    if(newPhotIonlist->photHI == NULL)
+    {
+        fprintf(stderr, "newPhotIonlist->redshift in read_photIonlist (photion_background.c) could not be allocated\n");
+        exit(EXIT_FAILURE);
+    }
+    
     newPhotIonlist->QHII = malloc(numLines * sizeof(double));
+    if(newPhotIonlist->QHII == NULL)
+    {
+        fprintf(stderr, "newPhotIonlist->redshift in read_photIonlist (photion_background.c) could not be allocated\n");
+        exit(EXIT_FAILURE);
+    }
 
     i = 0;
     while(fgets(line,256,fp)!=NULL)

@@ -231,6 +231,8 @@ double get_nrec_history(confObj_t simParam, integral_table_t *thisIntegralTable,
 		tmp += integral_table[numz*numf*dcell_index + numz*factor_index + i];
 	}
 	tmp = tmp*photHI*1.e12;
+    
+    if(tmp < 0.) tmp = 0.;
 	
 	return tmp;
 }
@@ -264,7 +266,11 @@ double *read_table_norm_pdf(char *filename)
 		fprintf(stderr, "data in read_table_norm_pdf (recombination.c) could not be allocated\n");
 		exit(EXIT_FAILURE);
 	}
-	fread(data, sizeof(double), 3*num, fp);
+	if(fread(data, sizeof(double), 3*num, fp) != (unsigned int)num)
+    {
+        fprintf(stderr, "Error: Could not read pdf table!\n");
+		exit(EXIT_FAILURE);
+    }
 	fclose(fp);
 	
 	fp = fopen("norm_pdf_txt.dat", "w");
@@ -373,7 +379,11 @@ double *read_table_integrals(char *filename, integral_table_t *thisIntegralTable
 		exit(EXIT_FAILURE);
 	}
 	
-	fread(array, sizeof(double), num, fp);
+	if(fread(array, sizeof(double), num, fp) != (unsigned int)num)
+    {
+        fprintf(stderr, "Error: Could not read nrec integral table!\n");
+		exit(EXIT_FAILURE);
+    }
 	fclose(fp);
 	
 	numz = (thisIntegralTable->zmax - thisIntegralTable->zmin)/thisIntegralTable->dz+1;

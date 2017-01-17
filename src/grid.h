@@ -66,7 +66,7 @@ void read_grid_doubleprecision(fftw_complex *toThisArray, int nbins, int local_n
 #endif
 
 void initialize_grid(fftw_complex *thisArray, int nbins, int local_n0, double value);
-void deallocate_grid(grid_t *thisGrid);
+void deallocate_grid(grid_t *thisGrid, confObj_t thisInput);
 
 #ifdef __MPI
 void write_grid_to_file_float(fftw_complex *thisArray, int nbins, int local_n0, int local_0_start, char *filename);

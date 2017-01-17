@@ -392,7 +392,7 @@ int main (int argc, /*const*/ char * argv[]) {
 
     //deallocate grid
     if(myRank==0) printf("\n++++\ndeallocating grid ...");
-    deallocate_grid(grid);
+    deallocate_grid(grid, simParam);
     if(myRank==0) printf("done\n+++\n");
     
     //deallocate redshift list

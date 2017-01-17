@@ -361,20 +361,41 @@ void initialize_grid(fftw_complex *thisArray, int nbins, int local_n0, double va
 	}
 }
 
-void deallocate_grid(grid_t *thisGrid)
+void deallocate_grid(grid_t *thisGrid, confObj_t thisInput)
 {
-	fftw_free(thisGrid->igm_density);
-    fftw_free(thisGrid->igm_clump);
-	fftw_free(thisGrid->nion);
+    int solve_He = thisInput->solve_He;
+    
+	if(thisGrid->igm_density != NULL) fftw_free(thisGrid->igm_density);
+    if(thisGrid->igm_clump != NULL) fftw_free(thisGrid->igm_clump);
+    
+	if(thisGrid->nion != NULL) fftw_free(thisGrid->nion);
+	if(thisGrid->cum_nion != NULL) fftw_free(thisGrid->cum_nion);
+    if(thisGrid->cum_nrec != NULL) fftw_free(thisGrid->cum_nrec);
+	if(thisGrid->cum_nabs != NULL) fftw_free(thisGrid->cum_nabs);
+	if(thisGrid->frac_Q != NULL) fftw_free(thisGrid->frac_Q);
 	
-	fftw_free(thisGrid->cum_nion);
-    fftw_free(thisGrid->cum_nrec);
-	fftw_free(thisGrid->cum_nabs);
-	fftw_free(thisGrid->frac_Q);
-	
-	fftw_free(thisGrid->XHII);
-	fftw_free(thisGrid->nrec);
-	fftw_free(thisGrid->photHI);
+	if(thisGrid->XHII != NULL) fftw_free(thisGrid->XHII);
+	if(thisGrid->nrec != NULL) fftw_free(thisGrid->nrec);
+	if(thisGrid->photHI != NULL) fftw_free(thisGrid->photHI);
+    
+    if(solve_He == 1)
+    {
+        if(thisGrid->nion_HeI != NULL) fftw_free(thisGrid->nion_HeI);
+        if(thisGrid->nion_HeII != NULL) fftw_free(thisGrid->nion_HeII);
+        if(thisGrid->cum_nion_HeI != NULL) fftw_free(thisGrid->cum_nion_HeI);
+        if(thisGrid->cum_nion_HeII != NULL) fftw_free(thisGrid->cum_nion_HeII);
+        if(thisGrid->cum_nrec_HeI != NULL) fftw_free(thisGrid->cum_nrec_HeI);
+        if(thisGrid->cum_nrec_HeII != NULL) fftw_free(thisGrid->cum_nrec_HeII);
+        if(thisGrid->cum_nabs_HeI != NULL) fftw_free(thisGrid->cum_nabs_HeI);
+        if(thisGrid->cum_nabs_HeII != NULL) fftw_free(thisGrid->cum_nabs_HeII);
+        if(thisGrid->frac_Q_HeI != NULL) fftw_free(thisGrid->frac_Q_HeI);
+        if(thisGrid->frac_Q_HeII != NULL) fftw_free(thisGrid->frac_Q_HeII);
+        if(thisGrid->XHeII != NULL) fftw_free(thisGrid->XHeII);
+        if(thisGrid->XHeIII != NULL) fftw_free(thisGrid->XHeIII);
+        if(thisGrid->nrec_HeI != NULL) fftw_free(thisGrid->nrec_HeI);
+        if(thisGrid->nrec_HeII != NULL) fftw_free(thisGrid->nrec_HeII);
+    }
+    
 	free(thisGrid);
 }
 
