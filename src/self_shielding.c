@@ -314,6 +314,7 @@ void replace_convolve_fft_photHI(grid_t *thisGrid, confObj_t simParam, fftw_comp
                 if(creal(nion_smooth[i*nbins*nbins+j*nbins+k]) > 0.)
                 {
                     sum_int++;
+                    printf("nion = %e\n", creal(nion_smooth[i*nbins*nbins+j*nbins+k]));
                 }
             }
         }
@@ -322,8 +323,12 @@ void replace_convolve_fft_photHI(grid_t *thisGrid, confObj_t simParam, fftw_comp
     double mean_sep_cells = nbins/pow(sum_int,1./3.);
     const double expr_mean = mean_sep_cells * sq_factor;
     const double factor_mean = exp(-sqrt(expr_mean)*mfp_inv)/expr_mean;
-    const double value = sum / sum_int;
+    const double value = sum / (factor_nion * (double)sum_int);
         
+    printf("value = %e\n", value);
+    printf("factor_mean = %e\n", factor_mean);
+    printf("factor_nion = %e\n", factor_nion);
+    
     sum = 0.;
     for(int i=0; i<local_n0; i++)
     {
@@ -342,6 +347,8 @@ void replace_convolve_fft_photHI(grid_t *thisGrid, confObj_t simParam, fftw_comp
     
 #ifdef __MPI
     MPI_Allreduce(&sum, &mean_photHI, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+#else
+    mean_photHI = sum;
 #endif
     mean_photHI = mean_photHI/(nbins*nbins*nbins);
     

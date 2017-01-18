@@ -23,7 +23,7 @@ OBJECTS := $(SOURCES:.c=.o)
 DOBJECTS := $(SOURCES:.c=.d)
 EXECUTABLE := cifog
 
-USE-MPI = YES
+# USE-MPI = YES
 
 OPTIMIZE = -O3 -ftree-vectorize
 WARNING = -Wall -Wextra -Wshadow -g
@@ -35,7 +35,7 @@ ifdef USE-MPI
 
 else
 	CC := gcc
-	CFLAGS := -c -std=c99 -march=native -lm $(WARNING) $(OPTIMIZE) 
+	CFLAGS := -c -std=c99 -march=native -lm $(WARNING) $(OPTIMIZE) -D DEBUG_NREC
 	LDFLAGS := -lfftw3 -lm -lgsl -lgslcblas
 endif
 

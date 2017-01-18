@@ -322,7 +322,7 @@ double get_nrec_history(confObj_t simParam, integral_table_t *thisIntegralTable,
 			}
 			tmp = tmp*photHI*1.e12;
 #ifdef DEBUG_NREC
-			printf("factor = %d\t dcell_index = %d\t tmp = %e\n",j, k, tmp);
+// 			printf("factor = %d\t dcell_index = %d\t tmp = %e\n",j, k, tmp);
 #endif
 		}
 	}
@@ -331,9 +331,11 @@ double get_nrec_history(confObj_t simParam, integral_table_t *thisIntegralTable,
 	for(int i=redshift_index; i<zstart_index; i++)
 	{
 		tmp += integral_table[numz*numf*dcell_index + numz*factor_index + i];
+//         if(photHI>1.e-15) printf("z = %e:\ttmp = %e\n", i*thisIntegralTable->dz + thisIntegralTable->zmin, tmp);
 	}
 	tmp = tmp*photHI*1.e12;
     
+//     printf("tmp = %e\n", tmp);
     if(tmp < 0.) tmp = 0.;
 	
 	return tmp;
