@@ -37,6 +37,7 @@ struct confObj_struct {
     int            calc_ion_history;
     int            const_photHI;
     int            calc_mfp;
+    int            const_recomb;
     int            calc_recomb;
     int            solve_He;
 
@@ -75,6 +76,7 @@ struct confObj_struct {
     double         mfp;
 
     //Recombinations
+    double         dnrec_dt;
     char           *recomb_table;
     double         zmin, zmax, dz;
     double         fmin, fmax, df;
@@ -89,6 +91,9 @@ struct confObj_struct {
     char           *nion_HeI_file;
     char           *sources_HeII_file;
     char           *nion_HeII_file;
+    
+    double         dnrec_HeI_dt;
+    double         dnrec_HeII_dt;
     
     char           *out_XHeII_file;
     char           *out_XHeIII_file;

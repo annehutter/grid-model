@@ -71,6 +71,11 @@ typedef struct
 void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam, char *filename, integral_table_t *thisIntegralTable);
 double get_nrec_history(confObj_t simParam, integral_table_t *thisIntegralTable, double *integral_table, double dens, double photHI, double temp, double zstart, double redshift);
 
+void compute_number_recombinations_const(grid_t *thisGrid, confObj_t simParam, int specie);
+double get_nrec_history_constantInTime(confObj_t simParam, double z, double zstart);
+double get_nrec_HeI_history_constantInTime(confObj_t simParam, double z, double zstart);
+double get_nrec_HeII_history_constantInTime(confObj_t simParam, double z, double zstart);
+
 //------------------------------------------------------------------------------
 // table for pdf
 //------------------------------------------------------------------------------

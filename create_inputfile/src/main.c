@@ -49,6 +49,7 @@ int main()
     int            calc_ion_history;
     int            const_photHI;
     int            calc_mfp;
+    int            const_recomb;
     int            calc_recomb;
     int            solve_He;
 
@@ -87,6 +88,7 @@ int main()
     double         mfp;
 
     //Recombinations
+    double         dnrec_dt;
     char           recomb_table[1000];
     double         zmin, zmax, dz;
     double         fmin, fmax, df;
@@ -101,6 +103,9 @@ int main()
     char           nion_HeI_file[1000];
     char           sources_HeII_file[1000];
     char           nion_HeII_file[1000];
+    
+    double         dnrec_HeI_dt;
+    double         dnrec_HeII_dt;
     
     char           out_XHeII_file[1000];
     char           out_XHeIII_file[1000];
@@ -240,6 +245,33 @@ int main()
             recomb_table[i] = '\0';
         }
         strcat(photHI_bg_file, "None");
+        
+        
+        printf("\nRECOMBINATIONS\n");
+
+        printf("Do you want to consider recombinations (simple model)? Yes = 1, No = 0\n");
+        scanf("%d", &const_recomb);
+        
+        if(const_recomb == 1)
+        {
+            printf("Which rate of recombinations for HII (dnrec/dt) do you want to assume (in Myrs^-1)?\n");
+            scanf("%lf", &dnrec_dt);
+            
+            if(solve_He == 1)
+            {
+                printf("You included helium into your calculations:\n");
+                printf("Which rate of recombinations for HeII (dnrec/dt) do you want to assume (in Myrs^-1)?\n");
+                scanf("%lf", &dnrec_HeI_dt);
+                printf("Which rate of recombinations for HeIII (dnrec/dt) do you want to assume (in Myrs^-1)?\n");
+                scanf("%lf", &dnrec_HeII_dt);
+            }
+        }
+        else
+        {
+            dnrec_dt = 0.;
+            dnrec_HeI_dt = 0.;
+            dnrec_HeII_dt = 0.;
+        }
     }
     else if(use_web_model == 1)
     {
@@ -285,11 +317,45 @@ int main()
 
         printf("Do you want to consider recombinations? Yes = 1, No = 0\n");
         scanf("%d", &calc_recomb);
-        for(int i=0; i<1000; i++) recomb_table[i] = '\0';
-        if(calc_recomb == 1)
+        
+        if(calc_recomb == 1){
+            printf("Do you want to use the web model to compute the number of recombinations (1) or assume a constant number of recombinations (0)? \n");
+            scanf("%d", &calc_recomb);
+            
+            for(int i=0; i<1000; i++) recomb_table[i] = '\0';
+            if(calc_recomb == 1)
+            {
+                printf("Please type in the directory where the file with the nrec values is located. The file can be obtained from the github repository.\n");
+                scanf("%s", recomb_table);
+                
+                const_recomb = 0;
+                dnrec_dt = 0.;
+                dnrec_HeI_dt = 0.;
+                dnrec_HeII_dt = 0.;
+            }
+            else
+            {
+                const_recomb = 1;
+                
+                printf("Which rate of recombinations for HII (dnrec/dt) do you want to assume (in Myrs^-1)?\n");
+                scanf("%lf", &dnrec_dt);
+                
+                if(solve_He == 1)
+                {
+                    printf("You included helium into your calculations:\n");
+                    printf("Which rate of recombinations for HeII (dnrec/dt) do you want to assume (in Myrs^-1)?\n");
+                    scanf("%lf", &dnrec_HeI_dt);
+                    printf("Which rate of recombinations for HeIII (dnrec/dt) do you want to assume (in Myrs^-1)?\n");
+                    scanf("%lf", &dnrec_HeII_dt);
+                }
+            }
+        }
+        else
         {
-            printf("Please type in the directory where the file with the nrec values is located. The file can be obtained from the github repository.\n");
-            scanf("%s", recomb_table);
+            const_recomb = 0;
+            dnrec_dt = 0.;
+            dnrec_HeI_dt = 0.;
+            dnrec_HeII_dt = 0.;
         }
     }
     else
@@ -489,6 +555,7 @@ int main()
     fprintf(file, "useWebModel = %d\n", use_web_model);
     fprintf(file, "constantPhotHI = %d\n", const_photHI);
     fprintf(file, "calcMeanFreePath = %d\n", calc_mfp);
+    fprintf(file, "constantRecombinations = %d\n", const_recomb);
     fprintf(file, "calcRecombinations = %d\n\n", calc_recomb);
     
     fprintf(file, "solveForHelium = %d\n\n\n", solve_He);
@@ -533,6 +600,7 @@ int main()
     
     
     fprintf(file, "[Recombinations]\n");
+    fprintf(file, "dnrec_dt = %e\n", dnrec_dt);
     fprintf(file, "recombinationTable = %s\n", recomb_table);
     fprintf(file, "zmin = %f\n", zmin);
     fprintf(file, "zmax = %f\n", zmax);
@@ -555,6 +623,9 @@ int main()
     fprintf(file, "inputSourcesHeIIFile = %s\n", sources_HeII_file);
     fprintf(file, "inputNionHeIIFile = %s\n\n", nion_HeII_file);
     
+    fprintf(file, "dnrec_HeI_dt = %e\n", dnrec_HeI_dt);
+    fprintf(file, "dnrec_HeII_dt = %e\n\n", dnrec_HeII_dt);
+
     fprintf(file, "output_XHeII_file = %s\n", out_XHeII_file);
     fprintf(file, "output_XHeIII_file = %s\n", out_XHeIII_file);
 

@@ -305,7 +305,7 @@ int main (int argc, /*const*/ char * argv[]) {
             if(simParam->calc_recomb == 1)
             {
                 //compute number of recombinations
-                if(myRank==0) printf("\n++++\ncompute number of recombinations... ");
+                if(myRank==0) printf("\n++++\ncompute number of recombinations for HI... ");
                 compute_number_recombinations(grid, simParam, simParam->recomb_table, integralTable);
                 if(myRank==0) printf("done\n+++\n");
             }
@@ -317,6 +317,23 @@ int main (int argc, /*const*/ char * argv[]) {
                 compute_web_mfp(grid, simParam);
                 if(myRank==0) printf("done\n+++\n");
             }
+        }
+        
+        if(simParam->const_recomb == 1)
+        {
+            //compute number of recombinations
+            if(myRank==0) printf("\n++++\ncompute number of recombinations for HII... ");
+            compute_number_recombinations_const(grid, simParam, 0);
+            if(myRank==0) printf("done\n+++\n");
+        }
+        
+        if(simParam->solve_He == 1)
+        {
+            //compute number of recombinations
+            if(myRank==0) printf("\n++++\ncompute number of recombinations for HeII & HeIII... ");
+            compute_number_recombinations_const(grid, simParam, 1);
+            compute_number_recombinations_const(grid, simParam, 2);
+            if(myRank==0) printf("done\n+++\n");
         }
 
         //--------------------------------------------------------------------------------

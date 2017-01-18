@@ -17,7 +17,8 @@ SOURCES := 	./src/main.c \
 		./src/utils.c\
 		./src/input_redshifts.c\
 		./src/input_grid.c \
-		./src/photion_background.c
+		./src/photion_background.c \
+		./src/redshift_tools.c
 OBJECTS := $(SOURCES:.c=.o)
 DOBJECTS := $(SOURCES:.c=.d)
 EXECUTABLE := cifog

@@ -60,6 +60,8 @@ confObj_new(parse_ini_t ini)
                ini, "constantPhotHI", "General");
     getFromIni(&(config->calc_mfp), parse_ini_get_int32,
                ini, "calcMeanFreePath", "General");
+    getFromIni(&(config->const_recomb), parse_ini_get_int32,
+               ini, "constantRecombinations", "General");
     getFromIni(&(config->calc_recomb), parse_ini_get_int32,
                ini, "calcRecombinations", "General");
     getFromIni(&(config->solve_He), parse_ini_get_int32,
@@ -124,6 +126,8 @@ confObj_new(parse_ini_t ini)
                ini, "meanFreePathInIonizedMedium", "Photoionization");
 
     //Recombinations
+    getFromIni(&(config->dnrec_dt), parse_ini_get_double,
+               ini, "dnrec_dt", "Recombinations");
     getFromIni(&(config->recomb_table), parse_ini_get_string,
                ini, "recombinationTable", "Recombinations");
     getFromIni(&(config->zmin), parse_ini_get_double,
@@ -161,6 +165,11 @@ confObj_new(parse_ini_t ini)
                ini, "inputSourcesHeIIFile", "Helium");
     getFromIni(&(config->nion_HeII_file), parse_ini_get_string,
                ini, "inputNionHeIIFile", "Helium");
+    
+    getFromIni(&(config->dnrec_HeI_dt), parse_ini_get_double,
+               ini, "dnrec_HeI_dt", "Helium");
+    getFromIni(&(config->dnrec_HeII_dt), parse_ini_get_double,
+               ini, "dnrec_HeII_dt", "Helium");
     
     getFromIni(&(config->out_XHeII_file), parse_ini_get_string,
                ini, "output_XHeII_file", "Helium");

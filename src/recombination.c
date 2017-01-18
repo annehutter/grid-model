@@ -17,6 +17,8 @@
 #include "grid.h"
 #include "sources.h"
 
+#include "redshift_tools.h"
+
 #include "density_distribution.h"
 #include "recombination.h"
 
@@ -62,16 +64,16 @@ void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam, char *f
 	}
 	redshift = simParam->redshift;
 		
-	integral_table = read_table_integrals(filename, thisIntegralTable);
-	
-	for(int i=0; i<local_n0; i++)
-	{
-		for(int j=0; j<nbins; j++)
-		{
-			for(int k=0; k<nbins; k++)
-			{
-				dens = creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k]);
-				photHI = creal(thisGrid->photHI[i*nbins*nbins+j*nbins+k]);
+    integral_table = read_table_integrals(filename, thisIntegralTable);
+    
+    for(int i=0; i<local_n0; i++)
+    {
+        for(int j=0; j<nbins; j++)
+        {
+            for(int k=0; k<nbins; k++)
+            {
+                dens = creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k]);
+                photHI = creal(thisGrid->photHI[i*nbins*nbins+j*nbins+k]);
                 if(photHI > 0.)
                 {
                     thisGrid->nrec[i*nbins*nbins+j*nbins+k] =  get_nrec_history(simParam, thisIntegralTable, integral_table, dens, photHI, temp, zstart, redshift)+0.*I;
@@ -81,16 +83,106 @@ void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam, char *f
                     thisGrid->nrec[i*nbins*nbins+j*nbins+k] = 0.;
                 }
 #ifdef DEBUG_NREC
-				printf("nrec = %e\t dens = %e\t photHI = %e\t %e\n", creal(thisGrid->nrec[i*nbins*nbins+j*nbins+k]), dens, photHI, pow(dens, 1./3.));
+                printf("nrec = %e\t dens = %e\t photHI = %e\t %e\n", creal(thisGrid->nrec[i*nbins*nbins+j*nbins+k]), dens, photHI, pow(dens, 1./3.));
 #endif
                 
-			}
-		}
-	}
-	
-	free(integral_table);
+            }
+        }
+    }
+    
+    free(integral_table);
 }
 
+void compute_number_recombinations_const(grid_t *thisGrid, confObj_t simParam, int specie)
+{
+    int nbins;
+	int local_n0;
+    
+	double zstart;
+	double redshift;
+    double nrec;
+    
+    nbins = thisGrid->nbins;
+	local_n0 = thisGrid->local_n0;
+    
+	if(simParam->read_nrec_file == 1 || simParam->calc_ion_history == 1)
+	{
+		zstart = simParam->redshift_prev_snap;
+	}else{
+		zstart = 15.;
+	}
+	redshift = simParam->redshift;
+    
+    if(specie == 0)
+    {
+        nrec = get_nrec_history_constantInTime(simParam, redshift, zstart);
+        printf("\n nrec = %e Myr^-1\n", nrec);
+        for(int i=0; i<local_n0; i++)
+        {
+            for(int j=0; j<nbins; j++)
+            {
+                for(int k=0; k<nbins; k++)
+                {
+                    thisGrid->nrec[i*nbins*nbins+j*nbins+k] =  nrec + 0.*I;
+                }
+            }
+        }
+    }
+    else if(specie == 1)
+    {
+        nrec = get_nrec_HeI_history_constantInTime(simParam, redshift, zstart);
+        printf("\n nrec_HeI = %e Myr^-1\n", nrec);
+        for(int i=0; i<local_n0; i++)
+        {
+            for(int j=0; j<nbins; j++)
+            {
+                for(int k=0; k<nbins; k++)
+                {
+                    thisGrid->nrec_HeI[i*nbins*nbins+j*nbins+k] =  nrec + 0.*I;
+                }
+            }
+        }
+    }
+    else if(specie == 2)
+    {
+        nrec = get_nrec_HeII_history_constantInTime(simParam, redshift, zstart);
+        printf(" nrec_HeII = %e Myr^-1\n", nrec);
+        for(int i=0; i<local_n0; i++)
+        {
+            for(int j=0; j<nbins; j++)
+            {
+                for(int k=0; k<nbins; k++)
+                {
+                    thisGrid->nrec_HeII[i*nbins*nbins+j*nbins+k] =  nrec + 0.*I;
+                }
+            }
+        }
+    }
+}
+
+double get_nrec_history_constantInTime(confObj_t simParam, double z, double zstart)
+{
+    const double time = time_from_redshift_flatuniverse(simParam, z, zstart)/Myr_s;
+    const double nrec = simParam->dnrec_dt * time;
+    
+    return nrec;
+}
+
+double get_nrec_HeI_history_constantInTime(confObj_t simParam, double z, double zstart)
+{
+    const double time = time_from_redshift_flatuniverse(simParam, z, zstart)/Myr_s;
+    const double nrec = simParam->dnrec_HeI_dt * time;
+    
+    return nrec;
+}
+
+double get_nrec_HeII_history_constantInTime(confObj_t simParam, double z, double zstart)
+{
+    const double time = time_from_redshift_flatuniverse(simParam, z, zstart)/Myr_s;
+    const double nrec = simParam->dnrec_HeII_dt * time;
+    
+    return nrec;
+}
 // double get_nrec_history(confObj_t simParam, double *norm_pdf, dens_table_t *thisDensTable, double *dens_table, redshift_table_t *thisRedshiftTable, double *redshift_table, double dens, double photHI, double temp, double zstart, double redshift)
 // {
 // 	double tmp, tmp_dens, tmp_redshift;
