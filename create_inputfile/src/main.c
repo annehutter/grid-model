@@ -47,7 +47,7 @@ int main()
     int            default_mean_density;
     int            use_web_model;
     int            calc_ion_history;
-    int            const_photHI;
+    int            photHI_model;
     int            calc_mfp;
     int            const_recomb;
     int            calc_recomb;
@@ -235,7 +235,7 @@ int main()
     scanf("%d", &use_web_model);
     if(use_web_model == 0)
     {
-        const_photHI = 0;
+        photHI_model = 0;
         calc_mfp = 0;
         calc_recomb = 0;
         
@@ -278,17 +278,19 @@ int main()
         printf("\nPHOTOIONIZATION RATE\n");
 
         printf("Do you want to assume a constant photoionization field? Yes = 1, No = 0\n");
-        scanf("%d",&const_photHI);
-        if(const_photHI == 1)
+        scanf("%d",&photHI_model);
+        if(photHI_model == 1)
         {
+            photHI_model = 0;
             calc_mfp = 0;
             strcat(photHI_bg_file,"None");
             
             printf("Which value do you want to assume for the photoionization background (in s^-1)?\n");
             scanf("%lf", &photHI_bg);
         }
-        else if(const_photHI == 0)
+        else if(photHI_model == 0)
         {
+            photHI_model = 1;
             printf("Do you want to calculate the mean free path according to Miralda 2000 (type 1) or set a value (type 0)?\n");
             scanf("%d", &calc_mfp);
             
@@ -553,7 +555,7 @@ int main()
     fprintf(file, "useDefaultMeanDensity = %d\n\n", default_mean_density);
     
     fprintf(file, "useWebModel = %d\n", use_web_model);
-    fprintf(file, "constantPhotHI = %d\n", const_photHI);
+    fprintf(file, "photHImodel = %d\n", photHI_model);
     fprintf(file, "calcMeanFreePath = %d\n", calc_mfp);
     fprintf(file, "constantRecombinations = %d\n", const_recomb);
     fprintf(file, "calcRecombinations = %d\n\n", calc_recomb);

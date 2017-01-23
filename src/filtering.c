@@ -19,6 +19,28 @@
 
 #define SQR(X) ((X) * (X))
 
+void determine_mfp(fftw_complex *frac_Q_smooth, fftw_complex *nion_smooth, fftw_complex *mfp, int nbins, ptrdiff_t local_n0, double scale, int smallest_scale)
+{
+	for(int i=0; i<local_n0; i++)
+	{
+		for(int j=0; j<nbins; j++)
+		{
+			for(int k=0; k<nbins; k++)
+			{
+				if(creal(frac_Q_smooth[i*nbins*nbins+j*nbins+k])>=1. && creal(mfp[i*nbins*nbins+j*nbins+k])==0.)
+				{
+//                     printf("%d %d %d\t\t scale = %e\t nion = %e\n", i,j,k,scale,creal(nion_smooth[i*nbins*nbins+j*nbins+k]));
+					mfp[i*nbins*nbins+j*nbins+k] = scale*creal(nion_smooth[i*nbins*nbins+j*nbins+k])+0.*I;
+				}else if(creal(mfp[i*nbins*nbins+j*nbins+k])==0.){
+					if(smallest_scale==0)
+					{
+						mfp[i*nbins*nbins+j*nbins+k] = 0.+0.*I;
+					}
+				}
+			}
+		}
+	}    
+}
 
 void construct_tophat_filter(fftw_complex *filter, int nbins, ptrdiff_t local_0_start, ptrdiff_t local_n0, float smooth_scale)
 {
@@ -187,12 +209,13 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
     fftw_complex *nabs_smooth;
     fftw_complex *frac_Q_smooth;
 	fftw_complex *Xion_tmp;
+    fftw_complex *mfp_tmp = NULL;    
     
     fftw_complex *cum_nion;
     fftw_complex *cum_nabs;
     fftw_complex *nrec;
     fftw_complex *Xion;
-    
+        
     if(specie == 1){
         cum_nion = thisGrid->cum_nion_HeI;
         cum_nabs = thisGrid->cum_nabs_HeI;
@@ -232,6 +255,7 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
     frac_Q_smooth = fftw_alloc_complex(alloc_local);
     
 	Xion_tmp = fftw_alloc_complex(alloc_local);
+    if(simParam->photHI_model == 2) mfp_tmp = fftw_alloc_complex(alloc_local);
 #else
 	local_0_start = thisGrid->local_0_start;
 	local_n0 = thisGrid->local_n0;
@@ -265,9 +289,18 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
 		fprintf(stderr, "Xion_tmp in compute_ionization_field (filtering.c) could not be allocated\n");
 		exit(EXIT_FAILURE);
 	}
+	if(simParam->photHI_model == 2) 
+    {
+        mfp_tmp = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
+        if(mfp_tmp == NULL)
+        {
+            fprintf(stderr, "mfp_tmp in compute_ionization_field (filtering.c) could not be allocated\n");
+            exit(EXIT_FAILURE);
+        }
+    }
 #endif
 	initialize_grid(Xion_tmp, nbins, local_n0, 0.);
-	
+    if(simParam->photHI_model == 2) initialize_grid(mfp_tmp, nbins, local_n0, 0.);
 	
 	lin_bins = lin_scales/box_size*(float)nbins;
 	factor_exponent = inc_log_scales/lin_bins;
@@ -302,11 +335,13 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
 		convolve_fft(thisGrid, filter, nabs_smooth, cum_nabs);
 
         compute_Q(thisGrid, frac_Q_smooth, nion_smooth, nabs_smooth);
-        
+                
 		if(scale==num_scales-1)
 		{
+            if(simParam->photHI_model == 2) determine_mfp(frac_Q_smooth, nion_smooth, mfp_tmp, nbins, local_n0, (double)scale/(double)nbins, 1);
 			determine_ion_fractions(frac_Q_smooth, nbins, local_n0, 1);
 		}else{
+            if(simParam->photHI_model == 2) determine_mfp(frac_Q_smooth, nion_smooth, mfp_tmp, nbins, local_n0, (double)scale/(double)nbins, 0);
 			determine_ion_fractions(frac_Q_smooth, nbins, local_n0, 0);
 		}
 		
@@ -322,12 +357,15 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
 	}else{
 		copy_grid_array(Xion_tmp, Xion, thisGrid);
 	}
+	
+	if(simParam->photHI_model == 2) copy_grid_array(mfp_tmp, thisGrid->photHI, thisGrid);
 
 	fftw_free(filter);
 	fftw_free(nion_smooth);
     fftw_free(nabs_smooth);
     fftw_free(frac_Q_smooth);
 	fftw_free(Xion_tmp);
+    if(simParam->photHI_model == 2) fftw_free(mfp_tmp);
 }
 
  

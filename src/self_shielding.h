@@ -14,4 +14,5 @@ void replace_convolve_fft_photHI(grid_t *thisGrid, confObj_t simParam, fftw_comp
 void compute_photHI(grid_t *thisGrid, confObj_t simParam);
 void set_value_to_photoionization_field(grid_t *thisGrid, confObj_t simParam);
 void set_value_to_photHI_bg(grid_t *thisGrid, confObj_t simParam, double value);
+void compute_photHI_ionizedRegions(grid_t *thisGrid, confObj_t simParam);
 void compute_web_ionfraction(grid_t *thisGrid, confObj_t simParam);

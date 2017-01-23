@@ -35,7 +35,8 @@ ifdef USE-MPI
 
 else
 	CC := gcc
-	CFLAGS := -c -std=c99 -march=native -lm $(WARNING) $(OPTIMIZE) -D DEBUG_NREC
+	CFLAGS := -c -std=c99 -march=native -lm $(WARNING) $(OPTIMIZE) 
+	#-D DEBUG_NREC
 	LDFLAGS := -lfftw3 -lm -lgsl -lgslcblas
 endif
 

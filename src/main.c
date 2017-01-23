@@ -167,6 +167,7 @@ int main (int argc, /*const*/ char * argv[]) {
     redshift_list = NULL;
     if(myRank==0) printf("\n++++\nreading redshift list of files and outputs... ");
     redshift_list = read_redshift_list(simParam->redshift_file, num_cycles);
+    if(redshift_list != NULL) num_cycles = num_cycles - 1;
     if(myRank==0) printf("done\n+++\n");
     
     //read files (allocate grid)
@@ -225,7 +226,7 @@ int main (int argc, /*const*/ char * argv[]) {
         
         if(myRank==0)
         {
-            printf("\n***************\nSNAP %d\n***************\n", snap);
+            printf("\n******************\nSNAP %d\t CYCLE %d\n******************\n", snap, cycle);
         }
         
         if(myRank==0) printf("\n++++\nreading sources/nion file for snap = %d... ", snap);
@@ -257,14 +258,14 @@ int main (int argc, /*const*/ char * argv[]) {
         
         if(simParam->use_web_model == 1)
         {
-            if(simParam->const_photHI ==1)
+            if(simParam->photHI_model == 0)
             {
                 //set photoionization rate on grid to background value
                 if(myRank==0) printf("\n++++\nsetting photoionization rate to background value... ");
                 set_value_to_photoionization_field(grid, simParam);
                 printf("\n photHI_bg = %e s^-1\n", simParam->photHI_bg);
                 if(myRank==0) printf("done\n+++\n");
-            }else{
+            }else if(simParam->photHI_model == 1){
                 set_value_to_photHI_bg(grid, simParam, get_photHI_from_redshift(photIonBgList, simParam->redshift));
                 
                 if(simParam->calc_mfp == 1)
@@ -280,6 +281,14 @@ int main (int argc, /*const*/ char * argv[]) {
                 if(myRank==0) printf("\n++++\ncompute mean photoionization rate & rescale... ");
                 printf("\n set mean photHI to %e", get_photHI_from_redshift(photIonBgList, simParam->redshift));
                 compute_photHI(grid, simParam);
+                if(myRank==0) printf("done\n+++\n");
+            }else if(simParam->photHI_model == 2){
+                set_value_to_photHI_bg(grid, simParam, get_photHI_from_redshift(photIonBgList, simParam->redshift));
+                
+                //compute spatial photoionization rate according to source distribution and mean photoionization rate given
+                if(myRank==0) printf("\n++++\nset photoionization rate according to ionized regions... ");
+                if(cycle != 0) compute_photHI_ionizedRegions(grid, simParam);
+                else set_value_to_photoionization_field(grid,simParam);
                 if(myRank==0) printf("done\n+++\n");
             }
 

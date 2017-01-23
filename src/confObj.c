@@ -56,8 +56,8 @@ confObj_new(parse_ini_t ini)
                ini, "useWebModel", "General");
     getFromIni(&(config->calc_ion_history), parse_ini_get_int32,
                ini, "calcIonHistory", "General");
-    getFromIni(&(config->const_photHI), parse_ini_get_int32,
-               ini, "constantPhotHI", "General");
+    getFromIni(&(config->photHI_model), parse_ini_get_int32,
+               ini, "photHImodel", "General");
     getFromIni(&(config->calc_mfp), parse_ini_get_int32,
                ini, "calcMeanFreePath", "General");
     getFromIni(&(config->const_recomb), parse_ini_get_int32,
@@ -124,7 +124,9 @@ confObj_new(parse_ini_t ini)
                ini, "photHI_bg", "Photoionization");
     getFromIni(&(config->mfp), parse_ini_get_double,
                ini, "meanFreePathInIonizedMedium", "Photoionization");
-
+    getFromIni(&(config->source_slope_index), parse_ini_get_double,
+               ini, "sourceSlopeIndex", "Photoionization");
+    
     //Recombinations
     getFromIni(&(config->dnrec_dt), parse_ini_get_double,
                ini, "dnrec_dt", "Recombinations");

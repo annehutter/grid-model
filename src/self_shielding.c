@@ -314,7 +314,7 @@ void replace_convolve_fft_photHI(grid_t *thisGrid, confObj_t simParam, fftw_comp
                 if(creal(nion_smooth[i*nbins*nbins+j*nbins+k]) > 0.)
                 {
                     sum_int++;
-                    printf("nion = %e\n", creal(nion_smooth[i*nbins*nbins+j*nbins+k]));
+//                     printf("nion = %e\n", creal(nion_smooth[i*nbins*nbins+j*nbins+k]));
                 }
             }
         }
@@ -325,9 +325,9 @@ void replace_convolve_fft_photHI(grid_t *thisGrid, confObj_t simParam, fftw_comp
     const double factor_mean = exp(-sqrt(expr_mean)*mfp_inv)/expr_mean;
     const double value = sum / (factor_nion * (double)sum_int);
         
-    printf("value = %e\n", value);
-    printf("factor_mean = %e\n", factor_mean);
-    printf("factor_nion = %e\n", factor_nion);
+//     printf("value = %e\n", value);
+//     printf("factor_mean = %e\n", factor_mean);
+//     printf("factor_nion = %e\n", factor_nion);
     
     sum = 0.;
     for(int i=0; i<local_n0; i++)
@@ -455,6 +455,36 @@ void set_value_to_photHI_bg(grid_t *thisGrid, confObj_t simParam, double value)
 {
 	thisGrid->mean_photHI = value;
 	simParam->photHI_bg = value;
+}
+
+void compute_photHI_ionizedRegions(grid_t *thisGrid, confObj_t simParam)
+{
+	ptrdiff_t local_n0;
+	int nbins;
+	
+	local_n0 = thisGrid->local_n0;
+	nbins = thisGrid->nbins;
+    
+    double z = simParam->redshift;
+    double alpha = simParam->source_slope_index;
+    double beta = 3.;
+    
+    double factor = thisGrid->box_size/simParam->h/(1.+z);
+    double len_cell = factor/nbins*Mpc_cm;
+    printf("len_cell = %e\n", len_cell);
+    double factor2 = (1.+z)*(1.+z)*sigma_HI*alpha/((alpha+beta)*4.*M_PI*len_cell*len_cell*len_cell); 
+    
+    for(int i=0; i<local_n0; i++)
+    {
+        for(int j=0; j<nbins; j++)
+        {
+            for(int k=0; k<nbins; k++)
+            {
+                thisGrid->photHI[i*nbins*nbins+j*nbins+k] = creal(thisGrid->photHI[i*nbins*nbins+j*nbins+k])*factor*factor2 + 0.*I;
+//                 if(creal(thisGrid->photHI[i*nbins*nbins+j*nbins+k])>0.) printf("%e\n", creal(thisGrid->photHI[i*nbins*nbins+j*nbins+k]));
+            }
+        }
+    }
 }
 
 void compute_web_ionfraction(grid_t *thisGrid, confObj_t simParam)

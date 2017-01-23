@@ -35,7 +35,7 @@ struct confObj_struct {
     int            default_mean_density;
     int            use_web_model;
     int            calc_ion_history;
-    int            const_photHI;
+    int            photHI_model;
     int            calc_mfp;
     int            const_recomb;
     int            calc_recomb;
@@ -74,6 +74,7 @@ struct confObj_struct {
     char           *photHI_bg_file;
     double         photHI_bg;
     double         mfp;
+    double         source_slope_index;
 
     //Recombinations
     double         dnrec_dt;
