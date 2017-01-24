@@ -17,6 +17,8 @@
 #include "sources.h"
 
 #include "convolution_fftw.h"
+#include "redshift_tools.h"
+#include "self_shielding.h"
 
 #define SQR(X) ((X) * (X))
 #define CUB(X) ((X) * (X) * (X))
@@ -469,11 +471,11 @@ void compute_photHI_ionizedRegions(grid_t *thisGrid, confObj_t simParam)
     double alpha = simParam->source_slope_index;
     double beta = 3.;
     
-    double factor = thisGrid->box_size/simParam->h/(1.+z);
-    double len_cell = factor/nbins*Mpc_cm;
-    printf("len_cell = %e\n", len_cell);
-    double factor2 = (1.+z)*(1.+z)*sigma_HI*alpha/((alpha+beta)*4.*M_PI*len_cell*len_cell*len_cell); 
-    
+    double evol_time_fromPrevSnap = time_from_redshift_flatuniverse(simParam, simParam->redshift, simParam->redshift_prev_snap);
+    double factor = thisGrid->box_size/simParam->h/(1.+z)*Mpc_cm;
+    double len_cell = factor/nbins;
+    double factor2 = (1.+z)*(1.+z)*sigma_HI*alpha/((alpha+beta)*4.*M_PI*len_cell*len_cell*len_cell*evol_time_fromPrevSnap); 
+
     for(int i=0; i<local_n0; i++)
     {
         for(int j=0; j<nbins; j++)
