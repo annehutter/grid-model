@@ -283,8 +283,9 @@ int main (int argc, /*const*/ char * argv[]) {
                 compute_photHI(grid, simParam);
                 if(myRank==0) printf("done\n+++\n");
             }else if(simParam->photHI_model == 2){
-                set_value_to_photHI_bg(grid, simParam, get_photHI_from_redshift(photIonBgList, simParam->redshift));
-                
+//                 set_value_to_photHI_bg(grid, simParam, get_photHI_from_redshift(photIonBgList, simParam->redshift));
+                set_value_to_photoionization_field(grid, simParam);
+
                 //compute spatial photoionization rate according to source distribution and mean photoionization rate given
                 if(myRank==0) printf("\n++++\nset photoionization rate according to ionized regions... ");
                 if(cycle != 0) compute_photHI_ionizedRegions(grid, simParam);

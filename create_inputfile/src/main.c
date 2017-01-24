@@ -86,6 +86,7 @@ int main()
     char           photHI_bg_file[1000];
     double         photHI_bg;
     double         mfp;
+    double         source_slope_index = 5.;
 
     //Recombinations
     double         dnrec_dt;
@@ -290,23 +291,51 @@ int main()
         }
         else if(photHI_model == 0)
         {
-            photHI_model = 1;
-            printf("Do you want to calculate the mean free path according to Miralda 2000 (type 1) or set a value (type 0)?\n");
-            scanf("%d", &calc_mfp);
-            
-            if(calc_mfp == 1)
+            printf("How do you want to calculate the photoionization rate? Assuming a mean free path and apply a r^-2 kernel (1), or derive it from the number of ionizing photons in the ionized regions given the largest filtering scale (2)?");
+            scanf("%d",&photHI_model);
+
+            if(photHI_model == 1)
             {
+                photHI_model = 1;
+                printf("Do you want to calculate the mean free path according to Miralda 2000 (type 1) or set a value (type 0)?\n");
+                scanf("%d", &calc_mfp);
+                
+                if(calc_mfp == 1)
+                {
+                    mfp = 0.;
+                }
+                else
+                {
+                    printf("Which mean free path in the ionized medium to you want to assume (in Mpc)?\n");
+                    scanf("%lf", &mfp); 
+                }
+                
+                printf("Please provide a list of the photoionization values at different redshifts (z,photIonHI,photHeatHI,Q). Specify the address of this file:\n");
+                scanf("%s", photHI_bg_file);
+                photHI_bg = 0.;
+            }
+            else if(photHI_model == 2)
+            {
+                photHI_model = 2;
                 mfp = 0.;
+                
+                for(int i=0; i<1000; i++) 
+                {
+                    photHI_bg_file[i] = '\0';
+                }
+                strcat(photHI_bg_file, "None");
+                
+                printf("Which homogeneous photoionization rate do you want to assume for the first cycle?\n");
+                scanf("%lf", &photHI_bg);
+                
+                printf("Which slope index do you want to assume for the spectrum of the ionizing sources: f ~ nu^-alpha. Type alpha\n");
+                scanf("%lf", &source_slope_index);
             }
             else
             {
-                printf("Which mean free path in the ionized medium to you want to assume (in Mpc)?\n");
-                scanf("%lf", &mfp); 
+                printf("This input is not valid\n");
+                exit(0);
             }
-            
-            printf("Please provide a list of the photoionization values at different redshifts (z,photIonHI,photHeatHI,Q). Specify the address of this file:\n");
-            scanf("%s", photHI_bg_file);
-            photHI_bg = 0.;
         }
         else
         {
@@ -598,7 +627,8 @@ int main()
     fprintf(file, "[Photoionization]\n");
     fprintf(file, "photHI_bg_file = %s\n", photHI_bg_file);
     fprintf(file, "photHI_bg = %e\n", photHI_bg);
-    fprintf(file, "meanFreePathInIonizedMedium = %e\n\n\n", mfp);
+    fprintf(file, "meanFreePathInIonizedMedium = %e\n", mfp);
+    fprintf(file, "sourceSlopeIndex = %e\n\n\n", source_slope_index);
     
     
     fprintf(file, "[Recombinations]\n");
