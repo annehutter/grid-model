@@ -16,7 +16,7 @@
 #include "confObj.h"
 #include "grid.h"
 #include "sources.h"
-
+#include "utils.h"
 
 photIonlist_t *allocate_photIonlist(int Nallocated)
 {
@@ -51,7 +51,7 @@ void deallocate_photIonlist(photIonlist_t *thisPhotIonlist)
 photIonlist_t *read_photIonlist(char *filename)
 {
     FILE * fp;
-    char line[256];
+    char line[MAXLENGTH];
     int i;
     
     int numLines;
@@ -66,7 +66,7 @@ photIonlist_t *read_photIonlist(char *filename)
         exit(EXIT_FAILURE);
     }
     
-    if(fgets(line, 256, fp) != NULL)
+    if(fgets(line, MAXLENGTH, fp) != NULL)
     {
         sscanf(line,"%d\n", &numLines);
     }
@@ -97,7 +97,7 @@ photIonlist_t *read_photIonlist(char *filename)
     }
 
     i = 0;
-    while(fgets(line,256,fp)!=NULL)
+    while(fgets(line,MAXLENGTH,fp)!=NULL)
 	{
         sscanf(line,"%lf\t%lf\t%lf\t%lf\n", &redshift, &photionHI, &photheatHI, &QHII);
         newPhotIonlist->redshift[i] = redshift;

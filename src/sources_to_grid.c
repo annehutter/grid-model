@@ -23,11 +23,11 @@
 /* read in / update sources or nion -------------------------------------------------------------*/
 void read_update_nion(confObj_t simParam, sourcelist_t *thisSourcelist, grid_t *thisGrid, int snap)
 {
-	char sources_file[128], nion_file[128];
+	char sources_file[MAXLENGTH], nion_file[MAXLENGTH];
 	char snap_string[8];
 	
-	for(int i=0; i<128; i++) sources_file[i]='\0';
-	for(int i=0; i<128; i++) nion_file[i]='\0';
+	for(int i=0; i<MAXLENGTH; i++) sources_file[i]='\0';
+	for(int i=0; i<MAXLENGTH; i++) nion_file[i]='\0';
 	if(snap >= 0){
 		sprintf(snap_string,"%03d",snap); 
 		
@@ -72,11 +72,11 @@ void read_update_nion(confObj_t simParam, sourcelist_t *thisSourcelist, grid_t *
 
 void read_update_nion_HeI(confObj_t simParam, sourcelist_t *thisSourcelist, grid_t *thisGrid, int snap)
 {
-	char sources_file[128], nion_file[128];
+	char sources_file[MAXLENGTH], nion_file[MAXLENGTH];
 	char snap_string[8];
 	
-	for(int i=0; i<128; i++) sources_file[i]='\0';
-	for(int i=0; i<128; i++) nion_file[i]='\0';
+	for(int i=0; i<MAXLENGTH; i++) sources_file[i]='\0';
+	for(int i=0; i<MAXLENGTH; i++) nion_file[i]='\0';
 	if(snap >= 0){
 		sprintf(snap_string,"%03d",snap); 
 		
@@ -120,11 +120,11 @@ void read_update_nion_HeI(confObj_t simParam, sourcelist_t *thisSourcelist, grid
 
 void read_update_nion_HeII(confObj_t simParam, sourcelist_t *thisSourcelist, grid_t *thisGrid, int snap)
 {
-	char sources_file[128], nion_file[128];
+	char sources_file[MAXLENGTH], nion_file[MAXLENGTH];
 	char snap_string[8];
 	
-	for(int i=0; i<128; i++) sources_file[i]='\0';
-	for(int i=0; i<128; i++) nion_file[i]='\0';
+	for(int i=0; i<MAXLENGTH; i++) sources_file[i]='\0';
+	for(int i=0; i<MAXLENGTH; i++) nion_file[i]='\0';
 	if(snap >= 0){
 		sprintf(snap_string,"%03d",snap); 
 		

@@ -25,7 +25,7 @@ double *read_redshift_list(char *redshift_file, int num_snapshots)
 	
 	int counter;
 	double redshift, existFile;
-	char line[128];
+	char line[MAXLENGTH];
 	
 	if(file_exist(redshift_file) == 1)
 	{
@@ -33,7 +33,7 @@ double *read_redshift_list(char *redshift_file, int num_snapshots)
 
 		file = fopen(redshift_file, "rt");
 		counter = 0;
-		while(fgets(line, 128, file) != NULL)
+		while(fgets(line, MAXLENGTH, file) != NULL)
 		{
 		      /* get a line, up to 80 chars from fr.  done if NULL */
 		      sscanf (line, "%le\t%le", &redshift, &existFile);

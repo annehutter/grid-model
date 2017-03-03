@@ -81,7 +81,7 @@ int main (int argc, /*const*/ char * argv[]) {
 #endif
     int myRank = 0;
 
-    char iniFile[1000];
+    char iniFile[MAXLENGTH];
     confObj_t simParam;
     
     double *redshift_list = NULL;
@@ -99,7 +99,7 @@ int main (int argc, /*const*/ char * argv[]) {
     double zstart = 0., zend = 0., delta_redshift = 0.;
     int snap = -1, num_cycles;
     
-    char photHIFile[1000], XionFile[1000], cycle_string[8];
+    char photHIFile[MAXLENGTH], XionFile[MAXLENGTH], cycle_string[8];
     
 #ifdef __MPI
     MPI_Init(&argc, &argv); 

@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "sources.h"
+#include "utils.h"
 
 // /* functions on source struct (for one source) ---------------------------------------------------------------*/
 // 
@@ -96,7 +97,7 @@ sourcelist_t *read_sources(char * filename)
 	int numSources;
 
 	FILE * fp;
-	char line[256];
+	char line[MAXLENGTH];
 	
 	fp = fopen(filename, "rt");
 	if(fp==NULL)
@@ -105,14 +106,14 @@ sourcelist_t *read_sources(char * filename)
 		exit(EXIT_FAILURE);
 	}
 	
-	if(fgets(line,256,fp)!=NULL)
+	if(fgets(line,MAXLENGTH,fp)!=NULL)
 	{
 		sscanf(line,"%d\n",&numSources);
 	}
 		
 	sourcelist_t *newSourcelist = allocate_sourcelist(numSources);
 
-	while(fgets(line,256,fp)!=NULL)
+	while(fgets(line,MAXLENGTH,fp)!=NULL)
 	{
 		sscanf(line,"%f\t%f\t%f\t%lf\t%d\t%f\n", &xpos, &ypos, &zpos, &Nion, &spectraID, &fesc);
 		

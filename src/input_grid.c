@@ -22,10 +22,10 @@
 /* read in / update sources or nion -------------------------------------------------------------*/
 void read_update_igm_density(confObj_t simParam, grid_t *thisGrid, int snap)
 {
-	char igm_density_file[128];
+	char igm_density_file[MAXLENGTH];
 	char snap_string[8];
 	
-	for(int i=0; i<128; i++) igm_density_file[i]='\0';
+	for(int i=0; i<MAXLENGTH; i++) igm_density_file[i]='\0';
 	if(snap >= 0)
 	{
 		sprintf(snap_string,"%03d",snap); 
@@ -58,10 +58,10 @@ void read_update_igm_density(confObj_t simParam, grid_t *thisGrid, int snap)
 
 void read_update_igm_clump(confObj_t simParam, grid_t *thisGrid, int snap)
 {
-	char igm_clump_file[128];
+	char igm_clump_file[MAXLENGTH];
 	char snap_string[8];
 	
-	for(int i=0; i<128; i++) igm_clump_file[i]='\0';
+	for(int i=0; i<MAXLENGTH; i++) igm_clump_file[i]='\0';
 	if(snap >= 0)
 	{
 		sprintf(snap_string,"%03d",snap); 
