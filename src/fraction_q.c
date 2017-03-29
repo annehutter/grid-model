@@ -115,11 +115,13 @@ void compute_cum_values(grid_t *thisGrid, confObj_t simParam, int specie)
                     Nion = creal(thisGrid->nion[i*nbins*nbins+j*nbins+k])*evol_time_fromPrevSnap;
 
                     thisGrid->cum_nion[i*nbins*nbins+j*nbins+k] += Nion + 0.*I;
-    //                 if(creal(thisGrid->cum_nion[i*nbins*nbins+j*nbins+k])>0.) printf("Nion = %e\t cumNion = %e\n", Nion/evol_time, creal(thisGrid->cum_nion[i*nbins*nbins+j*nbins+k]));
 
                     thisGrid->cum_nrec[i*nbins*nbins+j*nbins+k] += creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k])*mean_numdensity_H*volume*creal(thisGrid->nrec[i*nbins*nbins+j*nbins+k]);
                     
                     thisGrid->cum_nabs[i*nbins*nbins+j*nbins+k] = creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k])*mean_numdensity_H*volume + creal(thisGrid->cum_nrec[i*nbins*nbins+j*nbins+k]);
+
+//                     if(creal(thisGrid->cum_nion[i*nbins*nbins+j*nbins+k])>0.) printf("Nion = %e\t cumNion = %e\t cumNabs = %e\t volume = %e\t dens = %e\n", Nion/evol_time, creal(thisGrid->cum_nion[i*nbins*nbins+j*nbins+k]), creal(thisGrid->cum_nabs[i*nbins*nbins+j*nbins+k]), volume, creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k]));
+
                 }
             }
         }

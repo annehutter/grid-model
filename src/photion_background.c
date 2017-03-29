@@ -111,7 +111,7 @@ photIonlist_t *read_photIonlist(char *filename)
     return newPhotIonlist;
 }
 
-double get_photHI_from_redshift(photIonlist_t *thisPhotIonlist, double redshift)
+double get_photHI_from_redshift(const photIonlist_t *thisPhotIonlist, double redshift)
 {
     int numLines = thisPhotIonlist->num;
     int i;
@@ -136,7 +136,7 @@ double get_photHI_from_redshift(photIonlist_t *thisPhotIonlist, double redshift)
     return value;
 }
 
-double get_photHI_from_fillingfactor(photIonlist_t *thisPhotIonlist, double QHII)
+double get_photHI_from_fillingfactor(const photIonlist_t *thisPhotIonlist, double QHII)
 {
     int numLines = thisPhotIonlist->num;
     int i;

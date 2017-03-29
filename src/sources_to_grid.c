@@ -42,7 +42,7 @@ void read_update_nion(confObj_t simParam, sourcelist_t *thisSourcelist, grid_t *
 		strcat(sources_file, simParam->sources_file);
 		strcat(nion_file, simParam->nion_file);
 	}
-  
+	  
 	if(file_exist(sources_file) == 1){
 		//read source files (allocate sources)
 		if(thisSourcelist != NULL){
@@ -64,8 +64,8 @@ void read_update_nion(confObj_t simParam, sourcelist_t *thisSourcelist, grid_t *
 	
 // 	for(int i=0; i<thisGrid->nbins*thisGrid->nbins*thisGrid->nbins; i++){
 // 		if(creal(thisGrid->nion[i])>0.){
-// 			thisGrid->nion[i] = creal(thisGrid->nion[i])*5.e0 + 0.*I;
-// // 			printf("nion[%d] = %e\n",i,creal(thisGrid->nion[i]));
+// // 			thisGrid->nion[i] = creal(thisGrid->nion[i])*5.e0 + 0.*I;
+// 			printf("nion[%d] = %e\n",i,creal(thisGrid->nion[i]));
 // 		}
 // 	}
 }
@@ -169,7 +169,7 @@ void map_nion_to_grid(fftw_complex *thisNionArray, grid_t *thisGrid, sourcelist_
 	int local_n0;
 		
 	num_sources = thisSourcelist->numSources;
-	
+    	
 	nbins = thisGrid->nbins;
 	local_0_start = thisGrid->local_0_start;
 	local_n0 = thisGrid->local_n0;

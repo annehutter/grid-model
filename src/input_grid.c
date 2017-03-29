@@ -24,6 +24,7 @@ void read_update_igm_density(confObj_t simParam, grid_t *thisGrid, int snap)
 {
 	char igm_density_file[MAXLENGTH];
 	char snap_string[8];
+    double mean_density = 1.;
 	
 	for(int i=0; i<MAXLENGTH; i++) igm_density_file[i]='\0';
 	if(snap >= 0)
@@ -48,8 +49,32 @@ void read_update_igm_density(confObj_t simParam, grid_t *thisGrid, int snap)
 				thisGrid->igm_density[i] = 1.e-2 + 0.*I;
 			}
 		}
+		
+        mean_density = get_mean_grid(thisGrid->igm_density, thisGrid->nbins, thisGrid->local_n0);
+                
+        if(simParam->dens_in_overdensity == 1)
+        {
+            if((mean_density > 1.1) || (mean_density < 0.9))
+            {
+                fprintf(stderr, "Your density field is not in overdensity (= rho / mean(rho))\nEither change your density field or set densityInOverdensity to NULL\n");
+                exit(EXIT_FAILURE);
+            }
+        }else{
+            for(int i=0; i<thisGrid->local_n0; i++)
+            {
+                for(int j=0; j<thisGrid->nbins; j++)
+                {
+                    for(int k=0; k<thisGrid->nbins; k++)
+                    {
+                        thisGrid->igm_density[i*thisGrid->nbins*thisGrid->nbins+j*thisGrid->nbins+k] = creal(thisGrid->igm_density[i*thisGrid->nbins*thisGrid->nbins+j*thisGrid->nbins+k])/mean_density + 0.*I;
+                    }
+                }
+            }
+            simParam->mean_density = mean_density;
+        }
+		
 	}
-	else if(file_exist(igm_density_file) == 1)
+	else
 	{
 		fprintf(stderr, "No density file available, or names are incorrect!\n");
 		exit(EXIT_FAILURE);
@@ -85,7 +110,7 @@ void read_update_igm_clump(confObj_t simParam, grid_t *thisGrid, int snap)
 			}
 		}
 	}
-	else if(file_exist(igm_clump_file) == 1)
+	else
 	{
 		printf("no clumping factor file exist; assume a clumping factor = 1\n");
 	}

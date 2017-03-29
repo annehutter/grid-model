@@ -110,7 +110,7 @@ sourcelist_t *read_sources(char * filename)
 	{
 		sscanf(line,"%d\n",&numSources);
 	}
-		
+        
 	sourcelist_t *newSourcelist = allocate_sourcelist(numSources);
 
 	while(fgets(line,MAXLENGTH,fp)!=NULL)
@@ -140,7 +140,7 @@ sourcelist_t *read_sources(char * filename)
             }
                 newSourcelist->Nallocated = nallocated;
 		}
-	}
+    }
 	assert(numSources == newSourcelist->numSources);
 	numSources = newSourcelist->numSources;
 	newSourcelist->source = realloc(newSourcelist->source, numSources*sizeof(source_t));

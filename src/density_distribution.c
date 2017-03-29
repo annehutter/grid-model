@@ -48,9 +48,9 @@ double dd_calc_integral(pdf_params_t params, double upLim)
 	
 	if(upLim <=0.)
 	{
-		gsl_integration_qagiu(&F, 0., 1.e-9, 1.e-9, 10000, w, &result, &error);
+		gsl_integration_qagiu(&F, 0., 1.e-6, 1.e-6, 10000, w, &result, &error);
 	}else{
-		gsl_integration_qag(&F, 0., upLim, 0., 1.e-9, 10000, 1, w, &result, &error);
+		gsl_integration_qag(&F, 0., upLim, 0., 1.e-6, 10000, 1, w, &result, &error);
 	}
 	
 	gsl_integration_workspace_free(w);
@@ -77,9 +77,9 @@ double dd_calc_integral_mass(pdf_params_t params, double upLim)
 	
 	if(upLim <=0.)
 	{
-		gsl_integration_qagiu(&F, 0., 1.e-9, 1.e-9, 10000, w, &result, &error);
+		gsl_integration_qagiu(&F, 0., 1.e-6, 1.e-6, 10000, w, &result, &error);
 	}else{
-		gsl_integration_qag(&F, 0., upLim, 0., 1.e-9, 10000, 1, w, &result, &error);
+		gsl_integration_qag(&F, 0., upLim, 0., 1.e-6, 10000, 1, w, &result, &error);
 	}
 	
 	gsl_integration_workspace_free(w);
@@ -90,17 +90,17 @@ void dd_set_norm_pdf(pdf_params_t * params, double redshift)
 {
 	double result, result_mass;
 	double old_result, old_result_mass;
-	double old_amplitude, old_constant;
+	double old_amplitude, old_constant, old_beta;
 	double old_chi, chi;
 	
-	int rand_amp, rand_const;
+	int rand_amp, rand_const, rand_beta;
 	double precision = 1.e-3;
 	
 	int counter;
 	
 	params->redshift = redshift;
-	params->amplitude = 1.;
-	params->constant = 1.;
+	params->amplitude = 0.5;
+	params->constant = 0.2;
 	params->beta = 2.5;
 	
 	// compute full integrate
@@ -110,19 +110,25 @@ void dd_set_norm_pdf(pdf_params_t * params, double redshift)
 
 	// adapt struct, so integral is 1
 	counter = 0;
-	while((fabs(result_mass-1.)>=precision || fabs(result-1.)>=precision) && counter<300000)
+	while((fabs(result_mass-1.)>=precision || fabs(result-1.)>=precision) && counter<30000)
 	{
 		rand_amp = 2*(rand()%2)-1;
 		rand_const = 2*(rand()%2)-1;
+        rand_beta = 2*(rand()%2)-1;
 		
 		old_amplitude = params->amplitude;
 		old_constant = params->constant;
+        old_beta = params->beta;
 		old_result = result;
 		old_result_mass = result_mass;
 		old_chi = chi;
 		
 		params->amplitude += rand_amp*precision*params->amplitude;
 		params->constant += rand_const*precision*params->constant;
+        if((1.+rand_beta*precision)*params->beta<=2.5 && (1.+rand_beta*precision)*params->beta>1.)
+        {
+            params->beta += rand_beta*precision*params->beta;
+        }
 		result_mass = dd_calc_integral_mass(*params, 0.);
 		result = dd_calc_integral(*params, 0.);
 		chi = (result-1.)*(result-1.)+(result_mass-1.)*(result_mass-1.);
@@ -131,6 +137,7 @@ void dd_set_norm_pdf(pdf_params_t * params, double redshift)
 		{
 			params->amplitude = old_amplitude;
 			params->constant = old_constant;
+            params->beta = old_beta;
 			result = old_result;
 			result_mass = old_result_mass;
 			chi = old_chi;
@@ -139,7 +146,7 @@ void dd_set_norm_pdf(pdf_params_t * params, double redshift)
 	}
 	printf("counter = %d\n", counter);
 	
-	printf("%e\t%e\t A = %e\t C = %e\n", result, result_mass, params->amplitude, params->constant);
+	printf("%e:\t %e\t%e\t A = %e\t C = %e\t beta = %e\n", redshift, result, result_mass, params->amplitude, params->constant, params->beta);
 }
 
 double dd_frac_densSS(double densSS, confObj_t simParam)

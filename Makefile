@@ -18,7 +18,8 @@ SOURCES := 	./src/main.c \
 		./src/input_redshifts.c\
 		./src/input_grid.c \
 		./src/photion_background.c \
-		./src/redshift_tools.c
+		./src/redshift_tools.c \
+		./src/cifog.c
 OBJECTS := $(SOURCES:.c=.o)
 DOBJECTS := $(SOURCES:.c=.d)
 EXECUTABLE := cifog
@@ -27,6 +28,8 @@ EXECUTABLE := cifog
 
 OPTIMIZE = -O3 -ftree-vectorize
 WARNING = -Wall -Wextra -Wshadow -g
+
+# LIBDIR = 
 
 ifdef USE-MPI
 	CC := mpicc

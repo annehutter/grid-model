@@ -77,3 +77,5 @@ void write_grid_to_file_double(fftw_complex *thisArray, int nbins, int local_n0,
 #endif
 
 void save_to_file(fftw_complex *thisArray, grid_t *thisGrid, char *filename);
+
+double get_mean_grid(fftw_complex *thisArray, int nbins, int local_n0);

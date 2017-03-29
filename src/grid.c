@@ -501,3 +501,29 @@ void save_to_file(fftw_complex *thisArray, grid_t *thisGrid, char *filename)
 	write_grid_to_file_double(thisArray, thisGrid->nbins, thisGrid->local_n0, filename);
 #endif
 }
+
+double get_mean_grid(fftw_complex *thisArray, int nbins, int local_n0)
+{
+    double sum = 0.;
+    double sum_all = 0.;
+    
+	for(int i=0; i<local_n0; i++)
+	{
+		for(int j=0; j<nbins; j++)
+		{
+			for(int k=0; k<nbins; k++)
+			{
+				sum += creal(thisArray[i*nbins*nbins+j*nbins+k]);
+			}
+		}
+	}
+	
+#ifdef __MPI
+    MPI_Allreduce(&sum, &sum_all, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    sum = sum_all / (double)(nbins*nbins*nbins);
+#else
+    sum = sum / (double)(nbins*nbins*nbins);
+#endif
+    
+    return sum;
+}

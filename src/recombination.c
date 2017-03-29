@@ -39,7 +39,7 @@
     } while (0)
 #endif
 
-void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam, char *filename, integral_table_t *thisIntegralTable)
+void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam, char *filename, const integral_table_t *thisIntegralTable)
 {
   	int nbins;
 	int local_n0;
@@ -91,6 +91,8 @@ void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam, char *f
     }
     
     free(integral_table);
+    
+//     compute_table_norm_pdf(0., 10., 0.1, 0, 1, "norm_pdf_z0_10.dat");
 }
 
 void compute_number_recombinations_const(grid_t *thisGrid, confObj_t simParam, int specie)
@@ -183,68 +185,8 @@ double get_nrec_HeII_history_constantInTime(confObj_t simParam, double z, double
     
     return nrec;
 }
-// double get_nrec_history(confObj_t simParam, double *norm_pdf, dens_table_t *thisDensTable, double *dens_table, redshift_table_t *thisRedshiftTable, double *redshift_table, double dens, double photHI, double temp, double zstart, double redshift)
-// {
-// 	double tmp, tmp_dens, tmp_redshift;
-// 	double mean_numdensity, factor;
-// 	double z;
-// 	int num_z, zstart_index, redshift_index;
-// 	int constant_index;
-// 	int num_factor, factor_index;
-// 	int dens_cell_index;
-// 	
-// 	dens_integrand_t *dens_params;
-// 	redshift_integrand_t *redshift_params;
-// 	
-// 	dens_params = malloc(sizeof(dens_integrand_t));
-// 	redshift_params = malloc(sizeof(redshift_integrand_t));
-// 	
-// 	if(simParam->default_mean_density == 1){
-// 		mean_numdensity = rho_g_cm/mp_g*simParam->h*simParam->h*simParam->omega_b;
-// 	}else{
-// 		mean_numdensity = simParam->mean_density;
-// 	}
-// 	factor = mean_numdensity*recomb_HII/photHI;
-// 	printf("numdens = %e\tfactor = %e\n",mean_numdensity, factor);
-// 
-// 	redshift_params->dens_cell = pow(dens, 1./3.);
-// 	redshift_params->simParam = simParam;
-// 	
-// 	dens_cell_index = (redshift_params->dens_cell - thisRedshiftTable->dens_cell_min)/thisRedshiftTable->ddens_cell;
-// 	
-// 	num_factor = (thisDensTable->factor_max - thisDensTable->factor_min)/thisDensTable->dfactor;
-// 	
-// 	num_z = (thisRedshiftTable->zmax - thisRedshiftTable->zmin)/thisRedshiftTable->dz;
-// 	zstart_index = (zstart  - thisRedshiftTable->zmin)/thisRedshiftTable->dz;
-// 	redshift_index = (redshift - thisRedshiftTable->zmin)/thisRedshiftTable->dz;
-// 	
-// 	tmp = 0.;
-// 	for(int i=redshift_index; i<zstart_index; i++)
-// 	{
-// 		z = thisRedshiftTable->zmin + i*thisRedshiftTable->dz;
-// 		
-// 		dens_params->factor = factor*CUB(1.+z);
-// 		dens_params->constant = constant_norm_pdf(z);
-// 		
-// 		redshift_params->z = z;
-// 		
-// 		factor_index = (log10(dens_params->factor) - thisDensTable->factor_min)/thisDensTable->dfactor;
-// 		constant_index = (dens_params->constant - thisDensTable->constant_min)/thisDensTable->dconstant;
-// 		
-// 		tmp_dens = dens_table[3*num_factor*constant_index+3*factor_index+2];
-// 		tmp_redshift = redshift_table[3*num_z*dens_cell_index+3*i+2];
-// 		printf("%d: z = %e:\ttmp_dens = %e\t tmp_redshift = %e\n",i, z, tmp_dens, tmp_redshift);
-// 		tmp += tmp_dens*tmp_redshift;
-// 	}
-// 	tmp = tmp*0.5*photHI;
-// 	
-// 	free(dens_params);
-// 	free(redshift_params);
-// 	
-// 	return tmp;
-// }
 
-double get_nrec_history(confObj_t simParam, integral_table_t *thisIntegralTable, double *integral_table, double dens, double photHI, double temp, double zstart, double redshift)
+double get_nrec_history(confObj_t simParam, const integral_table_t *thisIntegralTable, double *integral_table, double dens, double photHI, double temp, double zstart, double redshift)
 {
 	double tmp;
 	double correctFact;
@@ -417,7 +359,7 @@ void compute_table_norm_pdf(double zmin, double zmax, double d, int rank, int si
 		exit(EXIT_FAILURE);
 	}
 	
-	array = malloc(3*num_size*sizeof(double));
+	array = malloc(4*num_size*sizeof(double));
 	if(array == NULL)
 	{
 		fprintf(stderr, "array in compute_table_norm_pdf (recombination.c) could not be allocated\n");
@@ -428,17 +370,26 @@ void compute_table_norm_pdf(double zmin, double zmax, double d, int rank, int si
 	{
 		redshift = zmin + d*(i + offset_write);
 		dd_set_norm_pdf(pdf_params, redshift);
-		array[3*i] = redshift;
-		array[3*i+1] = pdf_params->amplitude;
-		array[3*i+2] = pdf_params->constant;
+		array[4*i] = redshift;
+		array[4*i+1] = pdf_params->amplitude;
+		array[4*i+2] = pdf_params->constant;
+        array[4*i+3] = pdf_params->beta;
 	}
 	
 #ifdef __MPI
-	write_table(num_size*3, offset_write*3, array, filename);
+	write_table(num_size*4, offset_write*4, array, filename);
 #else
-	write_table(num_size*3, array, filename);
+	write_table(num_size*4, array, filename);
 #endif
 	
+    FILE *f;
+    f=fopen(filename, "w");
+    for(int i=0; i<num_size; i++)
+    {
+        fprintf(f,"%e\t%e\t%e\t%e\n",array[4*i],array[4*i+1],array[4*i+2],array[4*i+3]);
+    }
+    fclose(f);
+    
 	free(array);
 }
 
@@ -456,7 +407,7 @@ double constant_norm_pdf(double z)
 // table for integrals over density and redshift
 //------------------------------------------------------------------------------
 
-double *read_table_integrals(char *filename, integral_table_t *thisIntegralTable)
+double *read_table_integrals(char *filename, const integral_table_t *thisIntegralTable)
 {
 	int len_byte;
 	FILE * fp;

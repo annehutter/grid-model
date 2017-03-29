@@ -68,8 +68,8 @@ typedef struct
 // void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam, char *filename, dens_table_t *thisDensTable, redshift_table_t *thisRedshiftTable);
 // double get_nrec_history(confObj_t simParam, double *norm_pdf, dens_table_t *thisDensTable, double *dens_table, redshift_table_t *thisRedshiftTable, double *redshift_table, double dens, double photHI, double temp, double zstart, double redshift);
 
-void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam, char *filename, integral_table_t *thisIntegralTable);
-double get_nrec_history(confObj_t simParam, integral_table_t *thisIntegralTable, double *integral_table, double dens, double photHI, double temp, double zstart, double redshift);
+void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam, char *filename, const integral_table_t *thisIntegralTable);
+double get_nrec_history(confObj_t simParam, const integral_table_t *thisIntegralTable, double *integral_table, double dens, double photHI, double temp, double zstart, double redshift);
 
 void compute_number_recombinations_const(grid_t *thisGrid, confObj_t simParam, int specie);
 double get_nrec_history_constantInTime(confObj_t simParam, double z, double zstart);
@@ -89,7 +89,7 @@ double constant_norm_pdf(double z);
 // table for integrals over density and redshift
 //------------------------------------------------------------------------------
 
-double *read_table_integrals(char *filename, integral_table_t *thisIntegralTable);
+double *read_table_integrals(char *filename, const integral_table_t *thisIntegralTable);
 integral_table_t * initIntegralTable(double zmin, double zmax, double dz, double fmin, double fmax, double df, double dcellmin, double dcellmax, double ddcell);
 
 //------------------------------------------------------------------------------

@@ -475,13 +475,17 @@ void compute_photHI_ionizedRegions(grid_t *thisGrid, confObj_t simParam)
     double factor = thisGrid->box_size/simParam->h/(1.+z)*Mpc_cm;
     double len_cell = factor/nbins;
     double factor2 = (1.+z)*(1.+z)*sigma_HI*alpha/((alpha+beta)*4.*M_PI*len_cell*len_cell*len_cell*evol_time_fromPrevSnap); 
+    
+    printf("evol_time = %e\t factor = %e\t len_cell = %e\t factor2 = %e\n", evol_time_fromPrevSnap, factor, len_cell, factor2);
 
+    
     for(int i=0; i<local_n0; i++)
     {
         for(int j=0; j<nbins; j++)
         {
             for(int k=0; k<nbins; k++)
             {
+//                 if(creal(thisGrid->photHI[i*nbins*nbins+j*nbins+k])>0.) printf("%e\n", creal(thisGrid->photHI[i*nbins*nbins+j*nbins+k]));
                 thisGrid->photHI[i*nbins*nbins+j*nbins+k] = creal(thisGrid->photHI[i*nbins*nbins+j*nbins+k])*factor*factor2 + 0.*I;
 //                 if(creal(thisGrid->photHI[i*nbins*nbins+j*nbins+k])>0.) printf("%e\n", creal(thisGrid->photHI[i*nbins*nbins+j*nbins+k]));
             }

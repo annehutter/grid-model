@@ -338,10 +338,10 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
                 
 		if(scale==num_scales-1)
 		{
-            if(simParam->photHI_model == 2) determine_mfp(frac_Q_smooth, nion_smooth, mfp_tmp, nbins, local_n0, (double)scale/(double)nbins, 1);
+            if(simParam->photHI_model == 2) determine_mfp(frac_Q_smooth, nion_smooth, mfp_tmp, nbins, local_n0, (double)smooth_scale/(double)nbins, 1);
 			determine_ion_fractions(frac_Q_smooth, nbins, local_n0, 1);
 		}else{
-            if(simParam->photHI_model == 2) determine_mfp(frac_Q_smooth, nion_smooth, mfp_tmp, nbins, local_n0, (double)scale/(double)nbins, 0);
+            if(simParam->photHI_model == 2) determine_mfp(frac_Q_smooth, nion_smooth, mfp_tmp, nbins, local_n0, (double)smooth_scale/(double)nbins, 0);
 			determine_ion_fractions(frac_Q_smooth, nbins, local_n0, 0);
 		}
 		
