@@ -141,15 +141,24 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
                 
                 if(simParam->calc_mfp == 1)
                 {
-                    //this mean free path is an overestimate at high redshifts, becomes correct at z~6
                     if(myRank==0) printf("\n++++\ncompute mean free path... ");
-                    set_mfp_Miralda2000(simParam);
-                    if(myRank==0) printf("\n mfp = %e Mpc for a UVB of %e s^-1 at z = %e\t", simParam->mfp, simParam->photHI_bg, simParam->redshift);
+                    if(cycle==0){
+                        simParam->mfp = f*simParam->box_size/(simParam->h * (1.+simParam->redshift))/grid->nbins;
+                    }else{
+                        set_mfp_Miralda2000(simParam);
+                        printf("\n M2000: mfp(photHI = %e) = %e Mpc at z = %e", simParam->photHI_bg, simParam->mfp, simParam->redshift);
+
+                        if(f*grid->mean_mfp < simParam->mfp)
+                        {
+                            simParam->mfp = f*grid->mean_mfp*(1.+simParam->redshift)/(1.+simParam->redshift_prev_snap);
+                        }
+                    }
+                    if(myRank==0) printf("\n mfp = %e Mpc at z = %e\n", simParam->mfp, simParam->redshift);
                     if(myRank==0) printf("done\n+++\n");
                 }
                 
-                //compute spatial photoionization rate according to source distribution and mean photoionization rate given
-                if(myRank==0) printf("\n++++\ncompute mean photoionization rate & rescale... ");
+                //compute spatial photoionization rate according to source distribution
+                if(myRank==0) printf("\n++++\ncompute photoionization rate... ");
                 compute_photHI(grid, simParam, 1);
                 if(myRank==0) printf("done\n+++\n");
             }

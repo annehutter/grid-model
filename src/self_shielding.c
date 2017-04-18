@@ -423,10 +423,9 @@ void compute_photHI(grid_t *thisGrid, confObj_t simParam, int rescale)
         double rescale_factor = 1.;
         if(rescale == 1)
         {
-            rescale_factor = simParam->photHI_bg/thisGrid->mean_photHI*SQR(1.+z); //simParam->photHI_bg/calc_mean_photoionization_ionized_field(thisGrid);//
+            rescale_factor = simParam->photHI_bg/thisGrid->mean_photHI;
+            printf("\n fitting the photoionization rate field with mean value %e to the given background value by multiplying with a factor = %e\n", thisGrid->mean_photHI, rescale_factor);
         }
-
-//         printf("\n fitting the photoionization rate field to the given background value by multiplying with a factor = %e\n", rescale_factor);
         
         for(int i=0; i<local_n0; i++)
         {
