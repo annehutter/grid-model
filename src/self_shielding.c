@@ -439,6 +439,10 @@ void compute_photHI(grid_t *thisGrid, confObj_t simParam, int rescale)
             }
         }
 
+        if(simParam->padded_box != 0.)
+        {
+            thisGrid->mean_photHI = thisGrid->mean_photHI*simParam->padded_box;
+        }
         simParam->photHI_bg = thisGrid->mean_photHI;
         
         fftw_free(filter);

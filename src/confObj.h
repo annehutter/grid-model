@@ -40,6 +40,8 @@ struct confObj_struct {
     int            const_recomb;
     int            calc_recomb;
     int            solve_He;
+    
+    int            padded_box;
 
     //Input
     int            grid_size;

@@ -67,6 +67,9 @@ confObj_new(parse_ini_t ini)
     getFromIni(&(config->solve_He), parse_ini_get_int32,
                ini, "solveForHelium", "General");
     
+    getFromIni(&(config->padded_box), parse_ini_get_int32,
+               ini, "paddedBox", "General");
+    
     //Input
     getFromIni(&(config->grid_size), parse_ini_get_int32,
                ini, "gridsize", "Input");
