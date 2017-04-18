@@ -112,7 +112,7 @@ void read_update_igm_clump(confObj_t simParam, grid_t *thisGrid, int snap)
 	}
 	else
 	{
-		printf("no clumping factor file exist; assume a clumping factor = 1\n");
+		printf(" no clumping factor file exist; assume a clumping factor = 1\n");
 	}
 	
 	double sum = 0.;

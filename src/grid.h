@@ -29,6 +29,8 @@ typedef struct
 	fftw_complex *photHI;
 	double mean_photHI;
     
+    double mean_mfp;
+    
     //helium
     fftw_complex *nion_HeI;
     fftw_complex *nion_HeII;

@@ -49,6 +49,8 @@ grid_t *initGrid()
 	newGrid->photHI = NULL;
 	newGrid->mean_photHI = 0.;
     
+    newGrid->mean_mfp = 0.;
+    
     //helium
     newGrid->nion_HeI = NULL;
     newGrid->nion_HeII = NULL;
@@ -505,7 +507,9 @@ void save_to_file(fftw_complex *thisArray, grid_t *thisGrid, char *filename)
 double get_mean_grid(fftw_complex *thisArray, int nbins, int local_n0)
 {
     double sum = 0.;
+#ifdef __MPI
     double sum_all = 0.;
+#endif
     
 	for(int i=0; i<local_n0; i++)
 	{

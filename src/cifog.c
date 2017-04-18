@@ -33,12 +33,30 @@
 
 #include "cifog.h"
 
+int set_cycle_to_begin(grid_t * thisGrid, confObj_t simParam, int *snap)
+{
+    *snap = -1;
+    
+    int nbins = thisGrid->nbins;
+    int local_n0 = thisGrid->local_n0;
+    
+    initialize_grid(thisGrid->nion, nbins, local_n0, 0.);
+    initialize_grid(thisGrid->cum_nion, nbins, local_n0, 0.);
+    initialize_grid(thisGrid->cum_nrec, nbins, local_n0, 0.);
+    initialize_grid(thisGrid->cum_nabs, nbins, local_n0, 0.);
+    
+    simParam->evol_time = 0.;
+
+    return 0;
+}
  
 int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcelist_t *sourcelist,
           const integral_table_t *integralTable, photIonlist_t *photIonBgList, const int num_cycles, const int myRank)
 {
+    const double f = 0.84;
     double delta_redshift = 0.;
     
+//     int repeat_first_cycle = 0;
     int snap=-1;
     char photHIFile[MAXLENGTH], XionFile[MAXLENGTH];
     
@@ -48,6 +66,13 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
     
     for(int cycle=0; cycle<num_cycles; cycle++)
     {
+//         if(cycle == 1 && simParam->photHI_model == 2 && repeat_first_cycle == 0)
+//         {
+//             cycle = set_cycle_to_begin(grid, simParam, &snap);
+//             repeat_first_cycle = 1;
+//         }
+        
+        
         if(redshift_list != NULL)
         {
             simParam->redshift_prev_snap = redshift_list[2*cycle];
@@ -96,14 +121,22 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
         
         if(simParam->use_web_model == 1)
         {
+            /* ----------------------------------------- */
+            /* photoionization rate is homogeneous       */
+            /* ----------------------------------------- */
             if(simParam->photHI_model == 0)
             {
                 //set photoionization rate on grid to background value
                 if(myRank==0) printf("\n++++\nsetting photoionization rate to background value... ");
                 set_value_to_photoionization_field(grid, simParam);
-                printf("\n photHI_bg = %e s^-1\n", simParam->photHI_bg);
+                if(myRank==0) printf("\n photHI_bg = %e s^-1\n", simParam->photHI_bg);
                 if(myRank==0) printf("done\n+++\n");
-            }else if(simParam->photHI_model == 1){
+            }
+            /* ----------------------------------------------------------------------------------------- */
+            /* photoionization rate is given by mean mfp and exp(-r/mfp)/r^2 around sources distribution */
+            /* ----------------------------------------------------------------------------------------- */
+            else if(simParam->photHI_model == 11){
+                //set photoionization value according to the given list
                 set_value_to_photHI_bg(grid, simParam, get_photHI_from_redshift(photIonBgList, simParam->redshift));
                 
                 if(simParam->calc_mfp == 1)
@@ -111,42 +144,79 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
                     //this mean free path is an overestimate at high redshifts, becomes correct at z~6
                     if(myRank==0) printf("\n++++\ncompute mean free path... ");
                     set_mfp_Miralda2000(simParam);
-                    printf("\n mfp = %e Mpc for a UVB of %e s^-1 at z = %e\t", simParam->mfp, simParam->photHI_bg, simParam->redshift);
+                    if(myRank==0) printf("\n mfp = %e Mpc for a UVB of %e s^-1 at z = %e\t", simParam->mfp, simParam->photHI_bg, simParam->redshift);
                     if(myRank==0) printf("done\n+++\n");
                 }
                 
                 //compute spatial photoionization rate according to source distribution and mean photoionization rate given
                 if(myRank==0) printf("\n++++\ncompute mean photoionization rate & rescale... ");
-                printf("\n set mean photHI to %e", get_photHI_from_redshift(photIonBgList, simParam->redshift));
-                compute_photHI(grid, simParam);
+                compute_photHI(grid, simParam, 1);
                 if(myRank==0) printf("done\n+++\n");
-            }else if(simParam->photHI_model == 2){
+            }
+            /* ----------------------------------------------------------------------------------------- */
+            /* photoionization rate is given by mean mfp and exp(-r/mfp)/r^2 around sources distribution */
+            /* ----------------------------------------------------------------------------------------- */
+            else if(simParam->photHI_model == 1){                
+                if(simParam->calc_mfp == 1)
+                {
+                    if(myRank==0) printf("\n++++\ncompute mean free path... ");
+                    if(cycle==0){
+                        simParam->mfp = f*simParam->box_size/(simParam->h * (1.+simParam->redshift))/grid->nbins;
+                    }else{
+                        set_mfp_Miralda2000(simParam);
+                        printf("\n M2000: mfp(photHI = %e) = %e Mpc at z = %e", simParam->photHI_bg, simParam->mfp, simParam->redshift);
+
+                        if(f*grid->mean_mfp < simParam->mfp)
+                        {
+                            simParam->mfp = f*grid->mean_mfp*(1.+simParam->redshift)/(1.+simParam->redshift_prev_snap);
+                        }
+                    }
+                    if(myRank==0) printf("\n mfp = %e Mpc at z = %e\n", simParam->mfp, simParam->redshift);
+                    if(myRank==0) printf("done\n+++\n");
+                }
+                
+                //compute spatial photoionization rate according to source distribution
+                if(myRank==0) printf("\n++++\ncompute photoionization rate... ");
+                compute_photHI(grid, simParam, 0);
+                if(myRank==0) printf("done\n+++\n");
+            }
+            /* ------------------------------------------------------- */
+            /* photoionization rate is given by mfp of ionized regions */
+            /* ------------------------------------------------------- */
+            else if(simParam->photHI_model == 2){
                 set_value_to_photHI_bg(grid, simParam, get_photHI_from_redshift(photIonBgList, simParam->redshift));
-//                 set_value_to_photoionization_field(grid, simParam);
                 
                 //compute spatial photoionization rate according to source distribution and mean photoionization rate given
                 if(myRank==0) printf("\n++++\nset photoionization rate according to ionized regions... ");
-                if(cycle != 0) compute_photHI_ionizedRegions(grid, simParam);
-                else set_value_to_photoionization_field(grid,simParam);
+                if(cycle != 0){
+                    compute_photHI_ionizedRegions(grid, simParam);
+                }else{
+                    set_value_to_photoionization_field(grid,simParam);
+                }
                 if(myRank==0) printf("done\n+++\n");
             }
 
-            if(simParam->write_photHI_file == 1)
-            {
-                //write photoionization rate field to file
-                for(int i=0; i<MAXLENGTH; i++) photHIFile[i] = '\0';
-                sprintf(photHIFile, "%s_%02d", simParam->out_photHI_file, cycle);
-                if(myRank==0) printf("\n++++\nwriting photoionization field to file... ");
-                save_to_file(grid->photHI, grid, photHIFile);
-                if(myRank==0) printf("done\n+++\n");
-            }
+//             if(simParam->write_photHI_file == 1)
+//             {
+//                 //write photoionization rate field to file
+//                 for(int i=0; i<MAXLENGTH; i++) photHIFile[i] = '\0';
+//                 sprintf(photHIFile, "%s_%02d", simParam->out_photHI_file, cycle);
+//                 if(myRank==0) printf("\n++++\nwriting photoionization field to file... ");
+//                 save_to_file(grid->photHI, grid, photHIFile);
+//                 if(myRank==0) printf("done\n+++\n");
+//             }
             
             
-            //apply web model
+            /* ------------------------------------------------------- */
+            /* compute HI fraction (web model)                         */
+            /* ------------------------------------------------------- */
             if(myRank==0) printf("\n++++\napply web model... ");
             compute_web_ionfraction(grid, simParam);
             if(myRank==0) printf("done\n+++\n");
             
+            /* ---------------------------------------------------------------- */
+            /* compute recombinations based on local photion rate & HI fraction */
+            /* ---------------------------------------------------------------- */
             if(simParam->calc_recomb == 1)
             {
                 //compute number of recombinations
@@ -155,6 +225,9 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
                 if(myRank==0) printf("done\n+++\n");
             }
             
+            /* ------------------------------------------------------- */
+            /* DISABLED: compute local mfp in each cell                */
+            /* ------------------------------------------------------- */
             if(simParam->calc_mfp == -1)
             {
                 //compute mean free paths
@@ -163,6 +236,10 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
                 if(myRank==0) printf("done\n+++\n");
             }
         }
+        
+        //------------------------------------------------------------------------------
+        // compute number of recombinations for a constant rate
+        //------------------------------------------------------------------------------
         
         if(simParam->const_recomb == 1)
         {
@@ -228,6 +305,16 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
             sprintf(XionFile, "%s_%02d", simParam->out_XHeIII_file, cycle);
             if(myRank==0) printf("\n++++\nwriting ionization field to file %s ... ", XionFile);
             save_to_file(grid->XHeIII, grid, XionFile);
+            if(myRank==0) printf("done\n+++\n");
+        }
+        
+        if(simParam->write_photHI_file == 1)
+        {
+            //write photoionization rate field to file
+            for(int i=0; i<MAXLENGTH; i++) photHIFile[i] = '\0';
+            sprintf(photHIFile, "%s_%02d", simParam->out_photHI_file, cycle);
+            if(myRank==0) printf("\n++++\nwriting photoionization field to file... ");
+            save_to_file(grid->photHI, grid, photHIFile);
             if(myRank==0) printf("done\n+++\n");
         }
     }

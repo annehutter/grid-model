@@ -46,11 +46,14 @@ void read_update_nion(confObj_t simParam, sourcelist_t *thisSourcelist, grid_t *
 	if(file_exist(sources_file) == 1){
 		//read source files (allocate sources)
 		if(thisSourcelist != NULL){
+            printf("\n\n ********\n deallocating source list!\n********\n");
 			deallocate_sourcelist(thisSourcelist);
 		}
 		thisSourcelist = read_sources(sources_file);
 		
-		//map sources to grid
+        initialize_grid(thisGrid->nion, thisGrid->nbins, thisGrid->local_n0, 0.);
+		
+        //map sources to grid
 		map_nion_to_grid(thisGrid->nion, thisGrid, thisSourcelist);
         
         //deallocate sources
@@ -99,6 +102,8 @@ void read_update_nion_HeI(confObj_t simParam, sourcelist_t *thisSourcelist, grid
 		}
 		thisSourcelist = read_sources(sources_file);
 		
+        initialize_grid(thisGrid->nion_HeI, thisGrid->nbins, thisGrid->local_n0, 0.);
+
 		//map sources to grid
 		map_nion_to_grid(thisGrid->nion_HeI, thisGrid, thisSourcelist);
         
@@ -147,6 +152,8 @@ void read_update_nion_HeII(confObj_t simParam, sourcelist_t *thisSourcelist, gri
 		}
 		thisSourcelist = read_sources(sources_file);
 		
+        initialize_grid(thisGrid->nion_HeII, thisGrid->nbins, thisGrid->local_n0, 0.);
+
 		//map sources to grid
 		map_nion_to_grid(thisGrid->nion_HeII, thisGrid, thisSourcelist);
         

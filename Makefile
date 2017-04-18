@@ -29,8 +29,6 @@ EXECUTABLE := cifog
 OPTIMIZE = -O3 -ftree-vectorize
 WARNING = -Wall -Wextra -Wshadow -g
 
-# LIBDIR = 
-
 ifdef USE-MPI
 	CC := mpicc
 	CFLAGS := -c -std=c99 -march=native -lm $(WARNING) $(OPTIMIZE) -D __MPI
