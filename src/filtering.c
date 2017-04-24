@@ -264,7 +264,7 @@ void copy_grid_array(fftw_complex *Xion_tmp, fftw_complex *Xion, grid_t *thisGri
 
 void update_web_model(grid_t *thisGrid, confObj_t simParam)
 {
-    const double f = 0.84;
+    const double f = simParam->f;
 
     thisGrid->mean_photHI = 0.;
     if(simParam->photHI_model == 2) compute_photHI_ionizedRegions(thisGrid, simParam);

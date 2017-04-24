@@ -180,6 +180,10 @@ confObj_new(parse_ini_t ini)
                ini, "output_XHeII_file", "Helium");
     getFromIni(&(config->out_XHeIII_file), parse_ini_get_string,
                ini, "output_XHeIII_file", "Helium");
+    
+    config->f = 0.69;
+    config->factor = 0.69;
+    
     return config;
 }
 

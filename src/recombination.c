@@ -38,8 +38,159 @@
         } \
     } while (0)
 #endif
+    
+    
+double get_Xe(double XHII, double XHeII, double XHeIII, double Y, int specie)
+{
+    double result = 1.;
+    
+    switch(specie)
+    {
+        case 0:
+            result = 1. + 0.25*Y/(1.-Y) * (XHeII + 2.*XHeIII)/XHII;
+            break;
+        case 1:
+            result = 1. + 4.*(1.-Y)/Y*XHII/XHeII + 2.*XHeIII/XHeII;
+            break;
+        case 2:
+            result = 2. + 4.*(1.-Y)/Y*XHII/XHeIII + XHeII/XHeIII;
+            break;
+    }
+    return result;
+}
 
-void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam, char *filename, const integral_table_t *thisIntegralTable)
+void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam)
+{
+  	int nbins;
+	int local_n0;
+	
+	double dens;
+    double clump;
+	double photHI;
+	double temp;
+	double zstart;
+	double redshift;
+    
+    double Y = simParam->Y;
+    double XHII = 1.;
+    double XHeII = 1.;
+    double XHeIII = 0.;
+    
+    double Xe = get_Xe(XHII, XHeII, XHeIII, Y, 0);
+                
+	nbins = thisGrid->nbins;
+	local_n0 = thisGrid->local_n0;
+	
+	temp = 1.e4;
+	if(simParam->read_nrec_file == 1 || simParam->calc_ion_history == 1)
+	{
+		zstart = simParam->redshift_prev_snap;
+	}else{
+		zstart = 15.;
+	}
+	redshift = simParam->redshift;
+    
+    for(int i=0; i<local_n0; i++)
+    {
+        for(int j=0; j<nbins; j++)
+        {
+            for(int k=0; k<nbins; k++)
+            {
+                dens = creal(thisGrid->igm_density[i*nbins*nbins+j*nbins+k]);
+                clump = creal(thisGrid->igm_clump[i*nbins*nbins+j*nbins+k]);
+                photHI = creal(thisGrid->photHI[i*nbins*nbins+j*nbins+k]);
+                
+                if(simParam->solve_He == 1)
+                {
+                    XHeIII = creal(thisGrid->XHeIII[i*nbins*nbins+j*nbins+k]);
+                    XHeII = creal(thisGrid->XHeII[i*nbins*nbins+j*nbins+k]) - XHeIII;
+                    XHII = round(creal(thisGrid->XHII[i*nbins*nbins+j*nbins+k]));
+                    
+                    Xe = get_Xe(XHII, XHeII, XHeIII, Y, 1);
+                    thisGrid->nrec_HeI[i*nbins*nbins+j*nbins+k] =  get_nrec_HeI_history(simParam, dens, clump, photHI, temp, zstart, redshift, Xe)+0.*I;
+                    
+                    Xe = get_Xe(XHII, XHeII, XHeIII, Y, 2);
+                    thisGrid->nrec_HeII[i*nbins*nbins+j*nbins+k] =  get_nrec_HeII_history(simParam, dens, clump, photHI, temp, zstart, redshift, Xe)+0.*I;
+                    
+                    Xe = get_Xe(XHII, XHeII, XHeIII, Y, 0);
+                }
+                
+                
+                if(photHI > 0.)
+                {
+                    thisGrid->nrec[i*nbins*nbins+j*nbins+k] =  get_nrec_history(simParam, dens, clump, photHI, temp, zstart, redshift, Xe)+0.*I;
+                }
+                else
+                {
+                    thisGrid->nrec[i*nbins*nbins+j*nbins+k] = 0.;
+                }
+                
+
+                
+#ifdef DEBUG_NREC
+                printf("nrec = %e\t dens = %e\t photHI = %e\t %e\n", creal(thisGrid->nrec[i*nbins*nbins+j*nbins+k]), dens, photHI, pow(dens, 1./3.));
+#endif
+                
+            }
+        }
+    }
+}
+
+double get_nrec_history(confObj_t simParam, double dens, double clump, double photHI, double temp, double zstart, double redshift, double Xe)
+{
+    const double time = time_from_redshift_flatuniverse(simParam, redshift, zstart);
+    double mean_numdensity_H;
+
+    if(simParam->default_mean_density == 1){
+        mean_numdensity_H = 3.*SQR(H0)/(8.*M_PI*G)/mp_g*simParam->omega_b*CUB(1.+redshift)*(1.-simParam->Y);
+    }else{
+        mean_numdensity_H = simParam->mean_density*CUB(1.+redshift)*(1.-simParam->Y)/(1.-0.75*simParam->Y);
+    }
+    
+    const double factor = recomb_HII * Xe * dens * mean_numdensity_H;
+    const double factork = photHI / (clump * factor);
+    const double XHII = 0.5* factork * (sqrt(4./factork+1.) - 1.);
+    const double tmp = XHII * factor * time;
+    
+//     printf("XHII = %e\t clump = %e\t dens = %e\t Xrec = %e\n", XHII, clump, dens, tmp / (1. + tmp));
+    return tmp / (1. + tmp);
+}
+
+double get_nrec_HeI_history(confObj_t simParam, double dens, double clump, double photHeI, double temp, double zstart, double redshift, double Xe)
+{
+    const double time = time_from_redshift_flatuniverse(simParam, redshift, zstart);
+    double mean_numdensity_He;
+
+    if(simParam->default_mean_density == 1){
+        mean_numdensity_He = 3.*SQR(H0)/(8.*M_PI*G)/mp_g*simParam->omega_b*CUB(1.+redshift)*0.25*simParam->Y;
+    }else{
+        mean_numdensity_He = simParam->mean_density*CUB(1.+redshift)*0.25*simParam->Y/(1.-0.75*simParam->Y);
+    }
+    
+    const double factor = recomb_HeII * Xe * dens * mean_numdensity_He;
+    const double tmp = factor * time;
+    
+    return tmp / (1. + tmp);
+}
+
+double get_nrec_HeII_history(confObj_t simParam, double dens, double clump, double photHeII, double temp, double zstart, double redshift, double Xe)
+{
+    const double time = time_from_redshift_flatuniverse(simParam, redshift, zstart);
+    double mean_numdensity_He;
+
+    if(simParam->default_mean_density == 1){
+        mean_numdensity_He = 3.*SQR(H0)/(8.*M_PI*G)/mp_g*simParam->omega_b*CUB(1.+redshift)*0.25*simParam->Y;
+    }else{
+        mean_numdensity_He = simParam->mean_density*CUB(1.+redshift)*0.25*simParam->Y/(1.-0.75*simParam->Y);
+    }
+    
+    const double factor = recomb_HeIII * Xe * dens * mean_numdensity_He;
+    const double tmp = factor * time;
+    
+    return tmp / (1. + tmp);
+}
+
+void compute_number_recombinations_M2000(grid_t *thisGrid, confObj_t simParam, char *filename, const integral_table_t *thisIntegralTable)
 {
   	int nbins;
 	int local_n0;
@@ -76,7 +227,7 @@ void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam, char *f
                 photHI = creal(thisGrid->photHI[i*nbins*nbins+j*nbins+k]);
                 if(photHI > 0.)
                 {
-                    thisGrid->nrec[i*nbins*nbins+j*nbins+k] =  get_nrec_history(simParam, thisIntegralTable, integral_table, dens, photHI, temp, zstart, redshift)+0.*I;
+                    thisGrid->nrec[i*nbins*nbins+j*nbins+k] =  get_nrec_history_M2000(simParam, thisIntegralTable, integral_table, dens, photHI, temp, zstart, redshift)+0.*I;
                 }
                 else
                 {
@@ -93,6 +244,103 @@ void compute_number_recombinations(grid_t *thisGrid, confObj_t simParam, char *f
     free(integral_table);
     
 //     compute_table_norm_pdf(0., 10., 0.1, 0, 1, "norm_pdf_z0_10.dat");
+}
+
+double get_nrec_history_M2000(confObj_t simParam, const integral_table_t *thisIntegralTable, double *integral_table, double dens, double photHI, double temp, double zstart, double redshift)
+{
+	double tmp;
+	double correctFact;
+	double factor, dcell;
+	int numz, zstart_index, redshift_index;
+	int numf, factor_index;
+	int numdcell, dcell_index;
+	
+	if(simParam->default_mean_density == 1){
+		correctFact = (1.-0.75*simParam->Y)*(3.*SQR(H0))/(8.*M_PI*G*SQR(simParam->h))/1.8791e-29;
+
+	}else{
+		correctFact = (1.-0.75*simParam->Y)*simParam->mean_density/(1.8791e-29/mp_g*simParam->h*simParam->h*simParam->omega_b);
+	}
+
+	dcell = dens;
+	numdcell = (thisIntegralTable->dcellmax - thisIntegralTable->dcellmin)/thisIntegralTable->ddcell+1;
+	dcell_index = (log10(dcell) - thisIntegralTable->dcellmin)/thisIntegralTable->ddcell;
+	
+	if(dcell_index<0)
+	{
+		printf("dcell = %e\tdcell_index = %d, not within limits of %d to %d\n", dcell, dcell_index, 0, numdcell);
+		dcell_index = 0;
+	}
+	if(dcell_index>=numdcell)
+	{
+		printf("dcell = %e\tdcell_index = %d, not within limits of %d to %d\n", dcell, dcell_index, 0, numdcell);
+		dcell_index = numdcell-1;
+	}
+	assert(dcell_index>=0 && dcell_index<numdcell);
+	
+	factor = (recomb_HII*correctFact)/photHI;
+        
+	numf = (thisIntegralTable->fmax - thisIntegralTable->fmin)/thisIntegralTable->df+1;
+	factor_index = (log10(factor) - thisIntegralTable->fmin)/thisIntegralTable->df;
+	
+	if(factor_index<0)
+	{
+		printf("factor = %e\tfactor_index = %d, not within limits of %d to %d\t", factor, factor_index, 0, numf);
+        printf(" photHI = %e\n", photHI);
+		factor_index = 0;
+	}
+	if(factor_index>=numf)
+	{
+		printf("factor = %e\tfactor_index = %d, not within limits of %d to %d\t", factor, factor_index, 0, numf);
+        printf(" photHI = %e\n", photHI);
+		factor_index = numf-1;
+	}
+	assert(factor_index>=0 && factor_index<numf);
+
+	numz = (thisIntegralTable->zmax - thisIntegralTable->zmin)/thisIntegralTable->dz+1;
+	zstart_index = (zstart  - thisIntegralTable->zmin)/thisIntegralTable->dz;
+	redshift_index = (redshift - thisIntegralTable->zmin)/thisIntegralTable->dz;
+	
+	if(redshift_index<0)
+	{
+		printf("redshift_index = %d, not within limits of %d to %d\n", redshift_index, 0, numz);
+		redshift_index = 0;
+	}
+	if(redshift_index>=numz)
+	{
+		printf("redshift_index = %d, not within limits of %d to %d\n", redshift_index, 0, numz);
+		redshift_index = numz-1;
+	}
+	assert(redshift_index>=0 && redshift_index<numz);
+
+	for(int k=0; k<numdcell; k++)
+	{
+		for(int j=0; j<numf; j++)
+		{
+			tmp = 0.;
+			for(int i=redshift_index; i<zstart_index; i++)
+			{
+				tmp += integral_table[numz*numf*k + numz*j + i];
+			}
+			tmp = tmp*photHI*1.e12;
+#ifdef DEBUG_NREC
+			printf("factor = %d\t dcell_index = %d\t tmp = %e\n",j, k, tmp);
+#endif
+		}
+	}
+	
+	tmp = 0.;
+	for(int i=redshift_index; i<zstart_index; i++)
+	{
+		tmp += integral_table[numz*numf*dcell_index + numz*factor_index + i];
+//         if(photHI>1.e-15) printf("z = %e:\ttmp = %e\n", i*thisIntegralTable->dz + thisIntegralTable->zmin, tmp);
+	}
+	tmp = tmp*photHI*1.e12;
+    
+//     printf("dcell = %e\t photHI = %e\t tmp = %e\t zstart = %e\t zend = %e\n", dcell, photHI, tmp, zstart, redshift);
+    if(tmp < 0.) tmp = 0.;
+	
+	return tmp;
 }
 
 void compute_number_recombinations_const(grid_t *thisGrid, confObj_t simParam, int specie)
@@ -184,103 +432,6 @@ double get_nrec_HeII_history_constantInTime(confObj_t simParam, double z, double
     const double nrec = simParam->dnrec_HeII_dt * time;
     
     return nrec;
-}
-
-double get_nrec_history(confObj_t simParam, const integral_table_t *thisIntegralTable, double *integral_table, double dens, double photHI, double temp, double zstart, double redshift)
-{
-	double tmp;
-	double correctFact;
-	double factor, dcell;
-	int numz, zstart_index, redshift_index;
-	int numf, factor_index;
-	int numdcell, dcell_index;
-	
-	if(simParam->default_mean_density == 1){
-		correctFact = (1.-0.75*simParam->Y)*(3.*SQR(H0))/(8.*M_PI*G*SQR(simParam->h))/1.8791e-29;
-
-	}else{
-		correctFact = (1.-0.75*simParam->Y)*simParam->mean_density/(1.8791e-29/mp_g*simParam->h*simParam->h*simParam->omega_b);
-	}
-
-	dcell = dens;
-	numdcell = (thisIntegralTable->dcellmax - thisIntegralTable->dcellmin)/thisIntegralTable->ddcell+1;
-	dcell_index = (log10(dcell) - thisIntegralTable->dcellmin)/thisIntegralTable->ddcell;
-	
-	if(dcell_index<0)
-	{
-		printf("dcell = %e\tdcell_index = %d, not within limits of %d to %d\n", dcell, dcell_index, 0, numdcell);
-		dcell_index = 0;
-	}
-	if(dcell_index>=numdcell)
-	{
-		printf("dcell = %e\tdcell_index = %d, not within limits of %d to %d\n", dcell, dcell_index, 0, numdcell);
-		dcell_index = numdcell-1;
-	}
-	assert(dcell_index>=0 && dcell_index<numdcell);
-	
-	factor = (recomb_HII*correctFact)/photHI;
-        
-	numf = (thisIntegralTable->fmax - thisIntegralTable->fmin)/thisIntegralTable->df+1;
-	factor_index = (log10(factor) - thisIntegralTable->fmin)/thisIntegralTable->df;
-	
-	if(factor_index<0)
-	{
-		printf("factor = %e\tfactor_index = %d, not within limits of %d to %d\t", factor, factor_index, 0, numf);
-        printf(" photHI = %e\n", photHI);
-		factor_index = 0;
-	}
-	if(factor_index>=numf)
-	{
-		printf("factor = %e\tfactor_index = %d, not within limits of %d to %d\t", factor, factor_index, 0, numf);
-        printf(" photHI = %e\n", photHI);
-		factor_index = numf-1;
-	}
-	assert(factor_index>=0 && factor_index<numf);
-
-	numz = (thisIntegralTable->zmax - thisIntegralTable->zmin)/thisIntegralTable->dz+1;
-	zstart_index = (zstart  - thisIntegralTable->zmin)/thisIntegralTable->dz;
-	redshift_index = (redshift - thisIntegralTable->zmin)/thisIntegralTable->dz;
-	
-	if(redshift_index<0)
-	{
-		printf("redshift_index = %d, not within limits of %d to %d\n", redshift_index, 0, numz);
-		redshift_index = 0;
-	}
-	if(redshift_index>=numz)
-	{
-		printf("redshift_index = %d, not within limits of %d to %d\n", redshift_index, 0, numz);
-		redshift_index = numz-1;
-	}
-	assert(redshift_index>=0 && redshift_index<numz);
-
-	for(int k=0; k<numdcell; k++)
-	{
-		for(int j=0; j<numf; j++)
-		{
-			tmp = 0.;
-			for(int i=redshift_index; i<zstart_index; i++)
-			{
-				tmp += integral_table[numz*numf*k + numz*j + i];
-			}
-			tmp = tmp*photHI*1.e12;
-#ifdef DEBUG_NREC
-// 			printf("factor = %d\t dcell_index = %d\t tmp = %e\n",j, k, tmp);
-#endif
-		}
-	}
-	
-	tmp = 0.;
-	for(int i=redshift_index; i<zstart_index; i++)
-	{
-		tmp += integral_table[numz*numf*dcell_index + numz*factor_index + i];
-//         if(photHI>1.e-15) printf("z = %e:\ttmp = %e\n", i*thisIntegralTable->dz + thisIntegralTable->zmin, tmp);
-	}
-	tmp = tmp*photHI*1.e12;
-    
-//     printf("tmp = %e\n", tmp);
-    if(tmp < 0.) tmp = 0.;
-	
-	return tmp;
 }
 
 //------------------------------------------------------------------------------

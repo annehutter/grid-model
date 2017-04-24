@@ -19,6 +19,8 @@ const double crossSecThom_cm = 6.6524e-25;	//Thomson cross sections [cm^2]
 
 const double recomb_HII = 2.6e-13;	//at T = 1.e4 K
 const double sigma_HI = 3.2e-18;//6.3e-18;	//in cm^2	if spectrally averaged it is lower...
+const double recomb_HeII = 4.31e-13;
+const double recomb_HeIII = 2.09e-12;
 
 const double gamma_gas = 5./3.;
 const double rho_g_cm = 1.8791e-29;	// in gramms/cm^3

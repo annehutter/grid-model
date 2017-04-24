@@ -53,7 +53,7 @@ int set_cycle_to_begin(grid_t * thisGrid, confObj_t simParam, int *snap)
 int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcelist_t *sourcelist,
           const integral_table_t *integralTable, photIonlist_t *photIonBgList, const int num_cycles, const int myRank)
 {
-    const double f = 0.84;
+    const double f = simParam->f;
     double delta_redshift = 0.;
     
 //     int repeat_first_cycle = 0;
@@ -230,7 +230,7 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
             {
                 //compute number of recombinations
                 if(myRank==0) printf("\n++++\ncompute number of recombinations for HI... ");
-                compute_number_recombinations(grid, simParam, simParam->recomb_table, integralTable);
+                compute_number_recombinations(grid, simParam);
                 if(myRank==0) printf("done\n+++\n");
             }
             

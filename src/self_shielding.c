@@ -370,8 +370,8 @@ void compute_photHI(grid_t *thisGrid, confObj_t simParam, int rescale)
 
     const double alpha = simParam->source_slope_index;
     const double beta = 3.;
-    const double f = 0.84;//0.693147;
-    const double factor_k = 4.*M_PI*0.393469*CUB(f);
+    const double f = simParam->factor;
+    const double factor_k = 4.*M_PI*CUB(f)*0.632121;
     const double factor_photHI = sigma_HI*alpha/((alpha+beta)*SQR(Mpc_cm)*factor_k);
         
     if(thisGrid->mean_photHI == 0.)

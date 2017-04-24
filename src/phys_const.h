@@ -19,6 +19,8 @@ extern const double crossSecThom_cm;
 
 extern const double recomb_HII;
 extern const double sigma_HI;
+extern const double recomb_HeII;
+extern const double recomb_HeIII;
 
 extern const double gamma_gas;
 extern const double rho_g_cm;	// in gramms/cm^3

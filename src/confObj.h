@@ -100,6 +100,9 @@ struct confObj_struct {
     
     char           *out_XHeII_file;
     char           *out_XHeIII_file;
+    
+    double         f;
+    double         factor;
 };
 
 
