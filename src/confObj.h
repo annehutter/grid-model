@@ -31,6 +31,7 @@ struct confObj_struct {
 
     double         lin_scales;
     double         inc_log_scales;
+    double         max_scale;
     
     int            default_mean_density;
     int            use_web_model;
@@ -84,10 +85,6 @@ struct confObj_struct {
     double         zmin, zmax, dz;
     double         fmin, fmax, df;
     double         dcellmin, dcellmax, ddcell;
-    
-    int            read_nrec_file;
-    char           *nrec_file;
-    char           *output_nrec_file;
     
     //Helium
     char           *sources_HeI_file;

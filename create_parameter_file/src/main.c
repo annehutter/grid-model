@@ -43,12 +43,16 @@ int main()
 
     double         lin_scales;
     double         inc_log_scales;
+    double         max_scale;
     
     int            default_mean_density;
     int            use_web_model;
     int            calc_ion_history;
     int            photHI_model;
     int            calc_mfp;
+    
+    int            recomb;
+    
     int            const_recomb;
     int            calc_recomb;
     int            solve_He;
@@ -95,10 +99,6 @@ int main()
     double         fmin, fmax, df;
     double         dcellmin, dcellmax, ddcell;
     
-    int            read_nrec_file;
-    char           nrec_file[1000];
-    char           output_nrec_file[1000];
-    
     //Helium
     char           sources_HeI_file[1000];
     char           nion_HeI_file[1000];
@@ -116,6 +116,9 @@ int main()
     // GET INFORMATION FROM USER
     //-------------------------------------------------------------------------------
     
+    //-------------------------------------------------------------------------------
+    // Simulation type
+    //-------------------------------------------------------------------------------
     printf("\nTYPE OF SIMULATION\n");
     
     printf("Do you want to follow the evolution of the ionized regions (type '1') or compute the ionization field directly from the gas density and ionizing photon distribution (type '0') ?\n");
@@ -191,18 +194,31 @@ int main()
     }
     
     
+    //-------------------------------------------------------------------------------
+    // Filtering characteristics
+    //-------------------------------------------------------------------------------
+    
     printf("\nFILTERING CHARACTERISTICS\n");
 
     printf("\nThis code uses various filter scales to compute the sizes of the ionized regions. Until which scale do you want to increase the filtering scale linearly? (in h^-1 Mpc) (double)\n");
     scanf("%lf", &lin_scales);
     printf("And how large should be the first increment on a log scale? (in h^-1 Mpc) (double)\n");
     scanf("%lf", &inc_log_scales);
+    printf("And what should be the largest filtering scale? (in h^-1 Mpc) (double)\n");
+    scanf("%lf", &max_scale);
     
     
+    //-------------------------------------------------------------------------------
+    // OPTIONS
+    //-------------------------------------------------------------------------------
     printf("\nOPTIONS\n");
 
     printf("\nThis code has multiple options on which properties to include or how to calculate those\n");
     
+    
+    //-------------------------------------------------------------------------------
+    // Density
+    //-------------------------------------------------------------------------------
     printf("\nDENSITY\n");
 
     printf("Do you want the default mean density, i.e. particle number density at the given redshift? Yes = 1, No = 0\n");
@@ -223,15 +239,72 @@ int main()
         exit(0);
     }
     
-    
+    //-------------------------------------------------------------------------------
+    // Helium
+    //-------------------------------------------------------------------------------
     printf("\nHELIUM\n");
 
     printf("Do you want to consider also helium? Yes = 1, No = 0\n");
     scanf("%d", &solve_He);
     
+    //-------------------------------------------------------------------------------
+    // Recombinations
+    //-------------------------------------------------------------------------------
+    printf("\nRECOMBINATIONS\n");
     
-    printf("\nWEB MODEL (INCLUDING PHOTOIONIZATION & RECOMBINATIONS)\n");
-
+    printf("Do you want to consider recombinations? Yes = 1, No = 0\n");
+    scanf("%d", &recomb);
+    
+    if(recomb == 1){
+        printf("Do you want to use the web model to compute the number of recombinations (1) or assume a constant number of recombinations (0)? \n");
+        scanf("%d", &calc_recomb);
+        
+        for(int i=0; i<1000; i++) recomb_table[i] = '\0';
+        if(calc_recomb == 1)
+        {
+            printf("Do you want to compute the number of recombinations approximately from the rate equations (1) or using the subgrid density model in Miralda_Escude 2000 (2)?\n");
+            scanf("%d", &calc_recomb);
+            if(calc_recomb == 2)
+            {
+                printf("Please type in the directory where the file with the nrec values is located. The file can be obtained from the github repository.\n");
+                scanf("%s", recomb_table);
+            }
+            
+            const_recomb = 0;
+            dnrec_dt = 0.;
+            dnrec_HeI_dt = 0.;
+            dnrec_HeII_dt = 0.;
+        }
+        else
+        {
+            const_recomb = 1;
+            
+            printf("Which rate of recombinations for HII (dnrec/dt) do you want to assume (in Myrs^-1)?\n");
+            scanf("%lf", &dnrec_dt);
+            
+            if(solve_He == 1)
+            {
+                printf("You included helium into your calculations:\n");
+                printf("Which rate of recombinations for HeII (dnrec/dt) do you want to assume (in Myrs^-1)?\n");
+                scanf("%lf", &dnrec_HeI_dt);
+                printf("Which rate of recombinations for HeIII (dnrec/dt) do you want to assume (in Myrs^-1)?\n");
+                scanf("%lf", &dnrec_HeII_dt);
+            }
+        }
+    }
+    else
+    {
+        const_recomb = 0;
+        dnrec_dt = 0.;
+        dnrec_HeI_dt = 0.;
+        dnrec_HeII_dt = 0.;
+    }
+    
+    //-------------------------------------------------------------------------------
+    // Web model
+    //-------------------------------------------------------------------------------
+    printf("\nWEB MODEL (INCLUDING PHOTOIONIZATION)\n");
+        
     printf("Do you want to use the web model (assume/compute a photoionization background & recombinations)? Yes = 1, No = 0\n");
     scanf("%d", &use_web_model);
     if(use_web_model == 0)
@@ -246,41 +319,14 @@ int main()
             recomb_table[i] = '\0';
         }
         strcat(photHI_bg_file, "None");
-        
-        
-        printf("\nRECOMBINATIONS\n");
-
-        printf("Do you want to consider recombinations (simple model)? Yes = 1, No = 0\n");
-        scanf("%d", &const_recomb);
-        
-        if(const_recomb == 1)
-        {
-            printf("Which rate of recombinations for HII (dnrec/dt) do you want to assume (in Myrs^-1)?\n");
-            scanf("%lf", &dnrec_dt);
-            
-            if(solve_He == 1)
-            {
-                printf("You included helium into your calculations:\n");
-                printf("Which rate of recombinations for HeII (dnrec/dt) do you want to assume (in Myrs^-1)?\n");
-                scanf("%lf", &dnrec_HeI_dt);
-                printf("Which rate of recombinations for HeIII (dnrec/dt) do you want to assume (in Myrs^-1)?\n");
-                scanf("%lf", &dnrec_HeII_dt);
-            }
-        }
-        else
-        {
-            dnrec_dt = 0.;
-            dnrec_HeI_dt = 0.;
-            dnrec_HeII_dt = 0.;
-        }
     }
     else if(use_web_model == 1)
     {
         printf("\nPHOTOIONIZATION RATE\n");
 
-        printf("Do you want to assume a constant photoionization field? Yes = 1, No = 0\n");
+        printf("Do you want to assume a constant photoionization field? Yes = 0, No = 1\n");
         scanf("%d",&photHI_model);
-        if(photHI_model == 1)
+        if(photHI_model == 0)
         {
             photHI_model = 0;
             calc_mfp = 0;
@@ -289,15 +335,14 @@ int main()
             printf("Which value do you want to assume for the photoionization background (in s^-1)?\n");
             scanf("%lf", &photHI_bg);
         }
-        else if(photHI_model == 0)
+        else if(photHI_model > 0)
         {
-            printf("How do you want to calculate the photoionization rate? Assuming a mean free path and apply a r^-2 kernel (1), or derive it from the number of ionizing photons in the ionized regions given the largest filtering scale (2)?");
+            printf("How do you want to calculate the photoionization rate? Assuming a mean free path and apply a r^-2 kernel (1), or derive it from the number of ionizing photons in the ionized regions given the largest filtering scale (2)?\n");
             scanf("%d",&photHI_model);
 
             if(photHI_model == 1)
             {
-                photHI_model = 1;
-                printf("Do you want to calculate the mean free path according to Miralda 2000 (type 1) or set a value (type 0)?\n");
+                printf("Do you want to calculate the mean free path from the size of the ionized regions and Miralda-Escude 2000 (type 1) or set a value (type 0)?\n");
                 scanf("%d", &calc_mfp);
                 
                 if(calc_mfp == 1)
@@ -310,83 +355,29 @@ int main()
                     scanf("%lf", &mfp); 
                 }
                 
-                printf("Please provide a list of the photoionization values at different redshifts (z,photIonHI,photHeatHI,Q). Specify the address of this file:\n");
-                scanf("%s", photHI_bg_file);
+//                 printf("Please provide a list of the photoionization values at different redshifts (z,photIonHI,photHeatHI,Q). Specify the address of this file:\n");
+//                 scanf("%s", photHI_bg_file);
                 photHI_bg = 0.;
             }
             else if(photHI_model == 2)
             {
-                photHI_model = 2;
                 mfp = 0.;
-                
-                for(int i=0; i<1000; i++) 
-                {
-                    photHI_bg_file[i] = '\0';
-                }
                 strcat(photHI_bg_file, "None");
-                
-                printf("Which homogeneous photoionization rate do you want to assume for the first cycle?\n");
-                scanf("%lf", &photHI_bg);
-                
-                printf("Which slope index do you want to assume for the spectrum of the ionizing sources: f ~ nu^-alpha. Type alpha\n");
-                scanf("%lf", &source_slope_index);
+                photHI_bg = 0.;
             }
             else
             {
                 printf("This input is not valid\n");
                 exit(0);
             }
+            
+            printf("Which slope index do you want to assume for the spectrum of the ionizing sources: f ~ nu^-alpha. Type alpha\n");
+            scanf("%lf", &source_slope_index);
         }
         else
         {
             printf("This input is not valid\n");
             exit(0);
-        }
-        
-        
-        printf("\nRECOMBINATIONS\n");
-
-        printf("Do you want to consider recombinations? Yes = 1, No = 0\n");
-        scanf("%d", &calc_recomb);
-        
-        if(calc_recomb == 1){
-            printf("Do you want to use the web model to compute the number of recombinations (1) or assume a constant number of recombinations (0)? \n");
-            scanf("%d", &calc_recomb);
-            
-            for(int i=0; i<1000; i++) recomb_table[i] = '\0';
-            if(calc_recomb == 1)
-            {
-                printf("Please type in the directory where the file with the nrec values is located. The file can be obtained from the github repository.\n");
-                scanf("%s", recomb_table);
-                
-                const_recomb = 0;
-                dnrec_dt = 0.;
-                dnrec_HeI_dt = 0.;
-                dnrec_HeII_dt = 0.;
-            }
-            else
-            {
-                const_recomb = 1;
-                
-                printf("Which rate of recombinations for HII (dnrec/dt) do you want to assume (in Myrs^-1)?\n");
-                scanf("%lf", &dnrec_dt);
-                
-                if(solve_He == 1)
-                {
-                    printf("You included helium into your calculations:\n");
-                    printf("Which rate of recombinations for HeII (dnrec/dt) do you want to assume (in Myrs^-1)?\n");
-                    scanf("%lf", &dnrec_HeI_dt);
-                    printf("Which rate of recombinations for HeIII (dnrec/dt) do you want to assume (in Myrs^-1)?\n");
-                    scanf("%lf", &dnrec_HeII_dt);
-                }
-            }
-        }
-        else
-        {
-            const_recomb = 0;
-            dnrec_dt = 0.;
-            dnrec_HeI_dt = 0.;
-            dnrec_HeII_dt = 0.;
         }
     }
     else
@@ -395,24 +386,21 @@ int main()
         exit(0);
     }
     
-    strcat(recomb_table, "nrec_values_batch_z6_20_0.01_f-9_2_0.1_d-4_4_0.1.dat");
+    strcat(recomb_table, "nrec_values_batch_z3_30_0.01_f-9_9_0.1_d-4_4_0.1.dat");
     if(file_exist(recomb_table) == 0) printf("WARNING:  Don't forget to create that file or check the address!\n");
-    zmin = 6.;
-    zmax = 20.;
+    zmin = 3.;
+    zmax = 30.;
     dz = 0.01;
     fmin = -9.;
-    fmax = 2.;
+    fmax = 9.;
     df = 0.1;
     dcellmin = -4.;
     dcellmax = 4.;
     ddcell = 0.1;
     
-    read_nrec_file = 0;
-    for(int i=0; i<1000; i++) nrec_file[i] = '\0';
-    strcat(nrec_file, "None");
-    for(int i=0; i<1000; i++) output_nrec_file[i] = '\0';
-    strcat(output_nrec_file, "None");
-    
+    //-------------------------------------------------------------------------------
+    // Cosmology
+    //-------------------------------------------------------------------------------
     printf("\nCOSMOLOGY\n");
 
     printf("Which Cosmology do you want to assume?\n h = ");
@@ -428,6 +416,9 @@ int main()
     printf(" helium MASS fraction Y = ");
     scanf("%lf", &Y);
     
+    //-------------------------------------------------------------------------------
+    // Input parameters
+    //-------------------------------------------------------------------------------
     printf("\nINPUT PARAMETERS\n");
     
     printf("What is the size of your input grids? \n");
@@ -445,13 +436,16 @@ int main()
         exit(0);
     }
     
+    //-------------------------------------------------------------------------------
+    // Input grid files
+    //-------------------------------------------------------------------------------
     printf("\nINPUT GRID FILES\n");
     
     printf("In the following type in the addresses of the input files.\n density file: ");
     scanf("%s", igm_density_file);
     if(file_exist(igm_density_file) == 0) printf("WARNING:  Don't forget to create that file or check the address!\n");
 
-    printf(" Is the density given in overdensity (1) or in number densities (0)? Currently only overdensities are supported -> Type '1' \n");
+    printf(" Is the density given in overdensity (1) or in number densities (0)?\n");
     scanf("%d", &dens_in_overdensity);
     
     printf(" clumping factor file: ");
@@ -527,6 +521,9 @@ int main()
         strcat(nion_HeII_file, "None");
     }
     
+    //-------------------------------------------------------------------------------
+    // Output files
+    //-------------------------------------------------------------------------------
     printf("\nOUPUT FILES\n");
     
     printf("Finally the addresses of the output files: \n");
@@ -579,7 +576,8 @@ int main()
     fprintf(file, "evolutionTime = %f\n\n", evol_time);
     
     fprintf(file, "size_linear_scale = %f\n", lin_scales);
-    fprintf(file, "first_increment_in_logscale = %f\n\n", inc_log_scales);
+    fprintf(file, "first_increment_in_logscale = %f\n", inc_log_scales);
+    fprintf(file, "max_scale = %f\n\n", max_scale);
     
     fprintf(file, "useDefaultMeanDensity = %d\n\n", default_mean_density);
     
@@ -643,10 +641,6 @@ int main()
     fprintf(file, "dcellmin = %f\n", dcellmin);
     fprintf(file, "dcellmax = %f\n", dcellmax);
     fprintf(file, "ddcell = %f\n\n", ddcell);
-    
-    fprintf(file, "readNrecFile = %d\n", read_nrec_file);
-    fprintf(file, "inputRecombFile = %s\n", nrec_file);
-    fprintf(file, "outputRecombFile = %s\n\n\n", output_nrec_file);
     
     
     fprintf(file, "[Helium]\n");

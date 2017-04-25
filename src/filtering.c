@@ -285,12 +285,35 @@ void update_web_model(grid_t *thisGrid, confObj_t simParam)
     compute_web_ionfraction(thisGrid, simParam);
 }
 
+void adapt_HeII_to_HeIII(grid_t *thisGrid)
+{
+    int nbins;
+    ptrdiff_t local_n0;
+    
+    nbins = thisGrid->nbins;
+    local_n0 = thisGrid->local_n0;
+    
+    for(int i=0; i<local_n0; i++)
+    {
+        for(int j=0; j<nbins; j++)
+        {
+            for(int k=0; k<nbins; k++)
+            {
+                if(creal(thisGrid->XHeIII[i*nbins*nbins+j*nbins+k])==1.)
+                {
+                    thisGrid->XHeII[i*nbins*nbins+j*nbins+k] = 1.-creal(thisGrid->XHeIII[i*nbins*nbins+j*nbins+k]) + 0.*I;
+                }
+            }
+        }
+    }
+}
+
 void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
 {
     int nbins;
     float smooth_scale;
     float box_size;
-    float lin_scales, inc_log_scales;
+    float lin_scales, inc_log_scales, max_scale;
         
     fftw_complex *filter;
     fftw_complex *cum_nion_smooth;
@@ -302,24 +325,24 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
     
     fftw_complex *cum_nion;
     fftw_complex *cum_nabs;
-    fftw_complex *nrec;
+    fftw_complex *cum_nrec;
     fftw_complex *Xion;
     fftw_complex *nion = NULL;
         
     if(specie == 1){
         cum_nion = thisGrid->cum_nion_HeI;
         cum_nabs = thisGrid->cum_nabs_HeI;
-        nrec = thisGrid->nrec_HeI;
+        cum_nrec = thisGrid->cum_nrec_HeI;
         Xion = thisGrid->XHeII;
     }else if(specie == 2){
         cum_nion = thisGrid->cum_nion_HeII;
         cum_nabs = thisGrid->cum_nabs_HeII;
-        nrec = thisGrid->nrec_HeII;
+        cum_nrec = thisGrid->cum_nrec_HeII;
         Xion = thisGrid->XHeIII;
     }else{
         cum_nion = thisGrid->cum_nion;
         cum_nabs = thisGrid->cum_nabs;
-        nrec = thisGrid->nrec;
+        cum_nrec = thisGrid->cum_nrec;
         Xion = thisGrid->XHII;
         nion = thisGrid->nion;  //only needed to compute mfp
     }
@@ -337,6 +360,7 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
     box_size = thisGrid->box_size;
     lin_scales = thisGrid->lin_scales;
     inc_log_scales = thisGrid->inc_log_scales;
+    max_scale = thisGrid->max_scale;
     
 #ifdef __MPI
     alloc_local = fftw_mpi_local_size_3d(nbins, nbins, nbins, MPI_COMM_WORLD, &local_n0, &local_0_start);
@@ -403,14 +427,17 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
 
     initialize_grid(Xion_tmp, nbins, local_n0, 0.);
     initialize_grid(mfp_tmp, nbins, local_n0, 0.);
-    if(simParam->photHI_model == 2) initialize_grid(nion_smooth, nbins, local_n0, 0.);
+    if(simParam->photHI_model == 2 && (specie != 1 && specie !=2)) 
+    {
+        initialize_grid(nion_smooth, nbins, local_n0, 0.);
+    }
     
     /* ---------------------------------------------- */
-    /* compute nuumber and sizes of smoothing scales  */
+    /* compute number and sizes of smoothing scales   */
     /* ---------------------------------------------- */
     lin_bins = lin_scales/box_size*(float)nbins;
     factor_exponent = inc_log_scales/lin_bins;
-    num_scales = (log(box_size/lin_scales) + lin_bins*log(1.+factor_exponent))/log(1. + factor_exponent );
+    num_scales = (log(max_scale/lin_scales) + lin_bins*log(1.+factor_exponent))/log(1. + factor_exponent );
     printf("\n #linear bins = %e\t factor_exponent = %e\t #tophat filter sizes = %d\n", lin_bins, factor_exponent, num_scales);
     
     
@@ -446,7 +473,7 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
         if(inc <= lin_bins) smooth_scale = inc;
         else smooth_scale = lin_bins*pow(1. + factor_exponent, inc-lin_bins);
         
-        printf("  inc = %e\t lin_bins = %e\t scale = %d\t smooth_scale = %e bins\n",inc, lin_bins, scale, smooth_scale);
+        printf("  inc = %e\t scale = %d\t smooth_scale = %e bins or %e cMpc\n",inc, scale, smooth_scale, (float)smooth_scale/(float)nbins*box_size);
 
         /* -------------------------------------------- */
         /* coonstruct tophat filter for smoothing scale */
@@ -479,11 +506,14 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
         /* -------------------------------------------- */
         /* derive mfp from ionized regions              */
         /* -------------------------------------------- */ 
-        if(simParam->photHI_model == 2)
+        if(specie == 0)
         {
-            determine_mfp_nion(frac_Q_smooth, nion_smooth, mfp_tmp, nbins, local_n0, (double)smooth_scale/(double)nbins);
-        }else{
-            determine_mfp(frac_Q_smooth, mfp_tmp, nbins, local_n0, (double)smooth_scale/(double)nbins);
+            if(simParam->photHI_model == 2)
+            {
+                determine_mfp_nion(frac_Q_smooth, nion_smooth, mfp_tmp, nbins, local_n0, (double)smooth_scale/(double)nbins);
+            }else{
+                determine_mfp(frac_Q_smooth, mfp_tmp, nbins, local_n0, (double)smooth_scale/(double)nbins);
+            }
         }
     }
     
@@ -492,17 +522,20 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
     /* save mean mfp of ionization field                        */
     /* -------------------------------------------------------- */ 
     double phys_boxsize = simParam->box_size/(simParam->h*(1.+simParam->redshift));
-    if(simParam->photHI_model != 2)
+    if(specie == 0)
     {
-        thisGrid->mean_mfp = determine_mean_mfp(mfp_tmp, nbins, local_n0)*phys_boxsize;
-    }else{
-        thisGrid->mean_mfp = 0.;
+        if(simParam->photHI_model != 2)
+        {
+            thisGrid->mean_mfp = determine_mean_mfp(mfp_tmp, nbins, local_n0)*phys_boxsize;
+        }else{
+            thisGrid->mean_mfp = 0.;
+        }
     }
     
     /* -------------------------------------------------------- */
     /* transfer mfp calculation to photHI grid                  */
     /* -------------------------------------------------------- */ 
-    if(simParam->photHI_model == 2)
+    if(simParam->photHI_model == 2 && specie == 0)
     {
         copy_grid_array(mfp_tmp, thisGrid->photHI, thisGrid);
     }
@@ -510,16 +543,23 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
     /* -------------------------------------------------------- */
     /* apply web model                                          */
     /* -------------------------------------------------------- */ 
-    if(simParam->use_web_model == 1 && (specie != 1 && specie !=2))
-    {
+    if(simParam->use_web_model == 1 && specie == 0)
+    {        
         update_web_model(thisGrid, simParam);
         combine_bubble_and_web_model(Xion_tmp, Xion, thisGrid);
-        map_bubbles_to_nrec(Xion_tmp, nrec, thisGrid);
     }else{
         copy_grid_array(Xion_tmp, Xion, thisGrid);
     }
+    map_bubbles_to_nrec(Xion_tmp, cum_nrec, thisGrid);
     
-
+    /* -------------------------------------------------------- */
+    /* combine XHeII and XHeIII                                 */
+    /* -------------------------------------------------------- */ 
+    if(specie == 2)
+    {
+        adapt_HeII_to_HeIII(thisGrid);
+    }
+    
     /* -------------------------------------------------------- */
     /* deallocation of arrays                                   */
     /* -------------------------------------------------------- */

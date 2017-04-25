@@ -19,4 +19,6 @@ void copy_grid_array(fftw_complex *Xion_tmp, fftw_complex *Xion, grid_t *thisGri
 
 void update_web_model(grid_t *thisGrid, confObj_t simParam);
 
+void adapt_HeII_to_HeIII(grid_t *thisGrid);
+
 void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie);

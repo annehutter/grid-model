@@ -33,50 +33,6 @@
 
 #include "cifog.h"
 
-void print_mean_photHI(grid_t *thisGrid, confObj_t simParam)
-{
-      int nbins;
-    int local_n0;
-    
-    double sum_clump = 0.;
-    double sum_XHII = 0.;
-    
-    double mean_clump;
-    double mean_XHII;
-    double mean_photHI;
-    
-    double redshift = simParam->redshift;
-    double mean_density = simParam->mean_density*(1.+redshift)*(1.+redshift)*(1.+redshift);
-    
-    nbins = thisGrid->nbins;
-    local_n0 = thisGrid->local_n0;
-    
-    for(int i=0; i<local_n0; i++)
-    {
-        for(int j=0; j<nbins; j++)
-        {
-            for(int k=0; k<nbins; k++)
-            {
-//                 sum_clump += thisGrid->igm_clump[i*nbins*nbins+j*nbins+k];
-                sum_XHII += thisGrid->XHII[i*nbins*nbins+j*nbins+k];
-            }
-        }
-    }
-    
-    mean_clump = sum_clump;
-    mean_XHII = sum_XHII;
-    
-#ifdef __MPI
-    MPI_Allreduce(&sum_clump, &mean_clump, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    MPI_Allreduce(&sum_XHII, &mean_XHII, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-#endif
-    mean_clump = mean_clump/(nbins*nbins*nbins);
-    mean_XHII = mean_XHII/(nbins*nbins*nbins);
-    
-    mean_photHI = mean_XHII*mean_XHII*mean_density*mean_clump*recomb_HII/(1.-mean_XHII);
-    printf("dens = %e\t clump = %e\t XHII = %e\t photHI = %e\n",mean_density, mean_clump, mean_XHII, mean_photHI);
-}
-
 int main (int argc, /*const*/ char * argv[]) { 
 #ifdef __MPI
     int size = 1;
@@ -163,6 +119,16 @@ int main (int argc, /*const*/ char * argv[]) {
         printf("done\n+++\n");
     }
     
+    //verify that helium runs contain helium!
+    if(simParam->solve_He == 1)
+    {
+        if(simParam->Y <= 0.)
+        {
+            fprintf(stderr, "If you include helium its mass fraction Y should be larger than zero!\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    
     //read redshift files with outputs
     redshift_list = NULL;
     if(myRank==0) printf("\n++++\nreading redshift list of files and outputs... ");
@@ -181,7 +147,7 @@ int main (int argc, /*const*/ char * argv[]) {
     photIonBgList = read_photIonlist(simParam->photHI_bg_file);
     if(myRank==0) printf("done\n+++\n");
     
-    if(simParam->calc_recomb == 1)
+    if(simParam->calc_recomb == 2)
     {
         //read table for recombinations
         if(myRank==0) printf("\n++++\nread table for recombinations... ");
@@ -209,7 +175,7 @@ int main (int argc, /*const*/ char * argv[]) {
     //--------------------------------------------------------------------------------
     // deallocating grids
     //--------------------------------------------------------------------------------
-    if(simParam->calc_recomb == 1)
+    if(simParam->calc_recomb == 2)
     {
         //read table for recombinations
         if(myRank==0) printf("\n++++\ndeallocating table for recominsations... ");

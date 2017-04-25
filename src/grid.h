@@ -10,6 +10,7 @@ typedef struct
 	float box_size;
 	float lin_scales;
 	float inc_log_scales;
+    float max_scale;
 	
 	float xmin, ymin, zmin;
 	

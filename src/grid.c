@@ -28,6 +28,7 @@ grid_t *initGrid()
 	newGrid->box_size =0.;
 	newGrid->lin_scales = 0.;
 	newGrid->inc_log_scales = 0.;
+    newGrid->max_scale = 0.;
 	
 	newGrid->xmin = 0.;
 	newGrid->ymin = 0.;
@@ -92,6 +93,7 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
 	thisGrid->box_size = thisInput->box_size;
 	thisGrid->lin_scales = thisInput->lin_scales;
 	thisGrid->inc_log_scales = thisInput->inc_log_scales;
+    thisGrid->max_scale = thisInput->max_scale;
 	
 	thisGrid->local_n0 = nbins;
 	thisGrid->local_0_start = 0;
@@ -175,16 +177,7 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
 	initialize_grid(thisGrid->frac_Q, nbins, local_n0, 0.);
 	
 	initialize_grid(thisGrid->XHII, nbins, local_n0, 0.);
-	if(thisInput->read_nrec_file == 1)
-	{
-#ifdef __MPI
-		read_grid(thisGrid->nrec, nbins, local_n0, local_0_start, thisInput->nrec_file);
-#else
-		read_grid(thisGrid->nrec, nbins, local_n0, thisInput->nrec_file);
-#endif
-	}else{
-		initialize_grid(thisGrid->nrec, nbins, local_n0, 0.);
-	}
+    initialize_grid(thisGrid->nrec, nbins, local_n0, 0.);
 	initialize_grid(thisGrid->photHI, nbins, local_n0, 0.);
 	
     if(solve_He == 1){

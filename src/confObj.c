@@ -49,6 +49,8 @@ confObj_new(parse_ini_t ini)
                ini, "size_linear_scale", "General");
     getFromIni(&(config->inc_log_scales), parse_ini_get_double,
                ini, "first_increment_in_logscale", "General");
+    getFromIni(&(config->max_scale), parse_ini_get_double,
+               ini, "max_scale", "General");
     
     getFromIni(&(config->default_mean_density), parse_ini_get_int32,
                ini, "useDefaultMeanDensity", "General");
@@ -153,13 +155,6 @@ confObj_new(parse_ini_t ini)
                ini, "dcellmax", "Recombinations");
     getFromIni(&(config->ddcell), parse_ini_get_double,
                ini, "ddcell", "Recombinations");
-    
-    getFromIni(&(config->read_nrec_file), parse_ini_get_int32,
-               ini, "readNrecFile", "Recombinations");
-    getFromIni(&(config->nrec_file), parse_ini_get_string,
-               ini, "inputRecombFile", "Recombinations");
-    getFromIni(&(config->output_nrec_file), parse_ini_get_string,
-               ini, "outputRecombFile", "Recombinations");
 
     //Helium
     getFromIni(&(config->sources_HeI_file), parse_ini_get_string,
@@ -211,8 +206,6 @@ confObj_del(confObj_t *config)
     
     //Recombinations
     xfree((*config)->recomb_table);
-    xfree((*config)->nrec_file);
-    xfree((*config)->output_nrec_file);
  
     //Helium
     xfree((*config)->sources_HeI_file);

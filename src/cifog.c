@@ -32,23 +32,6 @@
 #include "input_grid.h"
 
 #include "cifog.h"
-
-int set_cycle_to_begin(grid_t * thisGrid, confObj_t simParam, int *snap)
-{
-    *snap = -1;
-    
-    int nbins = thisGrid->nbins;
-    int local_n0 = thisGrid->local_n0;
-    
-    initialize_grid(thisGrid->nion, nbins, local_n0, 0.);
-    initialize_grid(thisGrid->cum_nion, nbins, local_n0, 0.);
-    initialize_grid(thisGrid->cum_nrec, nbins, local_n0, 0.);
-    initialize_grid(thisGrid->cum_nabs, nbins, local_n0, 0.);
-    
-    simParam->evol_time = 0.;
-
-    return 0;
-}
  
 int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcelist_t *sourcelist,
           const integral_table_t *integralTable, photIonlist_t *photIonBgList, const int num_cycles, const int myRank)
@@ -56,7 +39,6 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
     const double f = simParam->f;
     double delta_redshift = 0.;
     
-//     int repeat_first_cycle = 0;
     int snap=-1;
     char photHIFile[MAXLENGTH], XionFile[MAXLENGTH];
     
@@ -66,13 +48,6 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
     
     for(int cycle=0; cycle<num_cycles; cycle++)
     {
-//         if(cycle == 1 && simParam->photHI_model == 2 && repeat_first_cycle == 0)
-//         {
-//             cycle = set_cycle_to_begin(grid, simParam, &snap);
-//             repeat_first_cycle = 1;
-//         }
-        
-        
         if(redshift_list != NULL)
         {
             simParam->redshift_prev_snap = redshift_list[2*cycle];
@@ -204,17 +179,6 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
                 }
                 if(myRank==0) printf("done\n+++\n");
             }
-
-//             if(simParam->write_photHI_file == 1)
-//             {
-//                 //write photoionization rate field to file
-//                 for(int i=0; i<MAXLENGTH; i++) photHIFile[i] = '\0';
-//                 sprintf(photHIFile, "%s_%02d", simParam->out_photHI_file, cycle);
-//                 if(myRank==0) printf("\n++++\nwriting photoionization field to file... ");
-//                 save_to_file(grid->photHI, grid, photHIFile);
-//                 if(myRank==0) printf("done\n+++\n");
-//             }
-            
             
             /* ------------------------------------------------------- */
             /* compute HI fraction (web model)                         */
@@ -223,16 +187,6 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
             compute_web_ionfraction(grid, simParam);
             if(myRank==0) printf("done\n+++\n");
             
-            /* ---------------------------------------------------------------- */
-            /* compute recombinations based on local photion rate & HI fraction */
-            /* ---------------------------------------------------------------- */
-            if(simParam->calc_recomb == 1)
-            {
-                //compute number of recombinations
-                if(myRank==0) printf("\n++++\ncompute number of recombinations for HI... ");
-                compute_number_recombinations(grid, simParam);
-                if(myRank==0) printf("done\n+++\n");
-            }
             
             /* ------------------------------------------------------- */
             /* DISABLED: compute local mfp in each cell                */
@@ -246,24 +200,33 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
             }
         }
         
+        /* ---------------------------------------------------------------- */
+        /* compute recombinations based on local photion rate & HI fraction */
+        /* ---------------------------------------------------------------- */
+        if(simParam->calc_recomb == 1 && simParam->const_recomb == 0)
+        {
+            //compute number of recombinations (HII, HeII & HeIII)
+            if(myRank==0) printf("\n++++\ncompute number of recombinations... ");
+            compute_number_recombinations(grid, simParam);
+            if(myRank==0) printf("done\n+++\n");
+        }
+        else if(simParam->calc_recomb == 2 && simParam->const_recomb == 0)
+        {
+            //compute number of recombinations (HII, HeII & HeIII)
+            if(myRank==0) printf("\n++++\ncompute number of recombinations... ");
+            compute_number_recombinations_M2000(grid, simParam, simParam->recomb_table, integralTable);
+            if(myRank==0) printf("done\n+++\n");
+        }
+        
         //------------------------------------------------------------------------------
         // compute number of recombinations for a constant rate
         //------------------------------------------------------------------------------
         
         if(simParam->const_recomb == 1)
         {
-            //compute number of recombinations
-            if(myRank==0) printf("\n++++\ncompute number of recombinations for HII... ");
-            compute_number_recombinations_const(grid, simParam, 0);
-            if(myRank==0) printf("done\n+++\n");
-        }
-        
-        if(simParam->solve_He == 1)
-        {
-            //compute number of recombinations
-            if(myRank==0) printf("\n++++\ncompute number of recombinations for HeII & HeIII... ");
-            compute_number_recombinations_const(grid, simParam, 1);
-            compute_number_recombinations_const(grid, simParam, 2);
+            //compute number of recombinations (HII, HeII & HeIII)
+            if(myRank==0) printf("\n++++\ncompute number of recombinations... ");
+            compute_number_recombinations_const(grid, simParam);
             if(myRank==0) printf("done\n+++\n");
         }
 
@@ -272,32 +235,32 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
         //--------------------------------------------------------------------------------
         
         //compute fraction Q
-        if(myRank==0) printf("\n++++\ncomputing relation between number of ionizing photons and absorptions... ");
+        if(myRank==0) printf("\n++++\nHII: computing relation between number of ionizing photons and absorptions... ");
         compute_cum_values(grid, simParam, 0);
         if(myRank==0) printf("done\n+++\n");
         
         //apply filtering
-        if(myRank==0) printf("\n++++\napply tophat filter routine for ionization field... ");
+        if(myRank==0) printf("\n++++\nHII: apply tophat filter routine for ionization field... ");
         compute_ionization_field(simParam, grid, 0);
         if(myRank==0) printf("done\n+++\n");
         
         //write ionization field to file
         for(int i=0; i<MAXLENGTH; i++) XionFile[i] = '\0';
         sprintf(XionFile, "%s_%02d", simParam->out_XHII_file, cycle);
-        if(myRank==0) printf("\n++++\nwriting ionization field to file %s ... ", XionFile);
+        if(myRank==0) printf("\n++++\nwriting HI ionization field to file %s ... ", XionFile);
         save_to_file(grid->XHII, grid, XionFile);
         if(myRank==0) printf("done\n+++\n");
         
         if(simParam->solve_He == 1)
         {
             //compute fraction Q
-            if(myRank==0) printf("\n++++\ncomputing relation between number of ionizing photons and absorptions... ");
+            if(myRank==0) printf("\n++++\nHeII/HeIII: computing relation between number of ionizing photons and absorptions... ");
             compute_cum_values(grid, simParam, 1);
             compute_cum_values(grid, simParam, 2);
             if(myRank==0) printf("done\n+++\n");
         
             //apply filtering
-            if(myRank==0) printf("\n++++\napply tophat filter routine for ionization field... ");
+            if(myRank==0) printf("\n++++\nHeII/HeIII: apply tophat filter routine for ionization field... ");
             compute_ionization_field(simParam, grid, 1);
             compute_ionization_field(simParam, grid, 2);
             if(myRank==0) printf("done\n+++\n");
@@ -305,14 +268,14 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
             //write ionization field to file
             for(int i=0; i<MAXLENGTH; i++) XionFile[i] = '\0';
             sprintf(XionFile, "%s_%02d", simParam->out_XHeII_file, cycle);
-            if(myRank==0) printf("\n++++\nwriting ionization field to file %s ... ", XionFile);
+            if(myRank==0) printf("\n++++\nwriting HeI ionization field to file %s ... ", XionFile);
             save_to_file(grid->XHeII, grid, XionFile);
             if(myRank==0) printf("done\n+++\n");
         
             //write ionization field to file
             for(int i=0; i<MAXLENGTH; i++) XionFile[i] = '\0';
             sprintf(XionFile, "%s_%02d", simParam->out_XHeIII_file, cycle);
-            if(myRank==0) printf("\n++++\nwriting ionization field to file %s ... ", XionFile);
+            if(myRank==0) printf("\n++++\nwriting HeII ionization field to file %s ... ", XionFile);
             save_to_file(grid->XHeIII, grid, XionFile);
             if(myRank==0) printf("done\n+++\n");
         }
@@ -322,7 +285,7 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
             //write photoionization rate field to file
             for(int i=0; i<MAXLENGTH; i++) photHIFile[i] = '\0';
             sprintf(photHIFile, "%s_%02d", simParam->out_photHI_file, cycle);
-            if(myRank==0) printf("\n++++\nwriting photoionization field to file... ");
+            if(myRank==0) printf("\n++++\nwriting HI photoionization field to file... ");
             save_to_file(grid->photHI, grid, photHIFile);
             if(myRank==0) printf("done\n+++\n");
         }

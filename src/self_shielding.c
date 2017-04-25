@@ -538,18 +538,17 @@ void compute_web_ionfraction(grid_t *thisGrid, confObj_t simParam)
             for(int comx=0; comx<nbins; comx++)
             {
                 cell = comz*nbins*nbins + comy*nbins + comx;
-                    //compute photHI fluctuations (\delta_{photIon})
-                    photHI = creal(thisGrid->photHI[cell]);
-                    
-                    //compute self shielded overdensity
-                    densSS = ss_calc_densSS(simParam, photHI, temperature, redshift);
-//                     printf("photHI = %e\t densSS = %e\n", photHI, densSS);
-                    
-                    //compute modified photHI
-                    mod_photHI = ss_calc_modPhotHI(creal(thisGrid->igm_density[cell]), densSS);
-                    
-                    //compute new XHII
-                    thisGrid->XHII[cell] = ss_calc_XHII(creal(thisGrid->igm_density[cell])*mean_numdensity_H*correct_HeII*creal(thisGrid->igm_clump[cell]), mod_photHI*creal(thisGrid->photHI[cell]), temperature, simParam->Y) + 0.*I;
+                //compute photHI fluctuations (\delta_{photIon})
+                photHI = creal(thisGrid->photHI[cell]);
+                
+                //compute self shielded overdensity
+                densSS = ss_calc_densSS(simParam, photHI, temperature, redshift);
+                
+                //compute modified photHI
+                mod_photHI = ss_calc_modPhotHI(creal(thisGrid->igm_density[cell]), densSS);
+                
+                //compute new XHII
+                thisGrid->XHII[cell] = ss_calc_XHII(creal(thisGrid->igm_density[cell])*mean_numdensity_H*correct_HeII*creal(thisGrid->igm_clump[cell]), mod_photHI*creal(thisGrid->photHI[cell]), temperature, simParam->Y) + 0.*I;
             }
         }
     }
