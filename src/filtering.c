@@ -115,13 +115,13 @@ void construct_tophat_filter(fftw_complex *filter, int nbins, ptrdiff_t local_0_
     
     normCoeff = 0;
     for(int i=0; i<nbins; i++){      
-        const double i_expr = half_nbins-abs(i - half_nbins);        
+        const double i_expr = half_nbins-fabs(i - half_nbins);        
         const double sq_i_expr = SQR(i_expr);
         for(int j=0; j<nbins; j++){
-            const double j_expr = half_nbins - abs(j - half_nbins);
+            const double j_expr = half_nbins - fabs(j - half_nbins);
             const double sq_j_expr = SQR(j_expr);
             for(int k=0; k<nbins; k++){
-              const double k_expr = half_nbins - abs(k - half_nbins);
+              const double k_expr = half_nbins - fabs(k - half_nbins);
               const double sq_k_expr = SQR(k_expr);
               
               const double expr = sq_i_expr + sq_j_expr + sq_k_expr - sq_smooth_scale;
@@ -133,15 +133,15 @@ void construct_tophat_filter(fftw_complex *filter, int nbins, ptrdiff_t local_0_
     
     for(int i=0; i<local_n0; i++)
     {
-        const double i_expr = half_nbins-abs(i + local_0_start - half_nbins);        
+        const double i_expr = half_nbins - fabs(i + local_0_start - half_nbins);        
         const double sq_i_expr = SQR(i_expr);
         for(int j=0; j<nbins; j++)
         {
-              const double j_expr = half_nbins - abs(j - half_nbins);
+            const double j_expr = half_nbins - fabs(j - half_nbins);
             const double sq_j_expr = SQR(j_expr);
             for(int k=0; k<nbins; k++)
             {            
-                const double k_expr = half_nbins - abs(k - half_nbins);
+                const double k_expr = half_nbins - fabs(k - half_nbins);
                 const double sq_k_expr = SQR(k_expr);
               
                 const double expr = sq_i_expr + sq_j_expr + sq_k_expr - sq_smooth_scale;

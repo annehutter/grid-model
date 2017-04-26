@@ -54,7 +54,7 @@ photIonlist_t *read_photIonlist(char *filename)
     char line[MAXLENGTH];
     int i;
     
-    int numLines;
+    int numLines = 0;
     photIonlist_t *newPhotIonlist;
     
     double redshift, photionHI, photheatHI, QHII;

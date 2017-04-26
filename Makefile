@@ -27,7 +27,7 @@ EXECUTABLE := cifog
 # USE-MPI = YES
 
 OPTIMIZE = -O3 -ftree-vectorize
-WARNING = -Wall -Wextra -Wshadow -g
+WARNING = -Wall -Wextra -Wshadow -Wpedantic -g
 
 FFTW3DIR :=/opt/local/include
 FFTW_CFLAGS := -I$(FFTW3DIR)

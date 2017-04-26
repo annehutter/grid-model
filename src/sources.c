@@ -94,7 +94,7 @@ sourcelist_t *read_sources(char * filename)
 	double Nion;
 	int spectraID;
 	
-	int numSources;
+	int numSources = 0;
 
 	FILE * fp;
 	char line[MAXLENGTH];
