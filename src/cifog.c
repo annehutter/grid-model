@@ -123,7 +123,7 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
                         set_mfp_Miralda2000(simParam);
                         printf("\n M2000: mfp(photHI = %e) = %e Mpc at z = %e", simParam->photHI_bg, simParam->mfp, simParam->redshift);
 
-                        if(f*grid->mean_mfp < simParam->mfp)
+                        if(f*grid->mean_mfp < simParam->mfp || simParam->photHI_bg < 1.e-12)
                         {
                             simParam->mfp = f*grid->mean_mfp*(1.+simParam->redshift)/(1.+simParam->redshift_prev_snap);
                         }
@@ -150,7 +150,7 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
                         set_mfp_Miralda2000(simParam);
                         printf("\n M2000: mfp(photHI = %e) = %e Mpc at z = %e", simParam->photHI_bg, simParam->mfp, simParam->redshift);
 
-                        if(f*grid->mean_mfp < simParam->mfp)
+                        if(f*grid->mean_mfp < simParam->mfp || simParam->photHI_bg < 1.e-12)
                         {
                             simParam->mfp = f*grid->mean_mfp*(1.+simParam->redshift)/(1.+simParam->redshift_prev_snap);
                         }

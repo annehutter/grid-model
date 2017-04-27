@@ -77,6 +77,7 @@ double determine_mean_mfp(fftw_complex *mfp, int nbins, ptrdiff_t local_n0)
 {
     double sum_mfp=0.;
     int sum_cell=0;
+    double result = 0.;
 #ifdef __MPI
     double sum_mfp_all = 0.;
     int sum_cell_all = 0;
@@ -101,9 +102,13 @@ double determine_mean_mfp(fftw_complex *mfp, int nbins, ptrdiff_t local_n0)
     MPI_Allreduce(&sum_mfp, &sum_mfp_all, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     MPI_Allreduce(&sum_cell, &sum_cell_all, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
-    return sum_mfp_all/((double)sum_cell_all);
+    result = sum_mfp_all/((double)sum_cell_all);
+    if(sum_cell_all <= 0) return 1./(double)nbins;
+    else return result;
 #else
-    return sum_mfp/((double)sum_cell);
+    result = sum_mfp/((double)sum_cell);
+    if(sum_cell <= 0) return 1./(double)nbins;
+    else return result;
 #endif
 }
 
@@ -274,7 +279,7 @@ void update_web_model(grid_t *thisGrid, confObj_t simParam)
         {
             set_mfp_Miralda2000(simParam);
             printf("\n M2000: mfp(photHI = %e) = %e Mpc at z = %e", simParam->photHI_bg, simParam->mfp, simParam->redshift);
-            if(f*thisGrid->mean_mfp < simParam->mfp)
+            if(f*thisGrid->mean_mfp < simParam->mfp || simParam->photHI_bg < 1.e-12)
             {
                 simParam->mfp = f*thisGrid->mean_mfp;
             }
