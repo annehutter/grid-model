@@ -25,17 +25,19 @@ double crossSecHeI(double nu){
 		return 0.;
 	}
 	else{
-		return 7.2e-18*(1.66*pow(nu/nu_HeI,-2.05)+0.66*pow(nu/nu_HeI,-3.05));
+// 		return 7.2e-18*(1.66*pow(nu/nu_HeI,-2.05)+0.66*pow(nu/nu_HeI,-3.05));
+        return 6.3e-18*pow(nu/nu_HeI,-3);
 	}
 }
 
 double crossSecHeII(double nu){
-	double eps;
+// 	double eps;
 	if(nu < nu_HeII){
 		return 0.;
 	}
 	else{
-		eps = sqrt(nu/nu_HeII - 1.);
-		return 1.58e-18*pow(nu/nu_HeII,-4)*exp(4.-4.*atan(eps)/eps)/(1. - exp(-2.*M_PI/eps));
+// 		eps = sqrt(nu/nu_HeII - 1.);
+// 		return 1.58e-18*pow(nu/nu_HeII,-4)*exp(4.-4.*atan(eps)/eps)/(1. - exp(-2.*M_PI/eps));
+        return 6.3e-18*pow(nu/nu_HeII,-3)/4.;
 	}
 }

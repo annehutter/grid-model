@@ -36,9 +36,11 @@ void compute_HeII_nion(confObj_t simParam, sourcelist_t *thisSourcelist, sourcel
     double Y = simParam->Y;
     double spectral_index = simParam->source_slope_index;
     double y = 1./(1. + 0.25*Y/(1.-Y)*crossSecHeI(nu_HeI)/crossSecHI(nu_HeI));
+
+    printf("crossSecHI = %e\t crossSecHeI = %e\t crossSecHeII = %e\n", crossSecHI(nu_HeI), crossSecHeI(nu_HeI), crossSecHeII(nu_HeII));
     
     double factor_HeII = (1.-y) * recomb_HII_B / (recomb_HeII_B + y * recomb_HeII_1) * pow(nu_HeI/nu_HI, -spectral_index);
-    
+
     printf("Y = %e\t y = %e\t factor_HeII = %e\t %e\n", Y, y, factor_HeII, pow(nu_HeI/nu_HI, -spectral_index));
     
     for(int i=0; i<numSources; i++)
