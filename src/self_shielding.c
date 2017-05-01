@@ -269,6 +269,7 @@ void convolve_fft_photHI(grid_t *thisGrid, fftw_complex *filter, fftw_complex *n
             for(int k=0; k<nbins; k++)
             {
                 nion_smooth[i*nbins*nbins+j*nbins+k] = factor*nion_smooth[i*nbins*nbins+j*nbins+k];
+                if(creal(nion_smooth[i*nbins*nbins+j*nbins+k]) < 0.) nion_smooth[i*nbins*nbins+j*nbins+k] = 0. + 0.*I;
             }
         }
     }
@@ -323,8 +324,14 @@ void replace_convolve_fft_photHI(grid_t *thisGrid, confObj_t simParam, fftw_comp
     double mean_sep_cells = nbins/pow(sum_int,1./3.);
     const double expr_mean = mean_sep_cells * sq_factor;
     const double factor_mean = exp(-sqrt(expr_mean)*mfp_inv)/expr_mean;
-    const double value = sum / (factor_nion * (double)sum_int);
-    
+    double value;
+    if(sum_int > 0)
+    {
+        value = sum / (factor_nion * (double)sum_int);
+    }else{
+        value = 0.;
+    }
+        
     sum = 0.;
     for(int i=0; i<local_n0; i++)
     {
@@ -347,9 +354,8 @@ void replace_convolve_fft_photHI(grid_t *thisGrid, confObj_t simParam, fftw_comp
     mean_photHI = sum;
 #endif
     mean_photHI = mean_photHI/(nbins*nbins*nbins);
-    
     mean_photHI = mean_photHI*factor_photHI;
-    
+
     thisGrid->mean_photHI = mean_photHI;
 }
 

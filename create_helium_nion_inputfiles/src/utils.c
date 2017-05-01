@@ -5,13 +5,6 @@
 #include <time.h>
 #include <complex.h>
 
-#ifdef __MPI
-#include <fftw3-mpi.h>
-#include <mpi.h>
-#else
-#include <fftw3.h>
-#endif
-
 int file_exist(char *filename)
 {
 	FILE *file;
