@@ -30,6 +30,21 @@ Parallel run
 2. fftw3 & fftw3-mpi library: ``fftw3 >= 3.3.3``
 3. gsl library (math, integrate): ``gsl >= 1.16``
 
+FFTW3
+'''''
+
+Go to `gist <http://www.fftw.org/download.html>`__ to install fftw3. Ensure to compile the library with the ``enable-mpi`` flag for parallel runs
+::
+    
+    $ ./configure --enable-mpi
+    $ make
+    $ make install
+    
+GSL
+'''
+
+Go to `gist <https://www.gnu.org/software/gsl/>`__ to install gsl and follow the instructions there. 
+
 
 Download & Build
 ----------------
