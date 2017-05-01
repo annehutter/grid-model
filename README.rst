@@ -33,7 +33,7 @@ Parallel run
 FFTW3
 '''''
 
-Go to `gist <http://www.fftw.org/download.html>`__ to install fftw3. Ensure to compile the library with the ``enable-mpi`` flag for parallel runs
+Go to the `FFTW webpage <http://www.fftw.org/download.html>`__ to install fftw3. Ensure to compile the library with the ``enable-mpi`` flag for parallel runs
 ::
     
     $ ./configure --enable-mpi
@@ -43,7 +43,7 @@ Go to `gist <http://www.fftw.org/download.html>`__ to install fftw3. Ensure to c
 GSL
 '''
 
-Go to `gist <https://www.gnu.org/software/gsl/>`__ to install gsl and follow the instructions there. 
+Go to the `GSL webpage <https://www.gnu.org/software/gsl/>`__ to install gsl and follow the instructions there. 
 
 
 Download & Build
