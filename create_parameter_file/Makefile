@@ -1,7 +1,7 @@
 SOURCES := 	./src/main.c 
 OBJECTS := $(SOURCES:.c=.o)
 DOBJECTS := $(SOURCES:.c=.d)
-EXECUTABLE := createInputfile
+EXECUTABLE := create_parameter_file
 
 #USE-MPI = YES
 
