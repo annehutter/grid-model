@@ -1,5 +1,3 @@
-# grid-model
-
 Description
 ===========
 
@@ -11,7 +9,7 @@ Why should you use it
 
 1. **Modular** The code is written modular fashion, i.e. different modules such as ``solveForHelium`` and multiple ``photHImodel`` can be switched on or off or chosen.
 2. **MPI Parallel** The code can be run on multiple cores and distributed memory.
-3. **Residual HI fractions, recombinations & Helium** The code can compute residual HI fractions in ionized regions accroding to the chosen photoionization model; it accounts for HII, HeII and HeIII recombinations; it has the option to compute the HeII and HeIII ionization fields.
+3. **Residual HI fractions, recombinations & Helium** The code can compute residual HI fractions in ionized regions according to the chosen photoionization model; it accounts for HII, HeII and HeIII recombinations; it has the option to compute the HeII and HeIII ionization fields.
 
 Installation
 ============
@@ -86,6 +84,7 @@ Parameter file
 - ``useWebModel``: set to 1 if the residual HI fraction in ionized regions should be computed (this mode will require to choose a photHI model), otherwise 0
 - ``constantPhotHI``: set to 1 if HI fraction should be calculated from a constant photoionization field, otherwise 0.
 - ``calcMeanFreePath``: set to 1 if mfp is calculated from the size of the ionized regions and/or as in Miralda 2000, otherwise 0 (only applicable for constantPhotHI = 0)
+- ``constantRecombinations``: set to 1 if rembination rate should be constant spatially, otherwise 0
 - ``calcRecombinations``: set to 1 if number of recombinations should be calculated, otherwise 0
 - ``solveForHelium``: set to 1 if HeII and HeIII fields should be computed, otherwise 0
 
@@ -137,6 +136,7 @@ Parameter file
 **Recombinations**
 ..................
 
+- ``dnrec_dt``: recombination rate when option ``constantRecombinations = 0`` is chosen.
 - ``recombinationTable``: (table of recombination values, only change if you know exactly what you are doing! Below are the parameters of the table)
 - ``zmin``: minimum redshift of recombination table
 - ``zmax``: maximum redshift of recombination table
