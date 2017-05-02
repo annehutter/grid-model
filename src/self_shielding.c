@@ -379,7 +379,7 @@ void compute_photHI(grid_t *thisGrid, confObj_t simParam, int rescale)
     const double f = simParam->factor;
     const double factor_k = 4.*M_PI*CUB(f)*0.632121;
     const double factor_photHI = sigma_HI*alpha/((alpha+beta)*SQR(Mpc_cm)*factor_k);
-        
+            
     if(thisGrid->mean_photHI == 0.)
     {
 #ifdef __MPI
@@ -393,13 +393,13 @@ void compute_photHI(grid_t *thisGrid, confObj_t simParam, int rescale)
         filter = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
         nion = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
 #endif
-        
+                
         if(simParam->mfp > cellsize_phys)
         {
             //construct exp(-r/mfp)/(r*r) filter
             construct_photHI_filter(filter, thisGrid, simParam);
         }
-        
+                
 #ifdef __MPI
         MPI_Barrier(MPI_COMM_WORLD);
 #endif
@@ -432,7 +432,7 @@ void compute_photHI(grid_t *thisGrid, confObj_t simParam, int rescale)
             rescale_factor = simParam->photHI_bg/thisGrid->mean_photHI;
             printf("\n fitting the photoionization rate field with mean value %e to the given background value by multiplying with a factor = %e\n", thisGrid->mean_photHI, rescale_factor);
         }
-        
+                
         for(int i=0; i<local_n0; i++)
         {
             for(int j=0; j<nbins; j++)
@@ -450,7 +450,7 @@ void compute_photHI(grid_t *thisGrid, confObj_t simParam, int rescale)
             thisGrid->mean_photHI = thisGrid->mean_photHI*simParam->padded_box;
         }
         simParam->photHI_bg = thisGrid->mean_photHI;
-        
+                
         fftw_free(filter);
         fftw_free(nion);
     }

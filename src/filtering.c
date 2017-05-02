@@ -501,7 +501,7 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
         /* compute fraction of number of ionization and absorptions */
         /* -------------------------------------------------------- */ 
         compute_Q(thisGrid, frac_Q_smooth, cum_nion_smooth, cum_nabs_smooth);
-        save_to_file(frac_Q_smooth, thisGrid, "Q.dat");
+//         save_to_file(frac_Q_smooth, thisGrid, "Q.dat");
         
         /* -------------------------------------------- */
         /* derive ionized regions                       */
@@ -512,9 +512,9 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
         }else{
             determine_ion_fractions(frac_Q_smooth, nbins, local_n0, 0);
         }
-        save_to_file(frac_Q_smooth, thisGrid, "Q1.dat");
+//         save_to_file(frac_Q_smooth, thisGrid, "Q1.dat");
         choose_ion_fraction(frac_Q_smooth, Xion_tmp, thisGrid);
-        save_to_file(frac_Q_smooth, thisGrid, "Q2.dat");
+//         save_to_file(frac_Q_smooth, thisGrid, "Q2.dat");
 
         /* -------------------------------------------- */
         /* derive mfp from ionized regions              */

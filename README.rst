@@ -3,13 +3,19 @@ Description
 
 Code to compute ionization field from density fields and source catalogues (or number of ionizing photon grids)
 
+When you should use this code
+=============================
+
+If you want to compute when and how (HI, HeII, HeIII) reionization occurs, then you should use this code. You will need 
+- cosmological box with DM/gas overdensities **or** gas densities (grid)
+- list of source positions & number of ionizing photons **or** a box with number of ionizing photons (grid)
 
 Why should you use it
 =====================
 
 1. **Modular** The code is written modular fashion, i.e. different modules such as ``solveForHelium`` and multiple ``photHImodel`` can be switched on or off or chosen.
 2. **MPI Parallel** The code can be run on multiple cores and distributed memory.
-3. **Residual HI fractions, recombinations & Helium** The code can compute residual HI fractions in ionized regions according to the chosen photoionization model; it accounts for HII, HeII and HeIII recombinations; it has the option to compute the HeII and HeIII ionization fields.
+3. **Residual HI fractions, recombinations & Helium** The code can compute residual HI fractions in ionized regions according to the chosen photoionization model. It accounts for HII recombinations, and has the option to compute the HeII and HeIII ionization fields (accounting also for HeII and HeIII recombinations).
 
 Installation
 ============
