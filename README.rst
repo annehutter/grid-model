@@ -58,7 +58,7 @@ Download & Build
 
 ::
 
-    $ git clone https://github.com/annehutter/grid_model
+    $ git clone https://github.com/annehutter/grid-model.git
     $ make
 
 This will download the code and first test case from the github directory and compile the source code.
