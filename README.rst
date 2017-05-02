@@ -7,6 +7,7 @@ When you should use this code
 =============================
 
 If you want to compute when and how (HI, HeII, HeIII) reionization occurs, then you should use this code. You will need 
+
 - cosmological box with DM/gas overdensities **or** gas densities (grid)
 - list of source positions & number of ionizing photons **or** a box with number of ionizing photons (grid)
 
