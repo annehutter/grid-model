@@ -110,7 +110,7 @@ confObj_new(parse_ini_t ini)
     
     //Cosmology
     getFromIni(&(config->h), parse_ini_get_double,
-               ini, "h", "Cosmology");
+               ini, "hubble_h", "Cosmology");
     getFromIni(&(config->omega_b), parse_ini_get_double,
                ini, "omega_b", "Cosmology");
     getFromIni(&(config->omega_m), parse_ini_get_double,

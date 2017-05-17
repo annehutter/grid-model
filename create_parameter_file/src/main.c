@@ -614,7 +614,7 @@ int main()
     
     
     fprintf(file, "[Cosmology]\n");
-    fprintf(file, "h = %f\n", h);
+    fprintf(file, "hubble_h = %f\n", h);
     fprintf(file, "omega_b = %f\n", omega_b);
     fprintf(file, "omega_m = %f\n", omega_m);
     fprintf(file, "omega_l = %f\n", omega_l);
