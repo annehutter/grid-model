@@ -3,21 +3,11 @@ OBJECTS := $(SOURCES:.c=.o)
 DOBJECTS := $(SOURCES:.c=.d)
 EXECUTABLE := create_parameter_file
 
-#USE-MPI = YES
+include ../common.mk
 
-OPTIMIZE = -O3 -ftree-vectorize
-WARNING = -Wall -Wextra -Wshadow -g
+# OPTIMIZE = -O3 -ftree-vectorize
+# WARNING = -Wall -Wextra -Wshadow -g
 
-ifdef USE-MPI
-	CC := mpicc
-	CFLAGS := -c -std=c99 -march=native -lm $(WARNING) $(OPTIMIZE) -D __MPI
-	LDFLAGS := 
-
-else
-	CC := gcc
-	CFLAGS := -c -std=c99 -march=native -lm $(WARNING) $(OPTIMIZE) 
-	LDFLAGS := 
-endif
 
 .PHONY: all clean
 
