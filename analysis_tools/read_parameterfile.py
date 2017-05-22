@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+import os
 
 #inifile = '../iniFile128.ini'
 
@@ -17,6 +18,12 @@ def identify_int(lines, word, splitting_str):
     for i, line in enumerate(lines):
         if word in line:
             return np.int(line.split(splitting_str)[1])
+        
+def get_directory(inifile):
+    lines = read_inifile(inifile)
+    ionfile = identify_string(lines, ionfile_str, splitting_str)
+    path, filename = os.path.split(ionfile)
+    return path
 
 def read_inifile(inifile):
     with open(inifile, 'r') as f:
@@ -52,6 +59,7 @@ HeIIionfile_str = 'output_XHeII_file'
 HeIIIionfile_str = 'output_XHeIII_file'
 
 splitting_str = ' = '
+
 
 #print 'start'
 

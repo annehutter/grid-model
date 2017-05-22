@@ -1,0 +1,16 @@
+#! /bin/bash
+if [ $# -lt 0 ]; then
+  echo "Usage: ./do_plots"
+else
+    iniFile=$1
+    inputIsDouble=$2
+    
+    directory=$(python analysis_tools/get_and_create_outputdir.py $iniFile 2>&1)
+
+    python analysis_tools/hist_ion.py $iniFile $inputIsDouble $directory/hist_ion.png
+    python analysis_tools/21cm.py $iniFile $inputIsDouble $directory/21cm/ps_21cm
+    python analysis_tools/ion.py $iniFile $inputIsDouble $directory/ion/ps_ion
+    python analysis_tools/neutral.py $iniFile $inputIsDouble $directory/neutral/ps_neutral
+    python analysis_tools/ionfield.py $iniFile $inputIsDouble 64
+fi
+

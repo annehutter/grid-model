@@ -9,79 +9,24 @@ from matplotlib import gridspec
 from matplotlib import rc
 
 import read_parameterfile as rp
+import read_fields as rf
 
 def compute_meanIon(infile, isPadded, inputIsDouble, gridsize):
-    #ionization field
-    fi = open(infile, 'rb')
-    if(isPadded == 0):
-        if(inputIsDouble == 1):
-            ion = np.fromfile(fi, count=gridsize*gridsize*gridsize, dtype=np.float64)
-        else:
-            ion = np.fromfile(fi, count=gridsize*gridsize*gridsize, dtype=np.float32)
-        ion.shape = (gridsize,gridsize,gridsize)
-        
-
-    else:
-        if(inputIsDouble == 1):
-            ion = np.fromfile(fi, count=isPadded*isPadded*isPadded*gridsize*gridsize*gridsize, dtype=np.float64)
-        else:
-            ion = np.fromfile(fi, count=isPadded*isPadded*isPadded*gridsize*gridsize*gridsize, dtype=np.float32)
-        ion.shape = (isPadded*gridsize,isPadded*gridsize,isPadded*gridsize)
-        
-        new_ion = np.array_split(ion, [gridsize], axis=2)
-        new_ion = np.array_split(new_ion[0], [gridsize], axis=1)
-        new_ion = np.array_split(new_ion[0], [gridsize], axis=0)
-        ion = new_ion[0]
-
+    ion = rf.read_ion(infile, isPadded, inputIsDouble, gridsize)
+    
     meanIon = np.mean(ion, dtype=np.float64)
     return meanIon
 
 def compute_meanMassIon(infile, densfile, double_precision, isPadded, inputIsDouble, gridsize):
-    #ionization field
-    fi = open(infile, 'rb')
-    fd = open(densfile, 'rb')
-    if(isPadded == 0):
-        if(inputIsDouble == 1):
-            ion = np.fromfile(fi, count=gridsize*gridsize*gridsize, dtype=np.float64)
-        else:
-            ion = np.fromfile(fi, count=gridsize*gridsize*gridsize, dtype=np.float32)
-        ion.shape = (gridsize,gridsize,gridsize)
+    ion = rf.read_ion(infile, isPadded, inputIsDouble, gridsize)
+    dens = rf.read_dens(densfile, isPadded, double_precision, gridsize)
 
-        if(double_precision == 1):
-            dens = np.fromfile(fd, count=gridsize*gridsize*gridsize, dtype=np.float64)
-        else:
-            dens = np.fromfile(fd, count=gridsize*gridsize*gridsize, dtype=np.float32)
-        dens.shape = (gridsize,gridsize,gridsize)
-
-    else:
-        if(inputIsDouble == 1):
-            ion = np.fromfile(fi, count=isPadded*isPadded*isPadded*gridsize*gridsize*gridsize, dtype=np.float64)
-        else:
-            ion = np.fromfile(fi, count=isPadded*isPadded*isPadded*gridsize*gridsize*gridsize, dtype=np.float32)
-        ion.shape = (isPadded*gridsize,isPadded*gridsize,isPadded*gridsize)
-        
-        new_ion = np.array_split(ion, [gridsize], axis=2)
-        new_ion = np.array_split(new_ion[0], [gridsize], axis=1)
-        new_ion = np.array_split(new_ion[0], [gridsize], axis=0)
-        ion = new_ion[0]
-        
-        if(double_precision == 1):
-            dens = np.fromfile(fd, count=isPadded*isPadded*isPadded*gridsize*gridsize*gridsize, dtype=np.float64)
-        else:
-            dens = np.fromfile(fd, count=isPadded*isPadded*isPadded*gridsize*gridsize*gridsize, dtype=np.float32)
-        dens.shape = (isPadded*gridsize,isPadded*gridsize,isPadded*gridsize)
-        
-        new_dens = np.array_split(dens, [gridsize], axis=2)
-        new_dens = np.array_split(new_dens[0], [gridsize], axis=1)
-        new_dens = np.array_split(new_dens[0], [gridsize], axis=0)
-        dens = new_dens[0]
-        
     meanIon = np.mean(ion*dens, dtype=np.float64)/np.mean(dens, dtype=np.float64)
     return meanIon
 
 inifile = sys.argv[1]
-outputfile = sys.argv[2]
-inputIsDouble = np.int32(sys.argv[3])
+inputIsDouble = np.int32(sys.argv[2])
+outputfile = sys.argv[3]
 
 lines = rp.read_inifile(inifile)
 
@@ -91,8 +36,14 @@ ionfile = rp.identify_string(lines, rp.ionfile_str, rp.splitting_str) #sys.argv[
 densfile = rp.identify_string(lines, rp.densfile_str, rp.splitting_str)
 double_precision = rp.identify_int(lines, rp.double_precision_str, rp.splitting_str)
 isPadded = rp.identify_int(lines, rp.padded_str, rp.splitting_str) #np.int32(sys.argv[3])
-gridsize = rp.identify_int(lines, rp.gridsize_str, rp.splitting_str) #np.int32(sys.argv[6])
-
+isPadded_factor = isPadded**(1./3.)
+if(isPadded != 0):
+    gridsize = np.int32(rp.identify_int(lines, rp.gridsize_str, rp.splitting_str)/isPadded_factor)
+    boxsize = rp.identify_float(lines, rp.boxsize_str, rp.splitting_str)/isPadded_factor
+else:
+    gridsize = rp.identify_int(lines, rp.gridsize_str, rp.splitting_str)
+    boxsize = rp.identify_float(lines, rp.boxsize_str, rp.splitting_str)
+    
 solve_he = rp.identify_int(lines, rp.solve_he_str, rp.splitting_str)
 HeIIionfile = rp.identify_string(lines, rp.HeIIionfile_str, rp.splitting_str)
 HeIIIionfile = rp.identify_string(lines, rp.HeIIIionfile_str, rp.splitting_str)
@@ -101,7 +52,7 @@ if(solve_he == 1):
     HeIIionfile = rp.identify_string(lines, rp.HeIIionfile_str, rp.splitting_str)
     HeIIIionfile = rp.identify_string(lines, rp.HeIIIionfile_str, rp.splitting_str)
 
-redshift = np.loadtxt(redshiftfile, unpack='True', skiprows=0, usecols=(0))
+redshift, snap = np.loadtxt(redshiftfile, unpack='True', skiprows=0, usecols=(0,1))
 
 hist_ion = np.zeros(len(redshift)-1)
 hist_mass_ion = np.zeros(len(redshift)-1)
@@ -112,14 +63,21 @@ if(solve_he == 1):
     hist_mass_HeIIion = np.zeros(len(redshift)-1)
     hist_mass_HeIIIion = np.zeros(len(redshift)-1)
 
+counter = 0
 for i in range(len(redshift)-1):
     if(i<10):
         infile = ionfile + '_0' + str(i)
     else:
         infile = ionfile + '_' + str(i)
     
+    if(snap[i] != 0):
+        if(counter <10):
+            dinfile = densfile + '_00' + str(counter)
+        else:
+            dinfile = densfile + '_0' + str(counter)
+            
     hist_ion[i] = compute_meanIon(infile, isPadded, inputIsDouble, gridsize)
-    hist_mass_ion[i] = compute_meanMassIon(infile, densfile, double_precision, isPadded, inputIsDouble, gridsize)
+    hist_mass_ion[i] = compute_meanMassIon(infile, dinfile, double_precision, isPadded, inputIsDouble, gridsize)
     
     if(solve_he == 1):
         if(i<10):
@@ -132,8 +90,8 @@ for i in range(len(redshift)-1):
         hist_HeIIion[i] = compute_meanIon(HeIIinfile, isPadded, inputIsDouble, gridsize)
         hist_HeIIIion[i] = compute_meanIon(HeIIIinfile, isPadded, inputIsDouble, gridsize)
         
-        hist_mass_HeIIion[i] = compute_meanMassIon(HeIIinfile, densfile, double_precision, isPadded, inputIsDouble, gridsize)
-        hist_mass_HeIIIion[i] = compute_meanMassIon(HeIIIinfile, densfile, double_precision, isPadded, inputIsDouble, gridsize)
+        hist_mass_HeIIion[i] = compute_meanMassIon(HeIIinfile, dinfile, double_precision, isPadded, inputIsDouble, gridsize)
+        hist_mass_HeIIIion[i] = compute_meanMassIon(HeIIIinfile, dinfile, double_precision, isPadded, inputIsDouble, gridsize)
 
 print hist_ion
 if(solve_he == 1):
@@ -192,8 +150,6 @@ else:
     yminL = 0.2
     ystring = '%d'
     
-print logchi_range, ymaxL, yminL
-
 majorLocator   = mt.MultipleLocator(xmaxL)
 majorFormatter = mt.FormatStrFormatter('%0.1f')
 minorLocator   = mt.MultipleLocator(xminL)
@@ -234,7 +190,8 @@ factor_range = hist_mass_ion[0]/hist_ion[0] - hist_mass_ion[len(hist_mass_ion)-1
 if(solve_he == 1):
     factor_min = np.min([hist_mass_ion[0]/hist_ion[0], hist_mass_ion[len(hist_mass_ion)-1]/hist_ion[len(hist_ion)-1], hist_mass_HeIIion[0]/hist_HeIIion[0], hist_mass_HeIIion[len(hist_mass_HeIIion)-1]/hist_HeIIion[len(hist_HeIIion)-1], hist_mass_HeIIIion[0]/hist_HeIIIion[0], hist_mass_HeIIIion[len(hist_mass_HeIIIion)-1]/hist_HeIIIion[len(hist_HeIIIion)-1]])
     factor_max = np.max([hist_mass_ion[0]/hist_ion[0], hist_mass_ion[len(hist_mass_ion)-1]/hist_ion[len(hist_ion)-1], hist_mass_HeIIion[0]/hist_HeIIion[0], hist_mass_HeIIion[len(hist_mass_HeIIion)-1]/hist_HeIIion[len(hist_HeIIion)-1], hist_mass_HeIIIion[0]/hist_HeIIIion[0], hist_mass_HeIIIion[len(hist_mass_HeIIIion)-1]/hist_HeIIIion[len(hist_HeIIIion)-1]])
-    
+    factor_range = factor_max - factor_min
+        
 if(factor_range <= 1.0):
     ymaxL = 0.2
     yminL = 0.05
@@ -265,5 +222,6 @@ ax0.yaxis.set_minor_locator(yminorLocator)
 ax0.set_ylabel('$\langle\chi\\rangle^{(m)} / \langle\chi\\rangle$')
 
 #----------------------------------------------
+print outputfile
 fig.savefig(outputfile, format='png', dpi=512)#, transparent=True)
 

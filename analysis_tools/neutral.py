@@ -8,13 +8,13 @@ from scipy import ndimage
 from grid import *
   
 import read_parameterfile as rp
+import read_fields as rf
 
 def round_down(num):
     if num < 0:
         return -np.ceil(abs(num))
     else:
         return np.int32(num)
-
 
 inifile = sys.argv[1]
 inputIsDouble = np.int32(sys.argv[2])
@@ -28,15 +28,19 @@ ionfile = rp.identify_string(lines, rp.ionfile_str, rp.splitting_str) #sys.argv[
 densfile = rp.identify_string(lines, rp.densfile_str, rp.splitting_str)
 double_precision = rp.identify_int(lines, rp.double_precision_str, rp.splitting_str)
 isPadded = rp.identify_int(lines, rp.padded_str, rp.splitting_str) #np.int32(sys.argv[3])
-gridsize = rp.identify_int(lines, rp.gridsize_str, rp.splitting_str) #np.int32(sys.argv[6])
-boxlength = rp.identify_float(lines, rp.boxsize_str, rp.splitting_str)
+isPadded_factor = isPadded**(1./3.)
+if(isPadded != 0):
+    gridsize = np.int32(rp.identify_int(lines, rp.gridsize_str, rp.splitting_str)/isPadded_factor)
+    boxsize = rp.identify_float(lines, rp.boxsize_str, rp.splitting_str)/isPadded_factor
+else:
+    gridsize = rp.identify_int(lines, rp.gridsize_str, rp.splitting_str)
+    boxsize = rp.identify_float(lines, rp.boxsize_str, rp.splitting_str)
 
 Omegab = rp.identify_float(lines, rp.omega_b_str, rp.splitting_str)
 Omegam = rp.identify_float(lines, rp.omega_m_str, rp.splitting_str)
 h = rp.identify_float(lines, rp.h_str, rp.splitting_str)
 
 redshift, snap = np.loadtxt(redshiftfile, unpack='True', skiprows=0, usecols=(0,1))
-
 
 #----------------------------------------------
 #----------------------------------------------
@@ -65,30 +69,7 @@ for i in range(len(redshift)-1):
         infile = ionfile + '_' + str(i)
         
     #ionization field
-    fi = open(infile, 'rb')
-    
-    if(isPadded == 0):
-        if(inputIsDouble == 1):
-            ion = np.fromfile(fi, count=gridsize*gridsize*gridsize, dtype=np.float64)
-        else:
-            ion = np.fromfile(fi, count=gridsize*gridsize*gridsize, dtype=np.float32)
-        ion.shape = (gridsize,gridsize,gridsize)
-
-    else:
-        if(inputIsDouble == 1):
-            ion = np.fromfile(fi, count=isPadded*isPadded*isPadded*gridsize*gridsize*gridsize, dtype=np.float64)
-        else:
-            ion = np.fromfile(fi, count=isPadded*isPadded*isPadded*gridsize*gridsize*gridsize, dtype=np.float32)
-        ion.shape = (isPadded*gridsize,isPadded*gridsize,isPadded*gridsize)
-        
-        new_ion = np.array_split(ion, [gridsize], axis=2)
-        new_ion = np.array_split(new_ion[0], [gridsize], axis=1)
-        new_ion = np.array_split(new_ion[0], [gridsize], axis=0)
-        print np.shape(new_ion[0])
-        print len(new_ion)
-        print  np.mean(new_ion[0], dtype=np.float64)
-        ion = new_ion[0]
-
+    ion = rf.read_ion(infile, isPadded, inputIsDouble, gridsize)
 
     meanIon[i] = np.mean(ion, dtype=np.float64)
     print meanIon[i]
@@ -99,32 +80,12 @@ for i in range(len(redshift)-1):
         else:
             dinfile = densfile + '_0' + str(counter)
         
-    fd = open(dinfile, 'rb')
-    
-    if(isPadded == 0):
-        if(double_precision == 1):
-            dens = np.fromfile(fd, count=gridsize*gridsize*gridsize, dtype=np.float64)
-        else:
-            dens = np.fromfile(fd, count=gridsize*gridsize*gridsize, dtype=np.float32)
-        dens.shape = (gridsize,gridsize,gridsize)
-    else:
-        if(double_precision == 1):
-            dens = np.fromfile(fd, count=isPadded*isPadded*isPadded*gridsize*gridsize*gridsize, dtype=np.float64)
-        else:
-            dens = np.fromfile(fd, count=isPadded*isPadded*isPadded*gridsize*gridsize*gridsize, dtype=np.float32)
-        dens.shape = (isPadded*gridsize,isPadded*gridsize,isPadded*gridsize)
-        
-        new_dens = np.array_split(dens, [gridsize], axis=2)
-        new_dens = np.array_split(new_dens[0], [gridsize], axis=1)
-        new_dens = np.array_split(new_dens[0], [gridsize], axis=0)
-        dens = new_dens[0]
-        
-    meanDens = np.mean(dens, dtype=np.float64)
+    dens = rf.read_dens(dinfile, isPadded, double_precision, gridsize)
     
     neutral_dens = (1.-ion)*dens
 
     modesNeutral = ifftn(neutral_dens)
-    kmid_bins, powerspec, p_err = modes_to_pspec(modesNeutral, boxsize=boxlength)
+    kmid_bins, powerspec, p_err = modes_to_pspec(modesNeutral, boxsize=boxsize)
 
     if(minimum > np.min(powerspec[1:-1]*kmid_bins[1:-1]**3*k)):
         minimum = np.min(powerspec[1:-1]*kmid_bins[1:-1]**3*k)
@@ -139,8 +100,11 @@ for i in range(len(redshift)-1):
     rgba = cmap(1.-meanIon[i])
     plt.plot(kmid_bins[1:-1], np.log10(powerspec[1:-1]*kmid_bins[1:-1]**3*k), color=rgba)
     
-    
-    np.savetxt("test_neutral.dat",np.c_[kmid_bins, powerspec, p_err])
+    if(i<10):
+        outputfile_dat = outputfile+"_0"+str(i)+".dat"
+    else:
+        outputfile_dat = outputfile+"_"+str(i)+".dat"
+    np.savetxt(outputfile_dat,np.c_[kmid_bins, powerspec, p_err])
     
 
 #----------------------------------------------
@@ -160,4 +124,5 @@ norm = m.colors.Normalize(vmin=0., vmax=1.)
 cb1 = m.colorbar.ColorbarBase(ax, cmap=cmap, norm=norm, orientation='vertical')
 cb1.set_label('$\langle\chi_\mathrm{HI}\\rangle$')
 
-fig.savefig(outputfile, format='png', dpi=512)#, transparent=True)
+outputfile_png = outputfile + '.png'
+fig.savefig(outputfile_png, format='png', dpi=512)#, transparent=True)
