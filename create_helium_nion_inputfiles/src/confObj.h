@@ -24,6 +24,8 @@ typedef struct confObj_struct *confObj_t;
 struct confObj_struct {
     //Input
     char           *sources_file;
+    char           *spectra_file;
+    char           *dir_spectra;
     double         factorNion;
     double         factorFesc;
  
@@ -32,6 +34,9 @@ struct confObj_struct {
     
     //Photoionization
     double         source_slope_index;
+    
+    //Temperature
+    double         temperature;
     
     //Output
     char           *sources_file_new;

@@ -7,7 +7,8 @@ SOURCES := 	./src/main.c \
 		./src/xmem.c \
 		./src/xstring.c \
 		./src/phys_const.c \
-		./src/cross_sections.c
+		./src/cross_sections.c \
+		./src/recombination_coeff.c
 OBJECTS := $(SOURCES:.c=.o)
 DOBJECTS := $(SOURCES:.c=.d)
 EXECUTABLE := create_helium_inputfiles

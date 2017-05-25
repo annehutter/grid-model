@@ -61,7 +61,7 @@ void read_update_nion(confObj_t simParam, sourcelist_t *thisSourcelist, grid_t *
 	}else if(file_exist(nion_file) == 1){
 		read_array(thisGrid->nion, thisGrid, nion_file, simParam->input_doubleprecision);
 	}else{
-		fprintf(stderr, "No source or nion file available, or names are incorrect!\n");
+		fprintf(stderr, "No source or nion file available, or names are incorrect!\nCurrent source file is %s\n", sources_file);
 		exit(EXIT_FAILURE);
 	}
 	
@@ -112,7 +112,7 @@ void read_update_nion_HeI(confObj_t simParam, sourcelist_t *thisSourcelist, grid
 	}else if(file_exist(nion_file) == 1){
 		read_array(thisGrid->nion_HeI, thisGrid, nion_file, simParam->input_doubleprecision);
 	}else{
-		fprintf(stderr, "No source or nion file available, or names are incorrect!\n");
+		fprintf(stderr, "No source or nion file available, or names are incorrect!\nCurrent source file is %s\n", sources_file);
 		exit(EXIT_FAILURE);
 	}
 	for(int i=0; i<thisGrid->nbins*thisGrid->nbins*thisGrid->nbins; i++){
@@ -162,7 +162,7 @@ void read_update_nion_HeII(confObj_t simParam, sourcelist_t *thisSourcelist, gri
 	}else if(file_exist(nion_file) == 1){
 		read_array(thisGrid->nion_HeII, thisGrid, nion_file, simParam->input_doubleprecision);
 	}else{
-		fprintf(stderr, "No source or nion file available, or names are incorrect!\n");
+		fprintf(stderr, "No source or nion file available, or names are incorrect!\nCurrent source file is %s\n", sources_file);
 		exit(EXIT_FAILURE);
 	}
 }

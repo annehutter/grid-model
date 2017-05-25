@@ -98,7 +98,11 @@ if(solve_he == 1):
     print hist_HeIIion
     print hist_HeIIIion
 print redshift[1:]
-#np.savetxt(outputfile,np.c_[redshift[1:], hist_ion])
+
+if(solve_he == 1):
+    np.savetxt(outputfile + '.dat',np.c_[redshift[1:], hist_ion, hist_HeIIion, hist_HeIIIion])
+else:
+    np.savetxt(outputfile + '.dat',np.c_[redshift[1:], hist_ion])
 
 #----------------------------------------------
 #----------------------------------------------
@@ -223,5 +227,5 @@ ax0.set_ylabel('$\langle\chi\\rangle^{(m)} / \langle\chi\\rangle$')
 
 #----------------------------------------------
 print outputfile
-fig.savefig(outputfile, format='png', dpi=512)#, transparent=True)
+fig.savefig(outputfile + '.png', format='png', dpi=512)#, transparent=True)
 

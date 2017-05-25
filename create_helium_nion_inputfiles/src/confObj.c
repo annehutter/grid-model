@@ -36,6 +36,10 @@ confObj_new(parse_ini_t ini)
     //Input
     getFromIni(&(config->sources_file), parse_ini_get_string,
                ini, "inputSourcesFile", "Input");
+    getFromIni(&(config->spectra_file), parse_ini_get_string,
+               ini, "inputSpectraFile", "Input");
+    getFromIni(&(config->dir_spectra), parse_ini_get_string,
+               ini, "inputDirSpectra", "Input");
     getFromIni(&(config->factorNion), parse_ini_get_double,
                ini, "factorNion", "Input");
     getFromIni(&(config->factorFesc), parse_ini_get_double,
@@ -48,6 +52,10 @@ confObj_new(parse_ini_t ini)
     //Photoionization
     getFromIni(&(config->source_slope_index), parse_ini_get_double,
                ini, "sourceSlopeIndex", "Photoionization");
+    
+    //Temperature
+    getFromIni(&(config->temperature), parse_ini_get_double,
+               ini, "temperature", "Temperature");    
     
     //Output
     getFromIni(&(config->sources_file_new), parse_ini_get_string,
