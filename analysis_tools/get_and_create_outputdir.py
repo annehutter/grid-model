@@ -36,7 +36,11 @@ if not os.path.exists(dir_ion):
 dir_neutral = newdir + '/neutral'
 if not os.path.exists(dir_neutral):
     os.makedirs(dir_neutral)
-    
+  
+dir_density = newdir + '/density'
+if not os.path.exists(dir_density):
+    os.makedirs(dir_density)
+  
 dir_HI = newdir + '/HI_fields'
 if not os.path.exists(dir_HI):
     os.makedirs(dir_HI)

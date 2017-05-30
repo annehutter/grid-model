@@ -41,6 +41,7 @@ Omegam = rp.identify_float(lines, rp.omega_m_str, rp.splitting_str)
 h = rp.identify_float(lines, rp.h_str, rp.splitting_str)
 
 redshift, snap = np.loadtxt(redshiftfile, unpack='True', skiprows=0, usecols=(0,1))
+snap = np.int32(snap)
 
 #----------------------------------------------
 #----------------------------------------------
@@ -80,6 +81,7 @@ for i in range(len(redshift)-1):
             dinfile = densfile + '_00' + str(counter)
         else:
             dinfile = densfile + '_0' + str(counter)
+        counter = counter + 1
         
     dens = rf.read_dens(dinfile, isPadded, double_precision, gridsize)
     

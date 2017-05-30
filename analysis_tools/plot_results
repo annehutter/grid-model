@@ -12,5 +12,6 @@ else
     python analysis_tools/ion.py $iniFile $inputIsDouble $directory/ion/ps_ion
     python analysis_tools/neutral.py $iniFile $inputIsDouble $directory/neutral/ps_neutral
     python analysis_tools/ionfield.py $iniFile $inputIsDouble 64
+    python analysis_tools/density.py $iniFile $inputIsDouble  $directory/density/ps_density
 fi
 
