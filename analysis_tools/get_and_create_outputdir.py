@@ -32,11 +32,32 @@ if not os.path.exists(dir_21cm):
 dir_ion = newdir + '/ion'
 if not os.path.exists(dir_ion):
     os.makedirs(dir_ion)
+
+dir_iondens = newdir + '/iondens'
+if not os.path.exists(dir_iondens):
+    os.makedirs(dir_iondens)
+
+dir_cross_iondens = newdir + '/cross_ion_dens'
+if not os.path.exists(dir_cross_iondens):
+    os.makedirs(dir_cross_iondens)
+    
+if(solve_he != 0):
+    dir_HeIIiondens = newdir + '/HeIIiondens'
+    if not os.path.exists(dir_HeIIiondens):
+        os.makedirs(dir_HeIIiondens)
+        
+    dir_HeIIIiondens = newdir + '/HeIIIiondens'
+    if not os.path.exists(dir_HeIIIiondens):
+        os.makedirs(dir_HeIIIiondens)
     
 dir_neutral = newdir + '/neutral'
 if not os.path.exists(dir_neutral):
     os.makedirs(dir_neutral)
   
+dir_neutraldens = newdir + '/neutraldens'
+if not os.path.exists(dir_neutraldens):
+    os.makedirs(dir_neutraldens)
+    
 dir_density = newdir + '/density'
 if not os.path.exists(dir_density):
     os.makedirs(dir_density)

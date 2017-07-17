@@ -61,7 +61,7 @@ maximum = 1.e-10
 
 counter = 0
 for i in range(len(redshift)-1):
-    z = redshift[i]
+    z = redshift[i+1]
     print z
 
     if(i<10):
@@ -72,20 +72,12 @@ for i in range(len(redshift)-1):
     #ionization field
     ion = rf.read_ion(infile, isPadded, inputIsDouble, gridsize)
 
+    hist, edges = np.histogram(ion.ravel(), bins=20)
 
     meanIon[i] = np.mean(ion, dtype=np.float64)
     print meanIon[i]
 
-    if(snap[i] != 0):
-        if(counter <10):
-            dinfile = densfile + '_00' + str(counter)
-        else:
-            dinfile = densfile + '_0' + str(counter)
-        counter = counter + 1
-        
-    dens = rf.read_dens(dinfile, isPadded, double_precision, gridsize)
-    
-    modesIon = ifftn(ion*dens)
+    modesIon = ifftn(ion)
     kmid_bins, powerspec, p_err = modes_to_pspec(modesIon, boxsize=boxsize)
 
     if(minimum > np.min(powerspec[1:-1]*kmid_bins[1:-1]**3*k)):
@@ -106,11 +98,11 @@ for i in range(len(redshift)-1):
     else:
         outputfile_dat = outputfile+"_"+str(i)+".dat"
     np.savetxt(outputfile_dat,np.c_[kmid_bins, powerspec, p_err])
-    
+    np.savetxt(outputfile_dat + '_hist', np.c_[(0.5*(edges[1:]+edges[:-1])), hist])
 
 #----------------------------------------------
 plt.xlabel('k  [ h Mpc$^{-1}$]')
-plt.ylabel('Log ( $\Delta^2_{\\rho_\mathrm{HII}}$ )')
+plt.ylabel('Log ( $\Delta^2_{X_\mathrm{HII}}$ )')
 
 plt.minorticks_on()
 

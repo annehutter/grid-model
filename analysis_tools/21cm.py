@@ -62,7 +62,7 @@ maximum = 1.e-10
 
 counter = 0
 for i in range(len(redshift)-1):
-    z = redshift[i]
+    z = redshift[i+1]
     print z, Omegab, Omegam, h
 
     T0 = 28.5*((1+z)/10.)**0.5*(Omegab/0.042*h/0.73)*(0.24/Omegam)**0.5

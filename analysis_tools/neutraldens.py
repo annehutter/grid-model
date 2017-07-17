@@ -75,9 +75,18 @@ for i in range(len(redshift)-1):
     meanIon[i] = np.mean(ion, dtype=np.float64)
     print meanIon[i]
     
-    neutral = (1.-ion)
+    if(snap[i] != 0):
+        if(counter <10):
+            dinfile = densfile + '_00' + str(counter)
+        else:
+            dinfile = densfile + '_0' + str(counter)
+        counter = counter + 1
+        
+    dens = rf.read_dens(dinfile, isPadded, double_precision, gridsize)
+    
+    neutral_dens = (1.-ion)*dens
 
-    modesNeutral = ifftn(neutral)
+    modesNeutral = ifftn(neutral_dens)
     kmid_bins, powerspec, p_err = modes_to_pspec(modesNeutral, boxsize=boxsize)
 
     if(minimum > np.min(powerspec[1:-1]*kmid_bins[1:-1]**3*k)):
@@ -102,7 +111,7 @@ for i in range(len(redshift)-1):
 
 #----------------------------------------------
 plt.xlabel('k  [ h Mpc$^{-1}$]')
-plt.ylabel('Log ( $\Delta^2_{X_\mathrm{HI}}$ )')
+plt.ylabel('Log ( $\Delta^2_{\\rho_\mathrm{HI}}$ )')
 
 plt.minorticks_on()
 

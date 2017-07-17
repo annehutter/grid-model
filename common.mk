@@ -25,9 +25,9 @@ else
 endif
 
 ifdef USE-MPI
-	CC := mpicc
-	CFLAGS += -D__MPI
-	LDFLAGS += -lmpich -lfftw3_mpi
+    CC := mpicc
+    CFLAGS += -D __MPI
+    LDFLAGS += -lmpich -lfftw3_mpi
 else
-	CC := $(COMPILER)
+    CC := $(COMPILER)
 endif

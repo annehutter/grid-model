@@ -312,11 +312,6 @@ void replace_convolve_fft_photHI(grid_t *thisGrid, confObj_t simParam, fftw_comp
             {
                 nion_smooth[i*nbins*nbins+j*nbins+k] = creal(nion_smooth[i*nbins*nbins+j*nbins+k])*factor_nion + 0.*I;
                 sum += creal(nion_smooth[i*nbins*nbins+j*nbins+k]);
-                if(creal(nion_smooth[i*nbins*nbins+j*nbins+k]) > 0.)
-                {
-                    sum_int++;
-//                     printf("nion = %e\n", creal(nion_smooth[i*nbins*nbins+j*nbins+k]));
-                }
             }
         }
     }
@@ -325,13 +320,14 @@ void replace_convolve_fft_photHI(grid_t *thisGrid, confObj_t simParam, fftw_comp
     const double expr_mean = mean_sep_cells * sq_factor;
     const double factor_mean = exp(-sqrt(expr_mean)*mfp_inv)/expr_mean;
     double value;
+
     if(sum_int > 0)
     {
         value = sum / (factor_nion * (double)sum_int);
     }else{
         value = 0.;
     }
-        
+            
     sum = 0.;
     for(int i=0; i<local_n0; i++)
     {
@@ -432,7 +428,7 @@ void compute_photHI(grid_t *thisGrid, confObj_t simParam, int rescale)
             rescale_factor = simParam->photHI_bg/thisGrid->mean_photHI;
             printf("\n fitting the photoionization rate field with mean value %e to the given background value by multiplying with a factor = %e\n", thisGrid->mean_photHI, rescale_factor);
         }
-                
+                        
         for(int i=0; i<local_n0; i++)
         {
             for(int j=0; j<nbins; j++)

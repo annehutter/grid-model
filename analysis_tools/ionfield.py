@@ -185,8 +185,8 @@ plt.rcParams["figure.figsize"] = (6,5)
 
 for i in range(len(redshift)-1):        
     
-    str_redshift = "z = " + str("%3.1f"%redshift[i])
-    str_time = "t = " + str("%4.0f"%(time[i]/1.e6)) + " Myr"
+    str_redshift = "z = " + str("%5.3f"%redshift[i+1])
+    str_time = "t = " + str("%4.0f"%(time[i+1]/1.e6)) + " Myr"
     
     if(i<10):
         infile = ionfile + '_0' + str(i)
