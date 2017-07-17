@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include <assert.h>
 #include <complex.h>
@@ -11,6 +12,7 @@
 #include <fftw3.h>
 #endif
 
+#include "utils.h"
 #include "confObj.h"
 #include "grid.h"
 #include "sources.h"
@@ -189,6 +191,7 @@ void map_central_ionized_cell_to_sphere(fftw_complex *new_cum_nion_smooth, fftw_
 {
     int nbins = thisGrid->nbins;
     int local_n0 = thisGrid->local_n0;
+    double threshold = 1./((float)nbins*(float)nbins*(float)nbins);
     
     convolve_fft(thisGrid, filter, new_cum_nion_smooth, cum_nion_smooth);
     
@@ -198,7 +201,7 @@ void map_central_ionized_cell_to_sphere(fftw_complex *new_cum_nion_smooth, fftw_
         {
             for(int k=0; k<nbins; k++)
             {
-                if(creal(new_cum_nion_smooth[i*nbins*nbins+j*nbins+k])>0.)
+                if(creal(new_cum_nion_smooth[i*nbins*nbins+j*nbins+k])>threshold)
                 {
                     new_cum_nion_smooth[i*nbins*nbins+j*nbins+k] = 1. + 0.*I;
                 }else{
@@ -348,7 +351,12 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
     float smooth_scale;
     float box_size;
     float lin_scales, inc_log_scales, max_scale;
-        
+    
+#ifdef DEBUG_FILTERING
+    char scale_string[8];
+    char Q_file[MAXLENGTH];
+#endif
+    
     fftw_complex *filter;
     fftw_complex *cum_nion_smooth;
     fftw_complex *cum_nabs_smooth;
@@ -536,9 +544,31 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
         }else{
             determine_ion_fractions(frac_Q_smooth, nbins, local_n0, 0);
         }
-//         save_to_file(frac_Q_smooth, thisGrid, "Q1.dat");
+        
+#ifdef DEBUG_FILTERING
+        sprintf(scale_string, "%03d", scale);
+        for(int i=0; i<MAXLENGTH; i++) Q_file[i] = '\0';
+        strcat(Q_file, "Q1_");
+        strcat(Q_file, scale_string);
+        strcat(Q_file, ".dat");
+        save_to_file(frac_Q_smooth, thisGrid, Q_file);
+#endif
+        
+        if(simParam->ionize_sphere == 1)
+        {
+            map_central_ionized_cell_to_sphere(frac_Q_smooth, frac_Q_smooth, filter, thisGrid);
+        }
+        
+#ifdef DEBUG_FILTERING
+        sprintf(scale_string, "%03d", scale);
+        for(int i=0; i<MAXLENGTH; i++) Q_file[i] = '\0';
+        strcat(Q_file, "Q2_");
+        strcat(Q_file, scale_string);
+        strcat(Q_file, ".dat");
+        save_to_file(frac_Q_smooth, thisGrid, Q_file);
+#endif
+        
         choose_ion_fraction(frac_Q_smooth, Xion_tmp, thisGrid);
-//         save_to_file(frac_Q_smooth, thisGrid, "Q2.dat");
 
         /* -------------------------------------------- */
         /* derive mfp from ionized regions              */

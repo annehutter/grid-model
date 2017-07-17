@@ -32,6 +32,7 @@ struct confObj_struct {
     double         lin_scales;
     double         inc_log_scales;
     double         max_scale;
+    int            ionize_sphere;
     
     int            default_mean_density;
     int            use_web_model;

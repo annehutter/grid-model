@@ -51,6 +51,8 @@ confObj_new(parse_ini_t ini)
                ini, "first_increment_in_logscale", "General");
     getFromIni(&(config->max_scale), parse_ini_get_double,
                ini, "max_scale", "General");
+    getFromIni(&(config->ionize_sphere), parse_ini_get_int32,
+               ini, "useIonizeSphereModel", "General");
     
     getFromIni(&(config->default_mean_density), parse_ini_get_int32,
                ini, "useDefaultMeanDensity", "General");

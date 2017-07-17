@@ -7,16 +7,16 @@ else
     
     directory=$(python analysis_tools/get_and_create_outputdir.py $iniFile 2>&1)
 
-#     python analysis_tools/hist_ion.py $iniFile $inputIsDouble $directory/hist_ion
-#     python analysis_tools/21cm.py $iniFile $inputIsDouble $directory/21cm/ps_21cm
+    python analysis_tools/hist_ion.py $iniFile $inputIsDouble $directory/hist_ion
+    python analysis_tools/21cm.py $iniFile $inputIsDouble $directory/21cm/ps_21cm
     python analysis_tools/ion.py $iniFile $inputIsDouble $directory/ion/ps_ion
-#     python analysis_tools/iondens.py $iniFile $inputIsDouble $directory/iondens/ps_iondens
-#     python analysis_tools/ionHeIIdens.py $iniFile $inputIsDouble $directory/HeIIiondens/ps_HeIIiondens
-#     python analysis_tools/ionHeIIIdens.py $iniFile $inputIsDouble $directory/HeIIIiondens/ps_HeIIIiondens
-#     python analysis_tools/neutral.py $iniFile $inputIsDouble $directory/neutral/ps_neutral
-#     python analysis_tools/neutraldens.py $iniFile $inputIsDouble $directory/neutraldens/ps_neutraldens
-#     python analysis_tools/ionfield.py $iniFile $inputIsDouble 64
-#     python analysis_tools/density.py $iniFile $inputIsDouble  $directory/density/ps_density
+    python analysis_tools/iondens.py $iniFile $inputIsDouble $directory/iondens/ps_iondens
+    python analysis_tools/ionHeIIdens.py $iniFile $inputIsDouble $directory/HeIIiondens/ps_HeIIiondens
+    python analysis_tools/ionHeIIIdens.py $iniFile $inputIsDouble $directory/HeIIIiondens/ps_HeIIIiondens
+    python analysis_tools/neutral.py $iniFile $inputIsDouble $directory/neutral/ps_neutral
+    python analysis_tools/neutraldens.py $iniFile $inputIsDouble $directory/neutraldens/ps_neutraldens
+    python analysis_tools/ionfield.py $iniFile $inputIsDouble 64
+    python analysis_tools/density.py $iniFile $inputIsDouble  $directory/density/ps_density
 #     python analysis_tools/cross_ion_dens.py $iniFile $inputIsDouble $directory/cross_ion_dens/ps_ion_dens
 #     python analysis_tools/iondens_binary.py $iniFile $inputIsDouble $directory/iondens/ps_iondens_binray
 #     python analysis_tools/neutral_binary.py $iniFile $inputIsDouble $directory/neutral/ps_neutral_binary
