@@ -44,6 +44,7 @@ int main()
     double         lin_scales;
     double         inc_log_scales;
     double         max_scale;
+    int            ion_sphere;
     
     int            default_mean_density;
     int            use_web_model;
@@ -206,7 +207,9 @@ int main()
     scanf("%lf", &inc_log_scales);
     printf("And what should be the largest filtering scale? (in h^-1 Mpc) (double)\n");
     scanf("%lf", &max_scale);
-    
+    ion_sphere = 0;
+    printf("And do you want to flag the entire sphere as ionized (1) or just the central cell (0)?\n");
+    scanf("%d", &ion_sphere);
     
     //-------------------------------------------------------------------------------
     // OPTIONS
@@ -577,7 +580,8 @@ int main()
     
     fprintf(file, "size_linear_scale = %f\n", lin_scales);
     fprintf(file, "first_increment_in_logscale = %f\n", inc_log_scales);
-    fprintf(file, "max_scale = %f\n\n", max_scale);
+    fprintf(file, "max_scale = %f\n", max_scale);
+    fprintf(file, "useIonizeSphereModel = %d\n\n", ion_sphere);
     
     fprintf(file, "useDefaultMeanDensity = %d\n\n", default_mean_density);
     
