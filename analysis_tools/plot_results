@@ -17,7 +17,7 @@ else
     python analysis_tools/neutraldens.py $iniFile $inputIsDouble $directory/neutraldens/ps_neutraldens
     python analysis_tools/ionfield.py $iniFile $inputIsDouble 64
     python analysis_tools/density.py $iniFile $inputIsDouble  $directory/density/ps_density
-#     python analysis_tools/cross_ion_dens.py $iniFile $inputIsDouble $directory/cross_ion_dens/ps_ion_dens
+    python analysis_tools/cross_ion_dens.py $iniFile $inputIsDouble $directory/cross_ion_dens/ps_ion_dens
 #     python analysis_tools/iondens_binary.py $iniFile $inputIsDouble $directory/iondens/ps_iondens_binray
 #     python analysis_tools/neutral_binary.py $iniFile $inputIsDouble $directory/neutral/ps_neutral_binary
 #     python analysis_tools/neutraldens_binary.py $iniFile $inputIsDouble $directory/neutraldens/ps_neutraldens_binary

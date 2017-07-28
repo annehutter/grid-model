@@ -554,7 +554,7 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
         save_to_file(frac_Q_smooth, thisGrid, Q_file);
 #endif
         
-        if(simParam->ionize_sphere == 1)
+        if(simParam->ionize_sphere == 1 && scale != num_scales-1)
         {
             map_central_ionized_cell_to_sphere(frac_Q_smooth, frac_Q_smooth, filter, thisGrid);
         }

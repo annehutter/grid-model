@@ -100,17 +100,19 @@ Parameter file
 - ``size_linear_scale``: comoving size in h^{-1} Mpc until which tophat kernel should be increased linearly
 - ``first_increment_in_logscale``: increment of the tophat kernel beyond linear increase
 - ``max_scale``: maximum tophat kernel size in h^{-1} Mpc
+- ``useIonizedSphereModel``: set to 1 if entire smoothing sphere should be marked as ionized, otherwise only central cell is flagged as ionized
 
 - ``useDefaultMeanDensity``: set to 1 if default cosmological density value should be used (recommended), otherwise set to 0 if "meanDensity" is used
 
 - ``useWebModel``: set to 1 if the residual HI fraction in ionized regions should be computed (this mode will require to choose a photHI model), otherwise 0
-- ``constantPhotHI``: set to 1 if HI fraction should be calculated from a constant photoionization field, otherwise 0.
+- ``photHImodel``: choose photoionization model (0 = constant photoionization rate (``photHI_bg``); 1 = photoionization depends on distance from ionizing sources; 2 = photoionization rate depends on mean free path)
 - ``calcMeanFreePath``: set to 1 if mfp is calculated from the size of the ionized regions and/or as in Miralda 2000, otherwise 0 (only applicable for constantPhotHI = 0)
 - ``constantRecombinations``: set to 1 if rembination rate should be constant spatially, otherwise 0
 - ``calcRecombinations``: set to 1 if number of recombinations should be calculated, otherwise 0
+
 - ``solveForHelium``: set to 1 if HeII and HeIII fields should be computed, otherwise 0
 
-- ``paddedBox``: set to 1 if a padded box is used, otherwise 0
+- ``paddedBox``: set to the factor by how much your volume is increased by padding if a padded box is used, otherwise 0
 
 **Input**
 .........
@@ -200,7 +202,9 @@ Before executing you may want to adjust the (in the directory) included iniFile,
 HI photoionization models
 -------------------------
 
-1. ``photHI_model = 1``: This model assumes the photoionization rate to drop of as exp(-r/mfp)/r^2, whereas mfp is the mean mean free path of or in the ionized regions
+0. ``photHI_model = 0``: This model assumes a spatially constant photoionization rate that is set by ``photHI_bg``.
+
+1. ``photHI_model = 1``: This model assumes the photoionization rate to drop of as exp(-r/mfp)/r^2, whereas mfp is the mean mean free path of or in the ionized regions.
 
 2. ``photHI_model = 2``: This model computes the photoionization rate according to the mean free path of each cell. The mean free path corresponds to the filtering scale at which the cell became ionized.
 
