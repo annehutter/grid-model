@@ -1,13 +1,12 @@
-import numpy as np
 import sys
+import os
+import ntpath
+import numpy as np
+import matplotlib as m
+m.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.colors as cl
 from matplotlib.font_manager import FontProperties
-from scipy import ndimage
-from scipy import signal
-
-import ntpath
-import os
 
 import read_parameterfile as rp
 import read_fields as rf
@@ -175,6 +174,10 @@ redshift, snap = np.loadtxt(redshiftfile, unpack='True', skiprows=0, usecols=(0,
 H0 = h*1.e2*km/Mpc
 time = time_from_redshift_flatuniverse(redshift, 1.e10)/yr
 
+print "\n--------------------------"
+print "Plotting ionization fields"
+print "--------------------------"
+
 #----------------------------------------------
 #----------------------------------------------
 plt.rc('text', usetex=True)
@@ -192,9 +195,13 @@ for i in range(len(redshift)-1):
         infile = ionfile + '_0' + str(i)
     else:
         infile = ionfile + '_' + str(i)
-        
+    if(os.path.isfile(infile) == False):
+        continue
+    
     #ionization field
     ion = rf.read_ion(infile, isPadded, inputIsDouble, gridsize)
+    print "z =", redshift[i+1], "\tXHII =", np.mean(ion, dtype=np.float64)
+
     toPlot = np.log10(1.-ion)
     str_mean = "$\langle\chi_\mathrm{HI}\\rangle$ =" + str("%4.2f"%(np.mean(1.-ion, dtype=np.float64)))
     plot_field(infile, i, toPlot, cut_slice, str_time, str_redshift, str_mean)
@@ -206,6 +213,8 @@ for i in range(len(redshift)-1):
         else:
             HeIIinfile = HeIIionfile + '_' + str(i)
             HeIIIinfile = HeIIIionfile + '_' + str(i)
+        if(os.path.isfile(HeIIinfile) == False or os.path.isfile(HeIIIinfile) == False):
+            continue
         
         ion_HeII = rf.read_ion(HeIIinfile, isPadded, inputIsDouble, gridsize)
         ion_HeIII = rf.read_ion(HeIIIinfile, isPadded, inputIsDouble, gridsize)

@@ -75,4 +75,12 @@ if(solve_he == 1):
     if not os.path.exists(dir_HeIII):
         os.makedirs(dir_HeIII)
     
+dir_cross_ziondens = newdir + '/cross_zion_dens'
+if not os.path.exists(dir_cross_ziondens):
+    os.makedirs(dir_cross_ziondens)
+    
+dir_ion_bubbledistr = newdir + '/ion_bubbledistr'
+if not os.path.exists(dir_ion_bubbledistr):
+    os.makedirs(dir_ion_bubbledistr)
+    
 print newdir

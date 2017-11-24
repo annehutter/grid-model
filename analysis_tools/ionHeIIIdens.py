@@ -1,12 +1,14 @@
-from numpy.random import random
-import numpy as np
 import sys
+import os
+import numpy as np
+from numpy.random import random
+import matplotlib as m
+m.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import matplotlib as m
-from scipy import ndimage
+
 from grid import *
-  
 import read_parameterfile as rp
 import read_fields as rf
 
@@ -47,6 +49,10 @@ if(solve_he > 0):
     redshift, snap = np.loadtxt(redshiftfile, unpack='True', skiprows=0, usecols=(0,1))
     snap = np.int32(snap)
 
+    print "\n--------------------------------"
+    print "Computing rho_HeII power spectra"
+    print "--------------------------------"
+    
     #----------------------------------------------
     #----------------------------------------------
     #plt.rc('text', usetex=True)
@@ -66,7 +72,6 @@ if(solve_he > 0):
     counter = 0
     for i in range(len(redshift)-1):
         z = redshift[i+1]
-        print z
 
         if(i<10):
             infile = ionfile + '_0' + str(i)
@@ -75,10 +80,11 @@ if(solve_he > 0):
             
         #ionization field
         ion = rf.read_ion(infile, isPadded, inputIsDouble, gridsize)
-
+        if(os.path.isfile(infile) == False):
+            continue
 
         meanIon[i] = np.mean(ion, dtype=np.float64)
-        print meanIon[i]
+        print "z =", z, "\tXHII =", meanIon[i]
 
         if(snap[i] != 0):
             if(counter <10):

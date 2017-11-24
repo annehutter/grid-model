@@ -1,8 +1,7 @@
 import numpy as np
-
+import os
  
 def read_ion(infile, isPadded, inputIsDouble, gridsize):
-    #ionization field
     fi = open(infile, 'rb')
     if(isPadded == 0):
         if(inputIsDouble == 1):

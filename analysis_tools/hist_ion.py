@@ -1,13 +1,16 @@
-from grid import *
-from numpy.random import random
-import numpy as np
 import sys
+import os
+import numpy as np
+from numpy.random import random
 import math as m
+import matplotlib as m
+m.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mt
 from matplotlib import gridspec
 from matplotlib import rc
 
+from grid import *
 import read_parameterfile as rp
 import read_fields as rf
 
@@ -54,6 +57,10 @@ if(solve_he == 1):
 
 redshift, snap = np.loadtxt(redshiftfile, unpack='True', skiprows=0, usecols=(0,1))
 
+print "\n----------------------------"
+print "Computing ionization history"
+print "----------------------------"
+
 hist_ion = np.zeros(len(redshift)-1)
 hist_mass_ion = np.zeros(len(redshift)-1)
 
@@ -75,9 +82,19 @@ for i in range(len(redshift)-1):
             dinfile = densfile + '_00' + str(counter)
         else:
             dinfile = densfile + '_0' + str(counter)
+        counter = counter + 1
             
-    hist_ion[i] = compute_meanIon(infile, isPadded, inputIsDouble, gridsize)
-    hist_mass_ion[i] = compute_meanMassIon(infile, dinfile, double_precision, isPadded, inputIsDouble, gridsize)
+    if(os.path.isfile(infile) == True and os.path.isfile(dinfile) == True):
+        hist_ion[i] = compute_meanIon(infile, isPadded, inputIsDouble, gridsize)
+        hist_mass_ion[i] = compute_meanMassIon(infile, dinfile, double_precision, isPadded, inputIsDouble, gridsize)
+    elif(i>0):
+        print "!!! replacing value at z=", redshift[i+1], "with previous value at", redshift[i]
+        hist_ion[i] = hist_ion[i-1]
+        hist_mass_ion[i] = hist_mass_ion[i-1] 
+    else:
+        print "!!! replacing value at z=", redshift[i+1], "with previous value 0"
+        hist_ion[i] = 0.
+        hist_mass_ion[i] = 0.
     
     if(solve_he == 1):
         if(i<10):
@@ -87,22 +104,40 @@ for i in range(len(redshift)-1):
             HeIIinfile = HeIIionfile + '_' + str(i)
             HeIIIinfile = HeIIIionfile + '_' + str(i)
             
-        hist_HeIIion[i] = compute_meanIon(HeIIinfile, isPadded, inputIsDouble, gridsize)
-        hist_HeIIIion[i] = compute_meanIon(HeIIIinfile, isPadded, inputIsDouble, gridsize)
+        if(os.path.isfile(HeIIinfile) == True and os.path.isfile(dinfile) == True):
+            hist_HeIIion[i] = compute_meanIon(HeIIinfile, isPadded, inputIsDouble, gridsize)
+            hist_mass_HeIIion[i] = compute_meanMassIon(HeIIinfile, dinfile, double_precision, isPadded, inputIsDouble, gridsize)
+        elif(i>0):
+            print "!!! replacing value at z=", redshift[i+1], "with previous value at", redshift[i]
+            hist_HeIIion[i] = hist_HeIIion[i-1]
+            hist_mass_HeIIion[i] = hist_mass_HeIIion[i-1] 
+        else:
+            print "!!! replacing value at z=", redshift[i+1], "with previous value 0"
+            hist_HeIIion[i] = 0.
+            hist_mass_HeIIion[i] = 0.
         
-        hist_mass_HeIIion[i] = compute_meanMassIon(HeIIinfile, dinfile, double_precision, isPadded, inputIsDouble, gridsize)
-        hist_mass_HeIIIion[i] = compute_meanMassIon(HeIIIinfile, dinfile, double_precision, isPadded, inputIsDouble, gridsize)
-
-print hist_ion
+        if(os.path.isfile(HeIIIinfile) == True and os.path.isfile(dinfile) == True):
+            hist_HeIIIion[i] = compute_meanIon(HeIIIinfile, isPadded, inputIsDouble, gridsize)
+            hist_mass_HeIIIion[i] = compute_meanMassIon(HeIIIinfile, dinfile, double_precision, isPadded, inputIsDouble, gridsize)
+        elif(i>0):
+            print "!!! replacing value at z=", redshift[i+1], "with previous value at", redshift[i]
+            hist_HeIIIion[i] = hist_HeIIIion[i-1]
+            hist_mass_HeIIIion[i] = hist_mass_HeIIIion[i-1] 
+        else:
+            print "!!! replacing value at z=", redshift[i+1], "with previous value 0"
+            hist_HeIIIion[i] = 0.
+            hist_mass_HeIIIion[i] = 0.
+            
+print "z =",redshift[1:]
+print "XHII =", hist_ion
 if(solve_he == 1):
-    print hist_HeIIion
-    print hist_HeIIIion
-print redshift[1:]
+    print "XHeII =", hist_HeIIion
+    print "XHeIII =", hist_HeIIIion
 
 if(solve_he == 1):
-    np.savetxt(outputfile + '.dat',np.c_[redshift[1:], hist_ion, hist_HeIIion, hist_HeIIIion])
+    np.savetxt(outputfile + '.dat',np.c_[redshift[1:], hist_ion, hist_HeIIion, hist_HeIIIion, hist_mass_ion, hist_mass_HeIIion, hist_mass_HeIIIion])
 else:
-    np.savetxt(outputfile + '.dat',np.c_[redshift[1:], hist_ion])
+    np.savetxt(outputfile + '.dat',np.c_[redshift[1:], hist_ion, hist_mass_ion])
 
 #----------------------------------------------
 #----------------------------------------------
@@ -226,6 +261,5 @@ ax0.yaxis.set_minor_locator(yminorLocator)
 ax0.set_ylabel('$\langle\chi\\rangle^{(m)} / \langle\chi\\rangle$')
 
 #----------------------------------------------
-print outputfile
 fig.savefig(outputfile + '.png', format='png', dpi=512)#, transparent=True)
 

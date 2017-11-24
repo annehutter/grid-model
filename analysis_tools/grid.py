@@ -238,7 +238,6 @@ def two_modes_to_pspec(modes, modes2, boxsize):
     powerspec = v1 * (1.0 / kvol)
     
     v1check = bincount(kbins, weights=checksum)
-    print v1check
 
     # work out error on power spectrum
     v2 = bincount(kbins, weights=square(wts))

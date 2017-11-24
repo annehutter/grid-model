@@ -1,10 +1,11 @@
 import sys
 import os
 import numpy as np
-import matplotlib as m
-m.use('Agg')
+from numpy.random import random
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
+import matplotlib as m
+from scipy import ndimage
 
 from grid import *
 import read_parameterfile as rp
@@ -43,9 +44,9 @@ h = rp.identify_float(lines, rp.h_str, rp.splitting_str)
 redshift, snap = np.loadtxt(redshiftfile, unpack='True', skiprows=0, usecols=(0,1))
 snap = np.int32(snap)
 
-print "\n----------------------------"
-print "Computing 21cm power spectra"
-print "----------------------------"
+print "\n------------------------------------------"
+print "Computing XHII-density cross power spectra"
+print "------------------------------------------"
 
 #----------------------------------------------
 #----------------------------------------------
@@ -67,17 +68,16 @@ counter = 0
 for i in range(len(redshift)-1):
     z = redshift[i+1]
 
-    T0 = 28.5*((1+z)/10.)**0.5*(Omegab/0.042*h/0.73)*(0.24/Omegam)**0.5
-
     if(i<10):
         infile = ionfile + '_0' + str(i)
     else:
         infile = ionfile + '_' + str(i)
     if(os.path.isfile(infile) == False):
         continue
-    
+        
     #ionization field
     ion = rf.read_ion(infile, isPadded, inputIsDouble, gridsize)
+
     meanIon[i] = np.mean(ion, dtype=np.float64)
     print "z =", z, "\tXHII =", meanIon[i]
 
@@ -92,16 +92,15 @@ for i in range(len(redshift)-1):
             continue
         
     dens = rf.read_dens(dinfile, isPadded, double_precision, gridsize)
+    
+    modesIon = ifftn(ion)
+    modesDens = ifftn(dens)
+    kmid_bins, powerspec, p_err = two_modes_to_pspec(modesIon, modesDens, boxsize=boxsize)
 
-    Tb = (1.-ion)*dens#/(1.-meanIon)
-
-    modes21 = ifftn(Tb)
-    kmid_bins_21, powerspec_21, p_err_21 = modes_to_pspec(modes21, boxsize=boxsize)
-
-    if(minimum > np.min(powerspec_21[1:-1]*kmid_bins_21[1:-1]**3*k*T0*T0)):
-        minimum = np.min(powerspec_21[1:-1]*kmid_bins_21[1:-1]**3*k*T0*T0)
-    if(maximum < np.max(powerspec_21[1:-1]*kmid_bins_21[1:-1]**3*k*T0*T0)):
-        maximum = np.max(powerspec_21[1:-1]*kmid_bins_21[1:-1]**3*k*T0*T0)
+    if(minimum > np.min(powerspec[1:-1]*kmid_bins[1:-1]**3*k)):
+        minimum = np.min(powerspec[1:-1]*kmid_bins[1:-1]**3*k)
+    if(maximum < np.max(powerspec[1:-1]*kmid_bins[1:-1]**3*k)):
+        maximum = np.max(powerspec[1:-1]*kmid_bins[1:-1]**3*k)
 
     plt.xscale('log')
     #plt.yscale('log')
@@ -109,22 +108,22 @@ for i in range(len(redshift)-1):
     cmap = m.cm.get_cmap('jet_r')
 
     rgba = cmap(1.-meanIon[i])
-    plt.plot(kmid_bins_21[1:-1], np.log10(powerspec_21[1:-1]*kmid_bins_21[1:-1]**3*k*T0*T0), color=rgba)
+    plt.plot(kmid_bins[1:-1], np.log10(powerspec[1:-1]*kmid_bins[1:-1]**3*k), color=rgba)
     
     if(i<10):
         outputfile_dat = outputfile+"_0"+str(i)+".dat"
     else:
         outputfile_dat = outputfile+"_"+str(i)+".dat"
-    np.savetxt(outputfile_dat, np.c_[kmid_bins_21, powerspec_21, p_err_21])
+    np.savetxt(outputfile_dat,np.c_[kmid_bins, powerspec, p_err])
     
 
 #----------------------------------------------
 plt.xlabel('k  [ h Mpc$^{-1}$]')
-plt.ylabel('Log ( $\Delta^2_{21\mathrm{cm}}$ )  [ mK$^2$ ]')
+plt.ylabel('Log ( $\Delta^2_{\\rho_\mathrm{HII}}$ )')
 
 plt.minorticks_on()
 
-plt.xlim([10.**round_down(np.log10(kmid_bins_21[1])), kmid_bins_21[len(kmid_bins_21)-2]])
+plt.xlim([10.**round_down(np.log10(kmid_bins[1])), kmid_bins[len(kmid_bins)-2]])
 plt.ylim([np.log10(minimum), np.log10(maximum)])
 
 ax = fig.add_axes([0.89, 0.1, 0.03, 0.85])

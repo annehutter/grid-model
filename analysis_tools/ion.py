@@ -1,12 +1,12 @@
-from numpy.random import random
-import numpy as np
 import sys
+import os
+import numpy as np
+import matplotlib as m
+m.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
-import matplotlib as m
-from scipy import ndimage
+
 from grid import *
-  
 import read_parameterfile as rp
 import read_fields as rf
 
@@ -43,6 +43,10 @@ h = rp.identify_float(lines, rp.h_str, rp.splitting_str)
 redshift, snap = np.loadtxt(redshiftfile, unpack='True', skiprows=0, usecols=(0,1))
 snap = np.int32(snap)
 
+print "\n----------------------------"
+print "Computing XHII power spectra"
+print "----------------------------"
+
 #----------------------------------------------
 #----------------------------------------------
 plt.rc('text', usetex=True)
@@ -62,20 +66,21 @@ maximum = 1.e-10
 counter = 0
 for i in range(len(redshift)-1):
     z = redshift[i+1]
-    print z
 
     if(i<10):
         infile = ionfile + '_0' + str(i)
     else:
         infile = ionfile + '_' + str(i)
-        
+    if(os.path.isfile(infile) == False):
+        continue
+    
     #ionization field
     ion = rf.read_ion(infile, isPadded, inputIsDouble, gridsize)
 
     hist, edges = np.histogram(ion.ravel(), bins=20)
 
     meanIon[i] = np.mean(ion, dtype=np.float64)
-    print meanIon[i]
+    print "z =", z, "\tXHII =", meanIon[i]
 
     modesIon = ifftn(ion)
     kmid_bins, powerspec, p_err = modes_to_pspec(modesIon, boxsize=boxsize)
@@ -108,8 +113,6 @@ plt.minorticks_on()
 
 plt.xlim([10.**round_down(np.log10(kmid_bins[1])), kmid_bins[len(kmid_bins)-2]])
 plt.ylim([np.log10(minimum), np.log10(maximum)])
-
-print minimum, maximum
 
 ax = fig.add_axes([0.89, 0.1, 0.03, 0.85])
 norm = m.colors.Normalize(vmin=0., vmax=1.)
