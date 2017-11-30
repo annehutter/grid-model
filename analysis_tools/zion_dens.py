@@ -123,7 +123,15 @@ for i in range(len(redshift)-1):
 
     meanIon_list[i] = np.mean(ion, dtype=np.float64)
     meanIon_mass_list[i] = np.mean(ion*dens, dtype=np.float64) / np.mean(dens, dtype=np.float64)
-            
+     
+if(specie == 0):
+    indices = np.where(zion==0.)[0]
+    zion[indices] = z
+    dension[indices] = dens[indices]*(1.+z)**3*numdensity
+
+print np.amin(zion), np.amax(zion)
+print z
+
 if(specie == 0):
     fp = open(outputfile + 'zion.dat', "wb")
     fp.write(bytearray(zion))
@@ -160,6 +168,7 @@ else:
 zion = np.reshape(zion, (gridsize, gridsize, gridsize))
 dension = np.reshape(dension, (gridsize, gridsize, gridsize))
 dens = np.reshape(dens, (gridsize, gridsize, gridsize))
+
 
 #----------------------------------------------
 # Plotting fields

@@ -110,5 +110,12 @@ for i in range(len(redshift)-1):
         # COMPUTING CROSS CORRELATION
         #----------------------------------------------
 
-        compute_cross_corr(1.+zion, dens, boxsize, outputfile, 'zion', 'dens%02d'%(counter-1))
+        if(specie == 0):
+            compute_cross_corr(1.+zion, dens, boxsize, outputfile, 'zion', 'dens%02d'%(counter-1))
+        elif(specie == 1):
+            compute_cross_corr(1.+zion, dens, boxsize, outputfile, 'zionHeI', 'dens%02d'%(counter-1))
+        elif(specie == 2):
+            compute_cross_corr(1.+zion, dens, boxsize, outputfile, 'zionHeII', 'dens%02d'%(counter-1))
+        else:
+            sys.exit()
 

@@ -2,9 +2,10 @@ import sys
 import os
 import numpy as np
 from numpy.random import random
+import matplotlib as m
+m.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
-import matplotlib as m
 from scipy import ndimage
 
 from grid import *

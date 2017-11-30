@@ -75,7 +75,10 @@ confObj_del(confObj_t *config)
     assert(*config != NULL);
     
     xfree((*config)->sources_file);
+    xfree((*config)->spectra_file);
+    xfree((*config)->dir_spectra);
 
+    xfree((*config)->sources_file_new);
     xfree((*config)->sources_file_HeI);
     xfree((*config)->sources_file_HeII);
     
