@@ -82,5 +82,9 @@ if not os.path.exists(dir_cross_ziondens):
 dir_ion_bubbledistr = newdir + '/ion_bubbledistr'
 if not os.path.exists(dir_ion_bubbledistr):
     os.makedirs(dir_ion_bubbledistr)
+ 
+dir_ionhist_cosmicweb = newdir + '/ionhist_cosmicweb'
+if not os.path.exists(dir_ionhist_cosmicweb):
+    os.makedirs(dir_ionhist_cosmicweb)
     
 print newdir
