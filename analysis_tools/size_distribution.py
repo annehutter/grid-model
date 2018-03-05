@@ -87,7 +87,7 @@ for specie in range(numSpecie):
 
     maximum = 1.e-10
 
-    threshold = 0.5
+    threshold = 0.9
     Nrays = 100000
 
     for i in range(len(redshift)-1):

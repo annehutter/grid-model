@@ -2,7 +2,7 @@
  *  confObj.c
  *  uvff
  *
- *  Created by Adrian Partl on 4/15/10.
+ *  Created by 
  *  Copyright 2010 __MyCompanyName__. All rights reserved.
  *
  */

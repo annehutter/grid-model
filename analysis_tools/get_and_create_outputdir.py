@@ -33,6 +33,14 @@ dir_ion = newdir + '/ion'
 if not os.path.exists(dir_ion):
     os.makedirs(dir_ion)
 
+dir_HeIIion = newdir + '/HeIIion'
+if not os.path.exists(dir_HeIIion):
+    os.makedirs(dir_HeIIion)
+    
+dir_HeIIIion = newdir + '/HeIIIion'
+if not os.path.exists(dir_HeIIIion):
+    os.makedirs(dir_HeIIIion)
+    
 dir_iondens = newdir + '/iondens'
 if not os.path.exists(dir_iondens):
     os.makedirs(dir_iondens)

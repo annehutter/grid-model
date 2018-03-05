@@ -212,6 +212,45 @@ void map_central_ionized_cell_to_sphere(fftw_complex *new_cum_nion_smooth, fftw_
     }
 }
 
+void map_central_ionized_cell_with_source_to_sphere(fftw_complex *new_cum_nion_smooth, fftw_complex *cum_nion_smooth, fftw_complex *filter, fftw_complex *cum_nion, grid_t *thisGrid)
+{
+    int nbins = thisGrid->nbins;
+    int local_n0 = thisGrid->local_n0;
+    double threshold = 1./((float)nbins*(float)nbins*(float)nbins);
+    
+    for(int i=0; i<local_n0; i++)
+    {
+        for(int j=0; j<nbins; j++)
+        {
+            for(int k=0; k<nbins; k++)
+            {
+                if(creal(cum_nion[i*nbins*nbins+j*nbins+k]) <=0.)
+                {
+                    cum_nion_smooth[i*nbins*nbins+j*nbins+k] =  0. + 0.*I;
+                }
+            }
+        }
+    }
+    
+    convolve_fft(thisGrid, filter, new_cum_nion_smooth, cum_nion_smooth);
+    
+    for(int i=0; i<local_n0; i++)
+    {
+        for(int j=0; j<nbins; j++)
+        {
+            for(int k=0; k<nbins; k++)
+            {
+                if(creal(new_cum_nion_smooth[i*nbins*nbins+j*nbins+k])>threshold)
+                {
+                    new_cum_nion_smooth[i*nbins*nbins+j*nbins+k] = 1. + 0.*I;
+                }else{
+                    new_cum_nion_smooth[i*nbins*nbins+j*nbins+k] = 0. + 0.*I;
+                }
+            }
+        }
+    }
+}
+
 // versatile function (thisGrid is only used for grid dimensions and domain decomposition
 void choose_ion_fraction(fftw_complex *cum_nion_smooth, fftw_complex *Xion_tmp, grid_t *thisGrid)
 {
@@ -557,6 +596,10 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
         if(simParam->ionize_sphere == 1 && scale != num_scales-1)
         {
             map_central_ionized_cell_to_sphere(frac_Q_smooth, frac_Q_smooth, filter, thisGrid);
+        }
+        else if(simParam->ionize_sphere == 2 && scale != num_scales-1)
+        {
+            map_central_ionized_cell_with_source_to_sphere(frac_Q_smooth, frac_Q_smooth, filter, cum_nion, thisGrid);
         }
         
 #ifdef DEBUG_FILTERING

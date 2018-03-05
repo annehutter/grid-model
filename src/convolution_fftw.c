@@ -137,12 +137,6 @@ void convolve_fft_ktophat(grid_t *thisGrid, fftw_complex *kfilter, fftw_complex 
 		fprintf(stderr, "input_ft in convolve_fft (filtering.c) could not be allocated\n");
 		exit(EXIT_FAILURE);
 	}
-	filter_ft = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
-	if(filter_ft == NULL)
-	{
-		fprintf(stderr, "filter_ft in convolve_fft (filtering.c) could not be allocated\n");
-		exit(EXIT_FAILURE);
-	}
 	
 	plan_input = fftw_plan_dft_3d(nbins, nbins, nbins, input, input_ft, FFTW_FORWARD, FFTW_ESTIMATE);
 #endif

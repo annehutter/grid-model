@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib as m
+import glob
+import re
 
 from grid import *  
 import read_parameterfile as rp
@@ -80,6 +82,26 @@ dension = np.zeros(gridsize**3)
 meanIon_list = np.zeros(len(redshift))
 meanIon_mass_list = np.zeros(len(redshift))
 
+ionfile_table = sorted(glob.glob(ionfile + '_*'))
+densfile_table = sorted(glob.glob(densfile + '*'))
+
+regex = re.compile(r'\d+')
+
+dens_table_min = np.int32(regex.findall(densfile_table[0])[-1])
+dens_table_max = np.int32(regex.findall(densfile_table[-1])[-1])
+
+ion_table_min = np.int32(regex.findall(ionfile_table[0])[-1])
+ion_table_max = np.int32(regex.findall(ionfile_table[-1])[-1])
+
+print ion_table_min, ion_table_max
+print dens_table_min, dens_table_max
+
+if (len(densfile_table) > len(ionfile_table)):
+    densfile_table = densfile_table[(ion_table_min-dens_table_min):ion_table_max+1]
+
+assert(len(ionfile_table)==len(redshift)-1)
+assert(len(densfile_table)<=len(redshift)-1)
+
 counter = 0
 for i in range(len(redshift)-1):
     z = redshift[i+1]
@@ -91,11 +113,13 @@ for i in range(len(redshift)-1):
         infile = ionfile + '_0' + str(i)
     else:
         infile = ionfile + '_' + str(i)
+        
+    infile = ionfile_table[i]
     if(os.path.isfile(infile) == False):
         continue
     
     ion = rf.read_ion(infile, isPadded, inputIsDouble, gridsize)
-    print "z =", z, "\tXHII =", np.mean(ion, dtype=np.float64)
+    print "z =", z, "\tXHII =", np.mean(ion, dtype=np.float64), "\t", infile
     ion = np.ravel(ion)
     
     #-----------------------
@@ -106,6 +130,10 @@ for i in range(len(redshift)-1):
             dinfile = densfile + '_00' + str(counter)
         else:
             dinfile = densfile + '_0' + str(counter)
+        
+        print counter
+        dinfile = densfile_table[counter]
+        print dinfile
         counter = counter + 1
         if(os.path.isfile(dinfile) == False):
             print "!!! density field was not updated"
@@ -117,7 +145,7 @@ for i in range(len(redshift)-1):
     #-----------------------
     # zion and dension
     #-----------------------
-    indices = np.intersect1d(np.where(ion>threshold), np.where(zion==0.))
+    indices = np.intersect1d(np.where(ion>threshold)[0], np.where(zion==0.)[0])
     zion[indices] = z
     dension[indices] = dens[indices]*(1.+z)**3*numdensity
 
