@@ -428,12 +428,22 @@ void write_grid_to_file_float(fftw_complex *thisArray, int nbins, int local_n0, 
 	offset = (local_0_start*nbins*nbins*sizeof(float));
 
 	MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &mpifile);
+  if (mpifile == MPI_FILE_NULL)
+  {
+    fprintf(stderr, "Could not open file %s\n", filename);
+    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);     
+  }
 	MPI_File_write_at_all(mpifile, offset, tmparray, local_n0*nbins*nbins, MPI_FLOAT, &status);
 	MPI_File_close(&mpifile);
 #else
 	FILE * fp;
 	
 	fp = fopen(filename, "wb");
+  if (fp == NULL)
+  {
+    fprintf(stderr, "Could not open file %s\n", filename);
+    exit(EXIT_FAILURE);
+  } 
 	fwrite(tmparray, sizeof(float), nbins*nbins*nbins, fp);
 	fclose(fp);
 #endif
@@ -475,12 +485,22 @@ void write_grid_to_file_double(fftw_complex *thisArray, int nbins, int local_n0,
 	offset = (local_0_start*nbins*nbins*sizeof(double));
 	
 	MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &mpifile);
+  if (mpifile == MPI_FILE_NULL)
+  {
+    fprintf(stderr, "Could not open file %s\n", filename);
+    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE); 
+  }
 	MPI_File_write_at_all(mpifile, offset, tmparray, local_n0*nbins*nbins, MPI_DOUBLE, &status);
 	MPI_File_close(&mpifile);
 #else
 	FILE * fp;
 	
 	fp = fopen(filename, "wb");
+  if (fp == NULL)
+  {
+    fprintf(stderr, "Could not open file %s\n", filename);
+    exit(EXIT_FAILURE);
+  } 
 	fwrite(tmparray, sizeof(double), nbins*nbins*nbins, fp);
 	fclose(fp);
 #endif
