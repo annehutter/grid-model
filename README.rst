@@ -47,7 +47,7 @@ Go to the `FFTW webpage <http://www.fftw.org/download.html>`__ to install fftw3.
     $ make
     $ make install
     
-Note: To create the dynamic libraries, run configure with the ``--enable_shared`` flag. 
+Note: To create the dynamic libraries, run configure with the ``--enable-shared`` flag. 
     
 GSL
 '''
