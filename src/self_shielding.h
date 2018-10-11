@@ -1,7 +1,5 @@
 #ifndef SELF_SHIELDING_H
 #define SELF_SHIELDING_H
-#endif
-
 
 double ss_calc_modPhotHI(double densH, double densSS);
 double ss_calc_densSS(confObj_t simParam, double photHI, double temperature, double redshift);
@@ -18,3 +16,5 @@ void set_value_to_photoionization_field(grid_t *thisGrid, confObj_t simParam);
 void set_value_to_photHI_bg(grid_t *thisGrid, confObj_t simParam, double value);
 void compute_photHI_ionizedRegions(grid_t *thisGrid, confObj_t simParam);
 void compute_web_ionfraction(grid_t *thisGrid, confObj_t simParam);
+
+#endif

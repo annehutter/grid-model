@@ -13,10 +13,11 @@
 #include <fftw3.h>
 #endif
 
+#include "utils.h"
+
 #include "input_redshifts.h"
 #include "phys_const.h"
 #include "confObj.h"
-#include "utils.h"
 
 double *read_redshift_list(char *redshift_file, int num_snapshots)
 {

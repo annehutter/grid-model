@@ -11,12 +11,14 @@
 #include <fftw3.h>
 #endif
 
-#include "photion_background.h"
+#include "utils.h"
+
 #include "phys_const.h"
 #include "confObj.h"
 #include "grid.h"
 #include "sources.h"
-#include "utils.h"
+
+#include "photion_background.h"
 
 photIonlist_t *allocate_photIonlist(int Nallocated)
 {

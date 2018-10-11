@@ -1,6 +1,5 @@
 #ifndef PHOTION_BACKGROUND_H
 #define PHOTION_BACKGROUND_H
-#endif
 
 typedef struct
 {
@@ -18,3 +17,4 @@ photIonlist_t *read_photIonlist(char *filename);
 double get_photHI_from_redshift(const photIonlist_t *thisPhotIonlist, double redshift);
 double get_photHI_from_fillingfactor(const photIonlist_t *thisPhotIonlist, double QHII);
 
+#endif

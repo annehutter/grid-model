@@ -1,6 +1,5 @@
 #ifndef RECOMBINATION
 #define RECOMBINATION
-#endif
 
 // typedef struct
 // {
@@ -127,4 +126,6 @@ void compute_table_redshift(double dens_cell_min, double dens_cell_max, double d
 void write_table(int num, int offset, double *array, char *filename);
 #else
 void write_table(int num, double *array, char *filename);
+#endif
+
 #endif

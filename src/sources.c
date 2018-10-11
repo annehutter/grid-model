@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "sources.h"
 #include "utils.h"
+
+#include "sources.h"
 
 // /* functions on source struct (for one source) ---------------------------------------------------------------*/
 // 

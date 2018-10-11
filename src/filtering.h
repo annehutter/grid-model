@@ -1,6 +1,5 @@
 #ifndef FILTERING_H
 #define FILTERING_H
-#endif
 
 void determine_mfp_nion(fftw_complex *frac_Q_smooth, fftw_complex *nion_smooth, fftw_complex *mfp_nion, int nbins, ptrdiff_t local_n0, double scale);
 void determine_mfp(fftw_complex *frac_Q_smooth, fftw_complex *mfp, int nbins, ptrdiff_t local_n0, double scale);
@@ -23,3 +22,5 @@ void update_web_model(grid_t *thisGrid, confObj_t simParam);
 void adapt_HeII_to_HeIII(grid_t *thisGrid);
 
 void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie);
+
+#endif
