@@ -103,88 +103,74 @@ int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const
     
     if(simParam->use_web_model == 1)
     {
-        /* ----------------------------------------- */
-        /* photoionization rate is homogeneous       */
-        /* ----------------------------------------- */
-        if(simParam->photHI_model == 0)
+        if(cycle == 0)
         {
-            //set photoionization rate on grid to background value
-            if(myRank==0) printf("\n++++\nsetting photoionization rate to background value... ");
-            set_value_to_photoionization_field(grid, simParam);
-            if(myRank==0) printf("\n photHI_bg = %e s^-1\n", simParam->photHI_bg);
-            if(myRank==0) printf("done\n+++\n");
-        }
-        /* ----------------------------------------------------------------------------------------- */
-        /* photoionization rate is given by mean mfp and exp(-r/mfp)/r^2 around sources distribution */
-        /* ----------------------------------------------------------------------------------------- */
-        else if(simParam->photHI_model == 11){
-            //set photoionization value according to the given list
-            set_value_to_photHI_bg(simParam, get_photHI_from_redshift(photIonBgList, simParam->redshift));
-            
-            if(simParam->calc_mfp == 1)
+            /* ----------------------------------------- */
+            /* photoionization rate is homogeneous       */
+            /* ----------------------------------------- */
+            if(simParam->photHI_model == 0)
             {
-                if(myRank==0) printf("\n++++\ncompute mean free path... ");
-                if(cycle==0){
-                    simParam->mfp = f*simParam->box_size/(simParam->h * (1.+simParam->redshift))/grid->nbins;
-                }else{
-                    set_mfp_Miralda2000(simParam);
-                    printf("\n M2000: mfp(photHI = %e) = %e Mpc at z = %e", simParam->photHI_bg, simParam->mfp, simParam->redshift);
-
-                    if(f*grid->mean_mfp < simParam->mfp || simParam->photHI_bg < 1.e-12)
-                    {
-                        simParam->mfp = f*grid->mean_mfp*(1.+simParam->redshift)/(1.+simParam->redshift_prev_snap);
-                    }
-                }
-                if(myRank==0) printf("\n mfp = %e Mpc at z = %e\n", simParam->mfp, simParam->redshift);
+                //set photoionization rate on grid to background value
+                if(myRank==0) printf("\n++++\nsetting photoionization rate to background value... ");
+                set_value_to_photoionization_field(grid, simParam);
+                if(myRank==0) printf("\n photHI_bg = %e s^-1\n", simParam->photHI_bg);
                 if(myRank==0) printf("done\n+++\n");
             }
             
-            //compute spatial photoionization rate according to source distribution
-            if(myRank==0) printf("\n++++\ncompute photoionization rate... ");
-            compute_photHI(grid, simParam, 1);
-            if(myRank==0) printf("done\n+++\n");
-        }
-        /* ----------------------------------------------------------------------------------------- */
-        /* photoionization rate is given by mean mfp and exp(-r/mfp)/r^2 around sources distribution */
-        /* ----------------------------------------------------------------------------------------- */
-        else if(simParam->photHI_model == 1){                
-            if(simParam->calc_mfp == 1)
+            /* ----------------------------------------------------------------------------------------- */
+            /* photoionization rate is given by mean mfp and exp(-r/mfp)/r^2 around sources distribution */
+            /* ----------------------------------------------------------------------------------------- */
+            else if(simParam->photHI_model == 11)
             {
-                if(myRank==0) printf("\n++++\ncompute mean free path... ");
-                if(cycle==0){
+                //set photoionization value according to the given list
+                set_value_to_photHI_bg(simParam, get_photHI_from_redshift(photIonBgList, simParam->redshift));
+                
+                if(simParam->calc_mfp == 1)
+                {
+                    if(myRank==0) printf("\n++++\ncompute mean free path... ");
                     simParam->mfp = f*simParam->box_size/(simParam->h * (1.+simParam->redshift))/grid->nbins;
-                }else{
-                    set_mfp_Miralda2000(simParam);
-                    printf("\n M2000: mfp(photHI = %e) = %e Mpc at z = %e", simParam->photHI_bg, simParam->mfp, simParam->redshift);
-
-                    if(f*grid->mean_mfp < simParam->mfp || simParam->photHI_bg < 1.e-12)
-                    {
-                        simParam->mfp = f*grid->mean_mfp*(1.+simParam->redshift)/(1.+simParam->redshift_prev_snap);
-                    }
+                    if(myRank==0) printf("\n mfp = %e Mpc at z = %e\n", simParam->mfp, simParam->redshift);
+                    if(myRank==0) printf("done\n+++\n");
                 }
-                if(myRank==0) printf("\n mfp = %e Mpc at z = %e\n", simParam->mfp, simParam->redshift);
+                
+                //compute spatial photoionization rate according to source distribution
+                if(myRank==0) printf("\n++++\ncompute photoionization rate... ");
+                compute_photHI(grid, simParam, 1);
                 if(myRank==0) printf("done\n+++\n");
             }
             
-            //compute spatial photoionization rate according to source distribution
-            if(myRank==0) printf("\n++++\ncompute photoionization rate... ");
-            compute_photHI(grid, simParam, 0);
-            if(myRank==0) printf("done\n+++\n");
-        }
-        /* ------------------------------------------------------- */
-        /* photoionization rate is given by mfp of ionized regions */
-        /* ------------------------------------------------------- */
-        else if(simParam->photHI_model == 2){
-//             set_value_to_photHI_bg(simParam, get_photHI_from_redshift(photIonBgList, simParam->redshift));
-            
-            //compute spatial photoionization rate according to source distribution and mean photoionization rate given
-            if(myRank==0) printf("\n++++\nset photoionization rate according to ionized regions... ");
-            if(cycle != 0){
-                compute_photHI_ionizedRegions(grid, simParam);
-            }else{
-                set_value_to_photoionization_field(grid,simParam);
+            /* ----------------------------------------------------------------------------------------- */
+            /* photoionization rate is given by mean mfp and exp(-r/mfp)/r^2 around sources distribution */
+            /* ----------------------------------------------------------------------------------------- */
+            else if(simParam->photHI_model == 1)
+            {                
+                if(simParam->calc_mfp == 1)
+                {
+                    if(myRank==0) printf("\n++++\ncompute mean free path... ");
+                    simParam->mfp = f*simParam->box_size/(simParam->h * (1.+simParam->redshift))/grid->nbins;
+                    if(myRank==0) printf("\n mfp = %e Mpc at z = %e\n", simParam->mfp, simParam->redshift);
+                    if(myRank==0) printf("done\n+++\n");
+                }
+                
+                //compute spatial photoionization rate according to source distribution
+                if(myRank==0) printf("\n++++\ncompute photoionization rate... ");
+                compute_photHI(grid, simParam, 0);
+                if(myRank==0) printf("done\n+++\n");
             }
-            if(myRank==0) printf("done\n+++\n");
+            
+            /* ------------------------------------------------------- */
+            /* photoionization rate is given by mfp of ionized regions */
+            /* ------------------------------------------------------- */
+            else if(simParam->photHI_model == 2)
+            {                
+                if(myRank==0) printf("\n++++\nset photoionization rate according to ionized regions... ");
+                if(cycle != 0){
+                    compute_photHI_ionizedRegions(grid, simParam);
+                }else{
+                    set_value_to_photoionization_field(grid,simParam);
+                }
+                if(myRank==0) printf("done\n+++\n");
+            }
         }
         
         /* ------------------------------------------------------- */

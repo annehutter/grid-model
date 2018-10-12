@@ -32,6 +32,8 @@ confObj_new(parse_ini_t ini)
     
     config = xmalloc(sizeof(struct confObj_struct));
     
+    char *photHImodel = NULL;
+    
     //reading mandatory stuff
     
     //Type
@@ -73,32 +75,21 @@ confObj_new(parse_ini_t ini)
         config->evol_time = 0.;
     }
     
-    getFromIni(&(config->lin_scales), parse_ini_get_double,
-               ini, "size_linear_scale", "General");
-    getFromIni(&(config->inc_log_scales), parse_ini_get_double,
-               ini, "first_increment_in_logscale", "General");
-    getFromIni(&(config->max_scale), parse_ini_get_double,
-               ini, "max_scale", "General");
-    getFromIni(&(config->ionize_sphere), parse_ini_get_int32,
-               ini, "useIonizeSphereModel", "General");
+
+    //Cosmology
+    getFromIni(&(config->h), parse_ini_get_double,
+               ini, "hubble_h", "Cosmology");
+    getFromIni(&(config->omega_b), parse_ini_get_double,
+               ini, "omega_b", "Cosmology");
+    getFromIni(&(config->omega_m), parse_ini_get_double,
+               ini, "omega_m", "Cosmology");
+    getFromIni(&(config->omega_l), parse_ini_get_double,
+               ini, "omega_l", "Cosmology");
+    getFromIni(&(config->sigma8), parse_ini_get_double,
+               ini, "sigma8", "Cosmology");
+    getFromIni(&(config->Y), parse_ini_get_double,
+               ini, "Y", "Cosmology");
     
-    getFromIni(&(config->default_mean_density), parse_ini_get_int32,
-               ini, "useDefaultMeanDensity", "General");
-    getFromIni(&(config->use_web_model), parse_ini_get_int32,
-               ini, "useWebModel", "General");
-    getFromIni(&(config->photHI_model), parse_ini_get_int32,
-               ini, "photHImodel", "General");
-    getFromIni(&(config->calc_mfp), parse_ini_get_int32,
-               ini, "calcMeanFreePath", "General");
-    getFromIni(&(config->const_recomb), parse_ini_get_int32,
-               ini, "constantRecombinations", "General");
-    getFromIni(&(config->calc_recomb), parse_ini_get_int32,
-               ini, "calcRecombinations", "General");
-    getFromIni(&(config->solve_He), parse_ini_get_int32,
-               ini, "solveForHelium", "General");
-    
-    getFromIni(&(config->padded_box), parse_ini_get_int32,
-               ini, "paddedBox", "General");
     
     //Input
     getFromIni(&(config->grid_size), parse_ini_get_int32,
@@ -127,38 +118,82 @@ confObj_new(parse_ini_t ini)
     getFromIni(&(config->nion_file), parse_ini_get_string,
                ini, "inputNionFile", "Input");
 
-    //Output
-    getFromIni(&(config->out_XHII_file), parse_ini_get_string,
-               ini, "output_XHII_file", "Output");
-    getFromIni(&(config->write_photHI_file), parse_ini_get_int32,
-               ini, "write_photHI_file", "Output");
-    getFromIni(&(config->out_photHI_file), parse_ini_get_string,
-               ini, "output_photHI_file", "Output");
-
     
-    //Cosmology
-    getFromIni(&(config->h), parse_ini_get_double,
-               ini, "hubble_h", "Cosmology");
-    getFromIni(&(config->omega_b), parse_ini_get_double,
-               ini, "omega_b", "Cosmology");
-    getFromIni(&(config->omega_m), parse_ini_get_double,
-               ini, "omega_m", "Cosmology");
-    getFromIni(&(config->omega_l), parse_ini_get_double,
-               ini, "omega_l", "Cosmology");
-    getFromIni(&(config->sigma8), parse_ini_get_double,
-               ini, "sigma8", "Cosmology");
-    getFromIni(&(config->Y), parse_ini_get_double,
-               ini, "Y", "Cosmology");
-
+    
+    getFromIni(&(config->lin_scales), parse_ini_get_double,
+               ini, "size_linear_scale", "General");
+    getFromIni(&(config->inc_log_scales), parse_ini_get_double,
+               ini, "first_increment_in_logscale", "General");
+    getFromIni(&(config->max_scale), parse_ini_get_double,
+               ini, "max_scale", "General");
+    getFromIni(&(config->ionize_sphere), parse_ini_get_int32,
+               ini, "useIonizeSphereModel", "General");
+    
+    getFromIni(&(config->default_mean_density), parse_ini_get_int32,
+               ini, "useDefaultMeanDensity", "General");
+    getFromIni(&(config->use_web_model), parse_ini_get_int32,
+               ini, "useWebModel", "General");
+    getFromIni(&(config->calc_mfp), parse_ini_get_int32,
+               ini, "calcMeanFreePath", "General");
+    getFromIni(&(config->const_recomb), parse_ini_get_int32,
+               ini, "constantRecombinations", "General");
+    getFromIni(&(config->calc_recomb), parse_ini_get_int32,
+               ini, "calcRecombinations", "General");
+    getFromIni(&(config->solve_He), parse_ini_get_int32,
+               ini, "solveForHelium", "General");
+    
+    getFromIni(&(config->padded_box), parse_ini_get_int32,
+               ini, "paddedBox", "General");
+    
+    
     //Photoionization
-    getFromIni(&(config->photHI_bg_file), parse_ini_get_string,
-               ini, "photHI_bg_file", "Photoionization")
-    getFromIni(&(config->photHI_bg), parse_ini_get_double,
-               ini, "photHI_bg", "Photoionization");
-    getFromIni(&(config->mfp), parse_ini_get_double,
-               ini, "meanFreePathInIonizedMedium", "Photoionization");
-    getFromIni(&(config->source_slope_index), parse_ini_get_double,
-               ini, "sourceSlopeIndex", "Photoionization");
+    getFromIni(&photHImodel, parse_ini_get_string,
+               ini, "photHImodel", "PhotoionizationModel");
+    
+    if(strcmp(photHImodel, "PHOTHI_CONST") == 0)
+    {
+        config->photHI_model = 0;
+        getFromIni(&(config->photHI_bg), parse_ini_get_double,
+                  ini, "photHI_bg", "PhotoionizationConst");
+        config->photHI_bg_file = NULL;
+        config->mfp = 0.;
+        config->source_slope_index = 0.;
+    }
+    else if(strcmp(photHImodel, "PHOTHI_GIVEN") == 0)
+    {
+        config->photHI_model = 11;
+        config->photHI_bg = 0.;
+        getFromIni(&(config->photHI_bg_file), parse_ini_get_string,
+                  ini, "photHI_bg_file", "PhotoionizationGiven");
+        getFromIni(&(config->mfp), parse_ini_get_double,
+                  ini, "meanFreePathInIonizedMedium", "PhotoionizationGiven");
+        getFromIni(&(config->source_slope_index), parse_ini_get_double,
+                  ini, "sourceSlopeIndex", "PhotoionizationMfp");
+    }
+    else if(strcmp(photHImodel, "PHOTHI_FLUX") == 0)
+    {
+        config->photHI_model = 1;
+        config->photHI_bg = 0.;
+        config->photHI_bg_file = NULL;
+        getFromIni(&(config->mfp), parse_ini_get_double,
+                  ini, "meanFreePathInIonizedMedium", "PhotoionizationFlux");
+        getFromIni(&(config->source_slope_index), parse_ini_get_double,
+                  ini, "sourceSlopeIndex", "PhotoionizationMfp");
+    }
+    else if(strcmp(photHImodel, "PHOTHI_MFP") == 0)
+    {
+        config->photHI_model = 2;
+        config->photHI_bg = 0.;
+        config->photHI_bg_file = NULL;
+        config->mfp = 0.;
+        getFromIni(&(config->source_slope_index), parse_ini_get_double,
+                  ini, "sourceSlopeIndex", "PhotoionizationMfp");
+    }
+    else
+    {
+        printf("\n***WARNING***\nThis is not a supported photoionization model. Choose one of the following options:\n'PHOTHI_CONST': constant photoionization rate\n'PHOT_GIVEN': mean value of the photoionization rate is given by the values in the photHI_bg file, distribution follows the flux of sources\n'PHOTHI_FLUX': photoionization rate is calculated based on the flux from sources\n'PHOTHI_MFP': photoionization rate is given bz the mean free path of the inoized regions.\n***WARNING***\n");
+        exit(EXIT_FAILURE);
+    }
     
     //Recombinations
     getFromIni(&(config->dnrec_dt), parse_ini_get_double,
@@ -199,13 +234,25 @@ confObj_new(parse_ini_t ini)
     getFromIni(&(config->dnrec_HeII_dt), parse_ini_get_double,
                ini, "dnrec_HeII_dt", "Helium");
     
+
+    
+    
+    //Output
+    getFromIni(&(config->out_XHII_file), parse_ini_get_string,
+               ini, "output_XHII_file", "Output");
+    getFromIni(&(config->write_photHI_file), parse_ini_get_int32,
+               ini, "write_photHI_file", "Output");
+    getFromIni(&(config->out_photHI_file), parse_ini_get_string,
+               ini, "output_photHI_file", "Output");
     getFromIni(&(config->out_XHeII_file), parse_ini_get_string,
-               ini, "output_XHeII_file", "Helium");
+               ini, "output_XHeII_file", "Output");
     getFromIni(&(config->out_XHeIII_file), parse_ini_get_string,
-               ini, "output_XHeIII_file", "Helium");
+               ini, "output_XHeIII_file", "Output");
     
     config->f = 0.69;
     config->factor = 0.69;
+    
+    free(photHImodel);
     
     return config;
 }

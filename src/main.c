@@ -117,9 +117,12 @@ int main (int argc, /*const*/ char * argv[]) {
     if(myRank==0) printf("done\n+++\n");
     
     //read photoionization background values 
-    if(myRank==0) printf("\n++++\nreading photoionization background rates... ");
-    photIonBgList = read_photIonlist(simParam->photHI_bg_file);
-    if(myRank==0) printf("done\n+++\n");
+    if(simParam->photHI_model == 11)
+    {
+        if(myRank==0) printf("\n++++\nreading photoionization background rates... ");
+        photIonBgList = read_photIonlist(simParam->photHI_bg_file);
+        if(myRank==0) printf("done\n+++\n");
+    }
     
     if(simParam->calc_recomb == 2)
     {

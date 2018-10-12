@@ -349,7 +349,7 @@ void replace_convolve_fft_photHI(grid_t *thisGrid, confObj_t simParam, fftw_comp
 #else
     mean_photHI = sum;
 #endif
-    mean_photHI = mean_photHI/(nbins*nbins*nbins);
+    mean_photHI = mean_photHI/(double)(nbins*nbins*nbins);
     mean_photHI = mean_photHI*factor_photHI;
 
     thisGrid->mean_photHI = mean_photHI;
@@ -445,7 +445,7 @@ void compute_photHI(grid_t *thisGrid, confObj_t simParam, int rescale)
         
         if(simParam->padded_box != 0.)
         {
-            thisGrid->mean_photHI = thisGrid->mean_photHI*simParam->padded_box;
+            thisGrid->mean_photHI = thisGrid->mean_photHI * simParam->padded_box;
         }
         simParam->photHI_bg = thisGrid->mean_photHI;
                        
