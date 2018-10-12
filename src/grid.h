@@ -5,29 +5,29 @@
 
 typedef struct
 {
-	int nbins;
-	float box_size;
-	float lin_scales;
-	float inc_log_scales;
+    int nbins;
+    float box_size;
+    float lin_scales;
+    float inc_log_scales;
     float max_scale;
-	
-	float xmin, ymin, zmin;
-	
-	fftw_complex *igm_density;
+
+    float xmin, ymin, zmin;
+
+    fftw_complex *igm_density;
     fftw_complex *igm_clump;
-    
+
     // hydrogen
-	fftw_complex *nion;
-	fftw_complex *cum_nion;
+    fftw_complex *nion;
+    fftw_complex *cum_nion;
     fftw_complex *cum_nrec;
-	fftw_complex *cum_nabs;
-	fftw_complex *frac_Q;
-	
-	fftw_complex *XHII;
-	fftw_complex *nrec;
-	
-	fftw_complex *photHI;
-	double mean_photHI;
+    fftw_complex *cum_nabs;
+    fftw_complex *frac_Q;
+
+    fftw_complex *XHII;
+    fftw_complex *nrec;
+
+    fftw_complex *photHI;
+    double mean_photHI;
     
     double mean_mfp;
     
@@ -47,10 +47,10 @@ typedef struct
     fftw_complex *XHeIII;
     fftw_complex *nrec_HeI;
     fftw_complex *nrec_HeII;
-	
+
     //domain decomposition
-	int local_n0;
-	int local_0_start;
+    int local_n0;
+    int local_0_start;
 } grid_t;
 
 /* functions */

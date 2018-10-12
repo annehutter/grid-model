@@ -22,6 +22,10 @@ typedef struct confObj_struct *confObj_t;
 
 /*--- Implemention of main structure ------------------------------------*/
 struct confObj_struct {
+  
+    // Type
+    char           *sim_type;
+    
     //General
     int            num_snapshots;
     char           *redshift_file;

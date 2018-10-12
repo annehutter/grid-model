@@ -213,9 +213,7 @@ double dd_frac_densSS(double densSS, confObj_t simParam)
 	result = dd_calc_integral(*params, densSS);
 	
 	result2 = dd_calc_integral(*params, 0.);
- 
-// 	printf("%e\t%e\t%e\t A = %e\t C = %e\t densSS = %e\n", result/result2, result, result2, params->amplitude, params->constant, densSS);
-		
+	
 	free(params);
 	
 	return result/result2;

@@ -23,16 +23,16 @@
 photIonlist_t *allocate_photIonlist(int Nallocated)
 {
     photIonlist_t *newPhotIonlist;
-	newPhotIonlist = malloc(sizeof(photIonlist_t));
-	if(newPhotIonlist == NULL)
-	{
-		fprintf(stderr, "newPhotIonlist in allocate_photIonlist (photion_background.c) could not be allocated\n");
-		exit(EXIT_FAILURE);
-	}
-	
-	newPhotIonlist->num = 0;
-	newPhotIonlist->Nallocated = Nallocated;
-	newPhotIonlist->redshift = NULL;
+    newPhotIonlist = malloc(sizeof(photIonlist_t));
+    if(newPhotIonlist == NULL)
+    {
+            fprintf(stderr, "newPhotIonlist in allocate_photIonlist (photion_background.c) could not be allocated\n");
+            exit(EXIT_FAILURE);
+    }
+    
+    newPhotIonlist->num = 0;
+    newPhotIonlist->Nallocated = Nallocated;
+    newPhotIonlist->redshift = NULL;
     newPhotIonlist->photHI = NULL;
     newPhotIonlist->QHII = NULL;
     

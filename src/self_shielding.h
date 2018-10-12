@@ -13,7 +13,7 @@ void compute_photHI(grid_t *thisGrid, confObj_t simParam, int rescale);
 double calc_mean_photoionization_ionized_field(grid_t *thisGrid);
 double calc_factor_photoionization_ionfraction(grid_t *thisGrid, confObj_t simParam);
 void set_value_to_photoionization_field(grid_t *thisGrid, confObj_t simParam);
-void set_value_to_photHI_bg(grid_t *thisGrid, confObj_t simParam, double value);
+void set_value_to_photHI_bg(confObj_t simParam, double value);
 void compute_photHI_ionizedRegions(grid_t *thisGrid, confObj_t simParam);
 void compute_web_ionfraction(grid_t *thisGrid, confObj_t simParam);
 

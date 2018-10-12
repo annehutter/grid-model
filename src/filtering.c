@@ -24,6 +24,10 @@
 #include "self_shielding.h"
 #include "density_distribution.h"
 
+#include "photion_background.h"
+
+#include "filtering.h"
+
 #define SQR(X) ((X) * (X))
 
 void determine_mfp_nion(fftw_complex *frac_Q_smooth, fftw_complex *nion_smooth, fftw_complex *mfp_nion, int nbins, ptrdiff_t local_n0, double scale)
@@ -339,12 +343,13 @@ void copy_grid_array(fftw_complex *Xion_tmp, fftw_complex *Xion, grid_t *thisGri
     }
 }
 
-void update_web_model(grid_t *thisGrid, confObj_t simParam)
+void update_web_model(grid_t *thisGrid, confObj_t simParam, photIonlist_t *photIonBgList)
 {
     const double f = simParam->f;
 
+    printf("thisGrid->mean_photHI = %e\n", thisGrid->mean_photHI);
     thisGrid->mean_photHI = 0.;
-    if(simParam->photHI_model == 2) compute_photHI_ionizedRegions(thisGrid, simParam);
+    
     if(simParam->photHI_model == 1)
     {
         if(simParam->calc_mfp == 1)
@@ -359,6 +364,29 @@ void update_web_model(grid_t *thisGrid, confObj_t simParam)
         }
         compute_photHI(thisGrid, simParam, 0);
     }
+    
+    if(simParam->photHI_model == 2) 
+    {
+        compute_photHI_ionizedRegions(thisGrid, simParam);
+    }
+    
+    if(simParam->photHI_model == 11)
+    {
+        set_value_to_photHI_bg(simParam, get_photHI_from_redshift(photIonBgList, simParam->redshift));
+        
+        if(simParam->calc_mfp == 1)
+        {
+            set_mfp_Miralda2000(simParam);
+            printf("\n M2000: mfp(photHI = %e) = %e Mpc at z = %e", simParam->photHI_bg, simParam->mfp, simParam->redshift);
+            if(f*thisGrid->mean_mfp < simParam->mfp || simParam->photHI_bg < 1.e-12)
+            {
+                simParam->mfp = f*thisGrid->mean_mfp;
+            }
+            printf("\n mfp = %e Mpc at z = %e", simParam->mfp, simParam->redshift);
+        }
+        compute_photHI(thisGrid, simParam, 1);
+    }
+    
     compute_web_ionfraction(thisGrid, simParam);
 }
 
@@ -385,7 +413,7 @@ void adapt_HeII_to_HeIII(grid_t *thisGrid)
     }
 }
 
-void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
+void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, photIonlist_t *photIonBgList, int specie)
 {
     int nbins;
     float smooth_scale;
@@ -628,7 +656,6 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
         }
     }
     
-    
     /* -------------------------------------------------------- */
     /* save mean mfp of ionization field                        */
     /* -------------------------------------------------------- */ 
@@ -656,7 +683,7 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, int specie)
     /* -------------------------------------------------------- */ 
     if(simParam->use_web_model == 1 && specie == 0)
     {        
-        update_web_model(thisGrid, simParam);
+        update_web_model(thisGrid, simParam, photIonBgList);
         combine_bubble_and_web_model(Xion_tmp, Xion, thisGrid);
     }else{
         copy_grid_array(Xion_tmp, Xion, thisGrid);

@@ -93,32 +93,6 @@ int main (int argc, /*const*/ char * argv[]) {
         num_cycles = 1;
     }
     
-    if(myRank==0)
-    {
-        printf("\n++++\nTEST OUTPUT\n");
-    //     printf("densSS = %e\n", ss_calc_densSS(simParam, 1.e-13, 1.e4, 6.));
-    //     printf("densSS = %e\n", ss_calc_densSS(simParam, 5.1e-11, 1.e4, 14.75));
-    //     printf("densSS = %e\n", ss_calc_densSS(simParam, 1.e-12, 1.e4, 9.));
-    //     printf("densSS = %e\n", ss_calc_densSS(simParam, 1.e-12, 1.e4, 7.)*simParam->omega_b*simParam->h*simParam->h*rho_g_cm/mp_g*8.*8.*8./(1.-simParam->Y));
-        printf(" mean free paths for T=10^4K and photHI_bg = 5.e-13 :\n");
-        printf(" z = 6: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 6.));
-        printf(" z = 6: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 6.));
-        printf("z = 7: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 7.));
-        printf("z = 7: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 7.));
-        printf("z = 8: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 8.));
-        printf("z = 8: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 8.));
-        printf("z = 9: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 9.));
-        printf("z = 9: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 9.));
-        printf("z = 10: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 10.));
-        printf("z = 10: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 10.));
-        printf("z = 14.75: mfp = %e\n", calc_local_mfp(simParam, 1., 0.5e-12, 1.e4, 14.75));
-        printf("z = 14.75: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-12, 1.e4, 14.75));
-        printf("z = 14.75: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-13, 1.e4, 14.75));
-        printf("z = 14.75: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-14, 1.e4, 14.75));
-        printf("z = 14.75: mfp(M2000) = %e\n", dd_calc_mfp(simParam, 0.5e-15, 1.e4, 14.75));
-        printf("done\n+++\n");
-    }
-    
     //verify that helium runs contain helium!
     if(simParam->solve_He == 1)
     {
@@ -155,7 +129,7 @@ int main (int argc, /*const*/ char * argv[]) {
         if(myRank==0) printf("done\n+++\n");
     }
 
-    printf("\nThis run computes %d times the ionization field (num_cycles)\n", num_cycles);
+    if(myRank==0) printf("\nThis run computes %d times the ionization field (num_cycles)\n", num_cycles);
     if(simParam->calc_ion_history == 1)
     {
         zstart = simParam->redshift_prev_snap;

@@ -11,6 +11,7 @@
 #include "confObj.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
 #include <inttypes.h>
 #include <stdbool.h>
@@ -33,17 +34,44 @@ confObj_new(parse_ini_t ini)
     
     //reading mandatory stuff
     
-    //General
-    getFromIni(&(config->num_snapshots), parse_ini_get_int32,
-               ini, "numSnapshots", "General");    
-    getFromIni(&(config->redshift_file), parse_ini_get_string,
-               ini, "redshiftFile", "General");
-    getFromIni(&(config->redshift_prev_snap), parse_ini_get_double,
-               ini, "redshift_prevSnapshot", "General");
-    getFromIni(&(config->redshift), parse_ini_get_double,
-               ini, "finalRedshift", "General");
-    getFromIni(&(config->evol_time), parse_ini_get_double,
-               ini, "evolutionTime", "General");
+    //Type
+    getFromIni(&(config->sim_type), parse_ini_get_string,
+               ini, "simulationType", "Type");
+    
+    if(strcmp(config->sim_type, "FIXED_REDSHIFT") == 0)
+    {
+        config->calc_ion_history = 0;
+        config->num_snapshots = 1;
+        config->redshift_file = NULL;
+        config->redshift_prev_snap = config->redshift;
+        getFromIni(&(config->redshift), parse_ini_get_double,
+                  ini, "redshift", "FixedRedshift");
+        getFromIni(&(config->evol_time), parse_ini_get_double,
+                  ini, "evolutionTime", "FixedRedshift");
+    }
+    else if(strcmp(config->sim_type, "EVOLVE_REDSHIFT") == 0)
+    {
+        config->calc_ion_history = 1;
+        getFromIni(&(config->num_snapshots), parse_ini_get_int32,
+                  ini, "numSnapshots", "EvolveRedshift");  
+        config->redshift_file = NULL;
+        getFromIni(&(config->redshift_prev_snap), parse_ini_get_double,
+                  ini, "redshift_start", "EvolveRedshift");
+        getFromIni(&(config->redshift), parse_ini_get_double,
+                  ini, "redshift_end", "EvolveRedshift");
+        config->evol_time = 0.;
+    }
+    else if(strcmp(config->sim_type, "EVOLVE_ALL") == 0)
+    {
+        config->calc_ion_history = 1;
+        getFromIni(&(config->num_snapshots), parse_ini_get_int32,
+                  ini, "numSnapshots", "EvolveAll");    
+        getFromIni(&(config->redshift_file), parse_ini_get_string,
+                  ini, "redshiftFile", "EvolveAll");
+        config->redshift = 0.;
+        config->redshift_prev_snap = 0.;
+        config->evol_time = 0.;
+    }
     
     getFromIni(&(config->lin_scales), parse_ini_get_double,
                ini, "size_linear_scale", "General");
@@ -58,8 +86,6 @@ confObj_new(parse_ini_t ini)
                ini, "useDefaultMeanDensity", "General");
     getFromIni(&(config->use_web_model), parse_ini_get_int32,
                ini, "useWebModel", "General");
-    getFromIni(&(config->calc_ion_history), parse_ini_get_int32,
-               ini, "calcIonHistory", "General");
     getFromIni(&(config->photHI_model), parse_ini_get_int32,
                ini, "photHImodel", "General");
     getFromIni(&(config->calc_mfp), parse_ini_get_int32,

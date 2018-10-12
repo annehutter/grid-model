@@ -356,7 +356,7 @@ void replace_convolve_fft_photHI(grid_t *thisGrid, confObj_t simParam, fftw_comp
 }
 
 void compute_photHI(grid_t *thisGrid, confObj_t simParam, int rescale)
-{
+{  
 #ifdef __MPI
     ptrdiff_t alloc_local, local_n0, local_0_start;
 #else
@@ -441,12 +441,14 @@ void compute_photHI(grid_t *thisGrid, confObj_t simParam, int rescale)
             }
         }
 
+        thisGrid->mean_photHI = thisGrid->mean_photHI * rescale_factor;
+        
         if(simParam->padded_box != 0.)
         {
             thisGrid->mean_photHI = thisGrid->mean_photHI*simParam->padded_box;
         }
         simParam->photHI_bg = thisGrid->mean_photHI;
-                
+                       
         fftw_free(filter);
         fftw_free(nion);
     }
@@ -468,9 +470,8 @@ void set_value_to_photoionization_field(grid_t *thisGrid, confObj_t simParam)
     thisGrid->mean_photHI = simParam->photHI_bg;
 }
 
-void set_value_to_photHI_bg(grid_t *thisGrid, confObj_t simParam, double value)
+void set_value_to_photHI_bg(confObj_t simParam, double value)
 {
-    thisGrid->mean_photHI = value;
     simParam->photHI_bg = value;
 }
 
@@ -501,6 +502,7 @@ void compute_photHI_ionizedRegions(grid_t *thisGrid, confObj_t simParam)
         }
         thisGrid->mean_photHI = get_mean_grid(thisGrid->photHI, nbins, local_n0);
     }
+    printf("\n mean photHI (accounting for all cells) = %e", thisGrid->mean_photHI);
 }
 
 void compute_web_ionfraction(grid_t *thisGrid, confObj_t simParam)
@@ -579,6 +581,7 @@ double calc_mean_photoionization_ionized_field(grid_t *thisGrid)
         {
             for(int k=0; k<nbins; k++)
             {
+                if(creal(thisGrid->XHII[i*nbins*nbins+j*nbins+k]) > 1.) printf("weird : XHII = %e\n", creal(thisGrid->XHII[i*nbins*nbins+j*nbins+k]));
                 sum +=  creal(thisGrid->XHII[i*nbins*nbins+j*nbins+k])*creal(thisGrid->photHI[i*nbins*nbins+j*nbins+k]) + 0.*I;
             }
         }
