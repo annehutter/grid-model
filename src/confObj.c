@@ -33,6 +33,7 @@ confObj_new(parse_ini_t ini)
     config = xmalloc(sizeof(struct confObj_struct));
     
     char *photHImodel = NULL;
+    char *recombModel = NULL;
     
     //reading mandatory stuff
     
@@ -196,28 +197,67 @@ confObj_new(parse_ini_t ini)
     }
     
     //Recombinations
-    getFromIni(&(config->dnrec_dt), parse_ini_get_double,
-               ini, "dnrec_dt", "Recombinations");
-    getFromIni(&(config->recomb_table), parse_ini_get_string,
-               ini, "recombinationTable", "Recombinations");
-    getFromIni(&(config->zmin), parse_ini_get_double,
-               ini, "zmin", "Recombinations");
-    getFromIni(&(config->zmax), parse_ini_get_double,
-               ini, "zmax", "Recombinations");
-    getFromIni(&(config->dz), parse_ini_get_double,
-               ini, "dz", "Recombinations");
-    getFromIni(&(config->fmin), parse_ini_get_double,
-               ini, "fmin", "Recombinations");
-    getFromIni(&(config->fmax), parse_ini_get_double,
-               ini, "fmax", "Recombinations");
-    getFromIni(&(config->df), parse_ini_get_double,
-               ini, "df", "Recombinations");
-    getFromIni(&(config->dcellmin), parse_ini_get_double,
-               ini, "dcellmin", "Recombinations");
-    getFromIni(&(config->dcellmax), parse_ini_get_double,
-               ini, "dcellmax", "Recombinations");
-    getFromIni(&(config->ddcell), parse_ini_get_double,
-               ini, "ddcell", "Recombinations");
+    getFromIni(&recombModel, parse_ini_get_string,
+              ini, "recombinationModel", "RecombinationModel");
+    
+    if(strcmp(recombModel, "RECOMB_DEFAULT") == 0)
+    {
+        config->dnrec_dt = 0.;
+        config->recomb_table = NULL;
+        config->zmin = 0.;
+        config->zmax = 0.;
+        config->dz  = 0.;
+        config->fmin = 0.;
+        config->fmax  = 0.;
+        config->df = 0.;
+        config->dcellmin = 0.;
+        config->dcellmax = 0.;
+        config->ddcell = 0.;
+    }
+    else if(strcmp(recombModel, "RECOMB_CONST") == 0)
+    {
+        getFromIni(&(config->dnrec_dt), parse_ini_get_double,
+                  ini, "dnrec_dt", "RecombinationConst");
+        config->recomb_table = NULL;
+        config->zmin = 0.;
+        config->zmax = 0.;
+        config->dz  = 0.;
+        config->fmin = 0.;
+        config->fmax  = 0.;
+        config->df = 0.;
+        config->dcellmin = 0.;
+        config->dcellmax = 0.;
+        config->ddcell = 0.;
+    }
+    else if(strcmp(recombModel, "RECOMB_TABLE") == 0)
+    {
+        config->dnrec_dt = 0.;
+        getFromIni(&(config->recomb_table), parse_ini_get_string,
+                  ini, "recombinationTable", "RecombinationTable");
+        getFromIni(&(config->zmin), parse_ini_get_double,
+                  ini, "zmin", "RecombinationTable");
+        getFromIni(&(config->zmax), parse_ini_get_double,
+                  ini, "zmax", "RecombinationTable");
+        getFromIni(&(config->dz), parse_ini_get_double,
+                  ini, "dz", "RecombinationTable");
+        getFromIni(&(config->fmin), parse_ini_get_double,
+                  ini, "fmin", "RecombinationTable");
+        getFromIni(&(config->fmax), parse_ini_get_double,
+                  ini, "fmax", "RecombinationTable");
+        getFromIni(&(config->df), parse_ini_get_double,
+                  ini, "df", "RecombinationTable");
+        getFromIni(&(config->dcellmin), parse_ini_get_double,
+                  ini, "dcellmin", "RecombinationTable");
+        getFromIni(&(config->dcellmax), parse_ini_get_double,
+                  ini, "dcellmax", "RecombinationTable");
+        getFromIni(&(config->ddcell), parse_ini_get_double,
+                  ini, "ddcell", "RecombinationTable");
+    }
+    else
+    {
+        printf("\n***WARNING***\nThis is not a supported recombination model. Choose one of the following options:\n'RECOMB_DEFAULT': recombination rate depends on density\n'RECOMB_CONST': recombination rate is given\n'RECOMB_TABLE': not supported currently.\n***WARNING***\n");
+        exit(EXIT_FAILURE);
+    }
 
     //Helium
     getFromIni(&(config->sources_HeI_file), parse_ini_get_string,
@@ -253,6 +293,7 @@ confObj_new(parse_ini_t ini)
     config->factor = 0.69;
     
     free(photHImodel);
+    free(recombModel);
     
     return config;
 }
