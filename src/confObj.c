@@ -132,24 +132,18 @@ confObj_new(parse_ini_t ini)
     
     getFromIni(&(config->default_mean_density), parse_ini_get_int32,
                ini, "useDefaultMeanDensity", "General");
-    getFromIni(&(config->use_web_model), parse_ini_get_int32,
-               ini, "useWebModel", "General");
-    getFromIni(&(config->calc_mfp), parse_ini_get_int32,
-               ini, "calcMeanFreePath", "General");
-    getFromIni(&(config->const_recomb), parse_ini_get_int32,
-               ini, "constantRecombinations", "General");
-    getFromIni(&(config->calc_recomb), parse_ini_get_int32,
-               ini, "calcRecombinations", "General");
-    getFromIni(&(config->solve_He), parse_ini_get_int32,
-               ini, "solveForHelium", "General");
     
     getFromIni(&(config->padded_box), parse_ini_get_int32,
                ini, "paddedBox", "General");
     
     
     //Photoionization
+    getFromIni(&(config->use_web_model), parse_ini_get_int32,
+               ini, "useWebModel", "PhotoionizationModel");
     getFromIni(&photHImodel, parse_ini_get_string,
                ini, "photHImodel", "PhotoionizationModel");
+    getFromIni(&(config->calc_mfp), parse_ini_get_int32,
+               ini, "calcMeanFreePath", "PhotoionizationModel");
     
     if(strcmp(photHImodel, "PHOTHI_CONST") == 0)
     {
@@ -197,11 +191,14 @@ confObj_new(parse_ini_t ini)
     }
     
     //Recombinations
+    getFromIni(&(config->calc_recomb), parse_ini_get_int32,
+               ini, "calcRecombinations", "RecombinationModel");
     getFromIni(&recombModel, parse_ini_get_string,
               ini, "recombinationModel", "RecombinationModel");
-    
+            
     if(strcmp(recombModel, "RECOMB_DEFAULT") == 0)
     {
+        config->const_recomb = 0;
         config->dnrec_dt = 0.;
         config->recomb_table = NULL;
         config->zmin = 0.;
@@ -216,6 +213,7 @@ confObj_new(parse_ini_t ini)
     }
     else if(strcmp(recombModel, "RECOMB_CONST") == 0)
     {
+        config->const_recomb = 1;
         getFromIni(&(config->dnrec_dt), parse_ini_get_double,
                   ini, "dnrec_dt", "RecombinationConst");
         config->recomb_table = NULL;
@@ -231,6 +229,7 @@ confObj_new(parse_ini_t ini)
     }
     else if(strcmp(recombModel, "RECOMB_TABLE") == 0)
     {
+        config->const_recomb = 0;
         config->dnrec_dt = 0.;
         getFromIni(&(config->recomb_table), parse_ini_get_string,
                   ini, "recombinationTable", "RecombinationTable");
@@ -260,6 +259,8 @@ confObj_new(parse_ini_t ini)
     }
 
     //Helium
+    getFromIni(&(config->solve_He), parse_ini_get_int32,
+               ini, "solveForHelium", "Helium");
     getFromIni(&(config->sources_HeI_file), parse_ini_get_string,
                ini, "inputSourcesHeIFile", "Helium");
     getFromIni(&(config->nion_HeI_file), parse_ini_get_string,
