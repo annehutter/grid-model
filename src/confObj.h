@@ -25,51 +25,13 @@ struct confObj_struct {
   
     // Type
     char           *sim_type;
-    
-    //General
+    int            calc_ion_history;
     int            num_snapshots;
     char           *redshift_file;
     double         redshift_prev_snap;
     double         redshift;
     double         evol_time;
 
-    double         lin_scales;
-    double         inc_log_scales;
-    double         max_scale;
-    int            ionize_sphere;
-    
-    int            default_mean_density;
-    int            use_web_model;
-    int            calc_ion_history;
-    int            photHI_model;
-    int            calc_mfp;
-    int            const_recomb;
-    int            calc_recomb;
-    int            solve_He;
-    
-    int            padded_box;
-
-    //Input
-    int            grid_size;
-    double         box_size;
-    
-    int            input_doubleprecision;
-    int            inputfiles_comoving;
-
-    char           *igm_density_file;
-    int            dens_in_overdensity;
-    double         mean_density;
-
-    char           *igm_clump_file;
-    
-    char           *sources_file;
-    char           *nion_file;
-    
-    //Output
-    char           *out_XHII_file;
-    int            write_photHI_file;
-    char           *out_photHI_file;
-    
     //Cosmology
     double         h;
     double         omega_b;
@@ -78,13 +40,38 @@ struct confObj_struct {
     double         sigma8;
     double         Y;
     
+    //Input
+    int            grid_size;
+    double         box_size;
+    int            input_doubleprecision;
+    int            inputfiles_comoving;
+    char           *igm_density_file;
+    int            dens_in_overdensity;
+    double         mean_density;
+    int            default_mean_density;
+    char           *igm_clump_file;
+    char           *sources_file;
+    char           *nion_file;
+    int            padded_box;
+
+    //BubbleModel
+    double         lin_scales;
+    double         inc_log_scales;
+    double         max_scale;
+    int            ionize_sphere;
+        
     //Photoionization
-    char           *photHI_bg_file;
+    int            use_web_model;
+    int            photHI_model;
+    int            calc_mfp;
     double         photHI_bg;
+    char           *photHI_bg_file;
     double         mfp;
     double         source_slope_index;
 
     //Recombinations
+    int            calc_recomb;
+    int            const_recomb;
     double         dnrec_dt;
     char           *recomb_table;
     double         zmin, zmax, dz;
@@ -92,14 +79,18 @@ struct confObj_struct {
     double         dcellmin, dcellmax, ddcell;
     
     //Helium
+    int            solve_He;
     char           *sources_HeI_file;
     char           *nion_HeI_file;
     char           *sources_HeII_file;
     char           *nion_HeII_file;
-    
     double         dnrec_HeI_dt;
     double         dnrec_HeII_dt;
-    
+  
+    //Output
+    char           *out_XHII_file;
+    int            write_photHI_file;
+    char           *out_photHI_file;
     char           *out_XHeII_file;
     char           *out_XHeIII_file;
     

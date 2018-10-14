@@ -171,6 +171,15 @@ int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const
                 }
                 if(myRank==0) printf("done\n+++\n");
             }
+            
+            else
+            {
+                if(myRank==0)
+                {
+                    printf("\n+++\nno supported photoionization rate model. Photoionization model is required for the web model. Abborting...\n");
+                    exit(EXIT_FAILURE);
+                }
+            }
         }
         
         /* ------------------------------------------------------- */
@@ -273,7 +282,7 @@ int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const
         if(myRank==0) printf("done\n+++\n");
     }
     
-    if(simParam->write_photHI_file == 1)
+    if(simParam->use_web_model == 1 && simParam->write_photHI_file == 1)
     {
         //write photoionization rate field to file
         for(int i=0; i<MAXLENGTH; i++) photHIFile[i] = '\0';

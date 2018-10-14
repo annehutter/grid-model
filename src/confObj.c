@@ -109,6 +109,8 @@ confObj_new(parse_ini_t ini)
                ini, "densityInOverdensity", "Input");
     getFromIni(&(config->mean_density), parse_ini_get_double,
                ini, "meanDensity", "Input");
+    getFromIni(&(config->default_mean_density), parse_ini_get_int32,
+               ini, "useDefaultMeanDensity", "Input");
     
     getFromIni(&(config->igm_clump_file), parse_ini_get_string,
                ini, "inputIgmClumpFile", "Input");
@@ -119,23 +121,18 @@ confObj_new(parse_ini_t ini)
     getFromIni(&(config->nion_file), parse_ini_get_string,
                ini, "inputNionFile", "Input");
 
-    
-    
-    getFromIni(&(config->lin_scales), parse_ini_get_double,
-               ini, "size_linear_scale", "General");
-    getFromIni(&(config->inc_log_scales), parse_ini_get_double,
-               ini, "first_increment_in_logscale", "General");
-    getFromIni(&(config->max_scale), parse_ini_get_double,
-               ini, "max_scale", "General");
-    getFromIni(&(config->ionize_sphere), parse_ini_get_int32,
-               ini, "useIonizeSphereModel", "General");
-    
-    getFromIni(&(config->default_mean_density), parse_ini_get_int32,
-               ini, "useDefaultMeanDensity", "General");
-    
     getFromIni(&(config->padded_box), parse_ini_get_int32,
-               ini, "paddedBox", "General");
+               ini, "paddedBox", "Input");
     
+    //Bubble Model
+    getFromIni(&(config->lin_scales), parse_ini_get_double,
+               ini, "size_linear_scale", "BubbleModel");
+    getFromIni(&(config->inc_log_scales), parse_ini_get_double,
+               ini, "first_increment_in_logscale", "BubbleModel");
+    getFromIni(&(config->max_scale), parse_ini_get_double,
+               ini, "max_scale", "BubbleModel");
+    getFromIni(&(config->ionize_sphere), parse_ini_get_int32,
+               ini, "useIonizeSphereModel", "BubbleModel");
     
     //Photoionization
     getFromIni(&(config->use_web_model), parse_ini_get_int32,
