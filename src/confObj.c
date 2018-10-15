@@ -43,6 +43,7 @@ confObj_new(parse_ini_t ini)
     
     if(strcmp(config->sim_type, "FIXED_REDSHIFT") == 0)
     {
+        printf("FIXED_REDSHIFT\n");
         config->calc_ion_history = 0;
         config->num_snapshots = 1;
         config->redshift_file = NULL;
@@ -54,6 +55,7 @@ confObj_new(parse_ini_t ini)
     }
     else if(strcmp(config->sim_type, "EVOLVE_REDSHIFT") == 0)
     {
+        printf("EVOLVE_REDSHIFT\n");
         config->calc_ion_history = 1;
         getFromIni(&(config->num_snapshots), parse_ini_get_int32,
                   ini, "numSnapshots", "EvolveRedshift");  
@@ -66,6 +68,7 @@ confObj_new(parse_ini_t ini)
     }
     else if(strcmp(config->sim_type, "EVOLVE_ALL") == 0)
     {
+        printf("EVOLVE_ALL\n");
         config->calc_ion_history = 1;
         getFromIni(&(config->num_snapshots), parse_ini_get_int32,
                   ini, "numSnapshots", "EvolveAll");    
@@ -74,6 +77,11 @@ confObj_new(parse_ini_t ini)
         config->redshift = 0.;
         config->redshift_prev_snap = 0.;
         config->evol_time = 0.;
+    }
+    else
+    {
+        printf("This simulation type is not supported!\nAborting.\n");
+        exit(EXIT_FAILURE);
     }
     
 
@@ -301,6 +309,8 @@ confObj_del(confObj_t *config)
 {
     assert(config != NULL);
     assert(*config != NULL);
+    
+    xfree((*config)->sim_type);
     
     //General
     xfree((*config)->redshift_file);
