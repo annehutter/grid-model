@@ -94,6 +94,11 @@ struct confObj_struct {
     char           *out_XHeII_file;
     char           *out_XHeIII_file;
     
+    //Restart
+    int            write_restart_file;
+    char           *restart_file;
+    double         walltime;
+    
     double         f;
     double         factor;
 };

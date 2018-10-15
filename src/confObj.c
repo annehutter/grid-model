@@ -280,8 +280,6 @@ confObj_new(parse_ini_t ini)
     getFromIni(&(config->dnrec_HeII_dt), parse_ini_get_double,
                ini, "dnrec_HeII_dt", "Helium");
     
-
-    
     
     //Output
     getFromIni(&(config->out_XHII_file), parse_ini_get_string,
@@ -294,6 +292,15 @@ confObj_new(parse_ini_t ini)
                ini, "output_XHeII_file", "Output");
     getFromIni(&(config->out_XHeIII_file), parse_ini_get_string,
                ini, "output_XHeIII_file", "Output");
+    
+    
+    //Restart
+    getFromIni(&(config->write_restart_file), parse_ini_get_int32,
+               ini, "writeRestartFiles", "Restart");
+    getFromIni(&(config->restart_file), parse_ini_get_string,
+               ini, "restartFiles", "Restart");
+    getFromIni(&(config->walltime), parse_ini_get_double,
+               ini, "walltime", "Restart");
     
     config->f = 0.69;
     config->factor = 0.69;
@@ -310,9 +317,8 @@ confObj_del(confObj_t *config)
     assert(config != NULL);
     assert(*config != NULL);
     
+    //Type
     xfree((*config)->sim_type);
-    
-    //General
     xfree((*config)->redshift_file);
     
     //Input
@@ -320,10 +326,6 @@ confObj_del(confObj_t *config)
     xfree((*config)->igm_clump_file);
     xfree((*config)->sources_file);
     xfree((*config)->nion_file);
-    
-    //Output
-    xfree((*config)->out_XHII_file);
-    xfree((*config)->out_photHI_file);
     
     //Photoionization
     xfree((*config)->photHI_bg_file);
@@ -336,8 +338,15 @@ confObj_del(confObj_t *config)
     xfree((*config)->nion_HeI_file);
     xfree((*config)->sources_HeII_file);
     xfree((*config)->nion_HeII_file);
+    
+    //Output
+    xfree((*config)->out_XHII_file);
+    xfree((*config)->out_photHI_file);
     xfree((*config)->out_XHeII_file);
     xfree((*config)->out_XHeIII_file);
+    
+    //Restart
+    xfree((*config)->restart_file);
 
     xfree(*config);
     *config = NULL;

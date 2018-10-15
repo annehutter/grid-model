@@ -20,13 +20,14 @@ SOURCES := 	./src/main.c \
 		./src/photion_background.c \
 		./src/redshift_tools.c \
 		./src/checks.c \
+		./src/restart.c \
 		./src/cifog.c
 
 OBJECTS := $(SOURCES:.c=.o)
 DOBJECTS := $(SOURCES:.c=.d)
-EXECUTABLE := cif
+EXECUTABLE := cifog
 
-#USE-MPI=YES
+# #USE-MPI=YES
  
 include common.mk
 

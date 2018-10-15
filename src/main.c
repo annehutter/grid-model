@@ -56,6 +56,7 @@ int main (int argc, /*const*/ char * argv[]) {
     double t1, t2;
     
     int num_cycles = 0;
+    int restart = 0;
         
 #ifdef __MPI
     MPI_Init(&argc, &argv); 
@@ -70,16 +71,28 @@ int main (int argc, /*const*/ char * argv[]) {
 #endif
     
     //parse command line arguments and be nice to user
-    if (argc != 2) {
+    if (argc != 2 && argc != 3) {
         printf("cifog: (C)  - Use at own risk...\n");
         printf("USAGE:\n");
         printf("cifog iniFile\n");
         
+        printf("argc = %d\n", argc);
+        
         exit(EXIT_FAILURE);
     } else {
-        strcpy(iniFile, argv[1]);
+        if(argc == 2)
+        {
+            strcpy(iniFile, argv[1]);
+        }else{
+            if(strcmp(argv[1], "-c") == 0)
+            {
+                restart = 1;
+            }
+            strcpy(iniFile, argv[2]);
+        }
     }
 
+    if(restart == 1) printf("restarting cifog from restart files\n");
 
     cifog_init(iniFile, &simParam, &redshift_list, &grid, &integralTable, &photIonBgList, &num_cycles, myRank);
     
