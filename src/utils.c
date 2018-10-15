@@ -13,6 +13,8 @@
 #include <fftw3.h>
 #endif
 
+#include "utils.h"
+
 int file_exist(char *filename)
 {
 	FILE *file;

@@ -78,6 +78,11 @@ confObj_new(parse_ini_t ini)
         config->redshift_prev_snap = 0.;
         config->evol_time = 0.;
     }
+    else
+    {
+        printf("This simulation type is not supported!\nAborting.\n");
+        exit(EXIT_FAILURE);
+    }
     
 
     //Cosmology
@@ -304,6 +309,8 @@ confObj_del(confObj_t *config)
 {
     assert(config != NULL);
     assert(*config != NULL);
+    
+    xfree((*config)->sim_type);
     
     //General
     xfree((*config)->redshift_file);
