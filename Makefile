@@ -19,12 +19,12 @@ SOURCES := 	./src/main.c \
 		./src/input_grid.c \
 		./src/photion_background.c \
 		./src/redshift_tools.c \
-		./src/cifog.c \
-		./src/checks.c
+		./src/checks.c \
+		./src/cifog.c
 
 OBJECTS := $(SOURCES:.c=.o)
 DOBJECTS := $(SOURCES:.c=.d)
-EXECUTABLE := cifog
+EXECUTABLE := cif
 
 #USE-MPI=YES
  

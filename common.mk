@@ -4,7 +4,7 @@ WARNING = -Wall -Wextra -Wshadow -g
 FFTW3DIR :=/usr/local/include
 FFTW_CFLAGS := -I$(FFTW3DIR)
 FFTW3LIBDIR :=/usr/local/lib64
-FFTW3_LINK := -L$(FFTW3LIBDIR) -lfftw3 -Xlinker -rpath -Xlinker $(FFTW3_LIBDIR) 
+FFTW3_LINK := -L$(FFTW3LIBDIR) -lfftw3 -Xlinker -rpath -Xlinker $(FFTW3LIBDIR) 
 
 GSL_FOUND := $(shell gsl-config --version)
 ifndef GSL_FOUND
