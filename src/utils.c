@@ -22,3 +22,14 @@ int file_exist(char *filename)
 		return 0;
 	}
 }
+
+// void abort()
+// {
+// #ifdef __MPI
+//         MPI_Bcast(&error, 1, MPI_INT, );
+//         MPI_Abort(MPI_COMM_WORLD);
+//         
+// #else
+//         exit(EXIT_FAILURE);
+// #endif
+// }
