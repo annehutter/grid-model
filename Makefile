@@ -25,7 +25,7 @@ OBJECTS := $(SOURCES:.c=.o)
 DOBJECTS := $(SOURCES:.c=.d)
 EXECUTABLE := cifog
 
-USE-MPI=YES
+#USE-MPI=YES
  
 include common.mk
 
