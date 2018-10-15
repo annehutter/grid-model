@@ -30,6 +30,7 @@
 
 #include "input_redshifts.h"
 #include "input_grid.h"
+#include "checks.h"
 
 #include "cifog.h"
 
@@ -102,6 +103,8 @@ int main (int argc, /*const*/ char * argv[]) {
             exit(EXIT_FAILURE);
         }
     }
+    
+    check_output_directories_exist(simParam);
     
     //read redshift files with outputs
     redshift_list = NULL;
