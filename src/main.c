@@ -94,7 +94,7 @@ int main (int argc, /*const*/ char * argv[]) {
 
     if(restart == 1) printf("restarting cifog from restart files\n");
 
-    cifog_init(iniFile, &simParam, &redshift_list, &grid, &integralTable, &photIonBgList, &num_cycles, myRank);
+    cifog_init(iniFile, &simParam, &redshift_list, &grid, &integralTable, &photIonBgList, &num_cycles, restart, myRank);
     
     cifog(simParam, redshift_list, grid, sourcelist, integralTable, photIonBgList, num_cycles, myRank);
     

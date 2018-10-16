@@ -42,7 +42,6 @@ grid_t *initGrid()
     newGrid->cum_nion = NULL;
     newGrid->cum_nrec = NULL;
     newGrid->cum_nabs = NULL;
-    newGrid->frac_Q = NULL;
     
     newGrid->XHII = NULL;
     newGrid->nrec = NULL;
@@ -61,8 +60,6 @@ grid_t *initGrid()
     newGrid->cum_nrec_HeII = NULL;
     newGrid->cum_nabs_HeI = NULL;
     newGrid->cum_nabs_HeII = NULL;
-    newGrid->frac_Q_HeI = NULL;
-    newGrid->frac_Q_HeII = NULL;
     
     newGrid->XHeII = NULL;
     newGrid->XHeIII = NULL;
@@ -112,7 +109,6 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
     thisGrid->cum_nion = fftw_alloc_complex(alloc_local);
     thisGrid->cum_nrec = fftw_alloc_complex(alloc_local);
     thisGrid->cum_nabs = fftw_alloc_complex(alloc_local);
-    thisGrid->frac_Q = fftw_alloc_complex(alloc_local);
     
     thisGrid->XHII = fftw_alloc_complex(alloc_local);
     thisGrid->nrec = fftw_alloc_complex(alloc_local);
@@ -127,8 +123,6 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
         thisGrid->cum_nrec_HeII = fftw_alloc_complex(alloc_local);
         thisGrid->cum_nabs_HeI = fftw_alloc_complex(alloc_local);
         thisGrid->cum_nabs_HeII = fftw_alloc_complex(alloc_local);
-        thisGrid->frac_Q_HeI = fftw_alloc_complex(alloc_local);
-        thisGrid->frac_Q_HeII = fftw_alloc_complex(alloc_local);
         thisGrid->XHeII = fftw_alloc_complex(alloc_local);
         thisGrid->XHeIII = fftw_alloc_complex(alloc_local);
         thisGrid->nrec_HeI = fftw_alloc_complex(alloc_local);
@@ -142,7 +136,6 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
     thisGrid->cum_nion = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
     thisGrid->cum_nrec = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
     thisGrid->cum_nabs = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
-    thisGrid->frac_Q = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
     
     thisGrid->XHII = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
     thisGrid->nrec = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
@@ -157,8 +150,6 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
         thisGrid->cum_nrec_HeII = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
         thisGrid->cum_nabs_HeI = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
         thisGrid->cum_nabs_HeII = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
-        thisGrid->frac_Q_HeI = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
-        thisGrid->frac_Q_HeII = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
         thisGrid->XHeII = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
         thisGrid->XHeIII = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
         thisGrid->nrec_HeI = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*nbins*nbins*nbins);
@@ -174,7 +165,6 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
     initialize_grid(thisGrid->cum_nion, nbins, local_n0, 0.);
     initialize_grid(thisGrid->cum_nrec, nbins, local_n0, 0.);
     initialize_grid(thisGrid->cum_nabs, nbins, local_n0, 0.);
-    initialize_grid(thisGrid->frac_Q, nbins, local_n0, 0.);
     
     initialize_grid(thisGrid->XHII, nbins, local_n0, 0.);
     initialize_grid(thisGrid->nrec, nbins, local_n0, 0.);
@@ -189,8 +179,6 @@ void read_files_to_grid(grid_t *thisGrid, confObj_t thisInput)
         initialize_grid(thisGrid->cum_nrec_HeII, nbins, local_n0, 0.);
         initialize_grid(thisGrid->cum_nabs_HeI, nbins, local_n0, 0.);
         initialize_grid(thisGrid->cum_nabs_HeII, nbins, local_n0, 0.);
-        initialize_grid(thisGrid->frac_Q_HeI, nbins, local_n0, 0.);
-        initialize_grid(thisGrid->frac_Q_HeII, nbins, local_n0, 0.);
         
         initialize_grid(thisGrid->XHeII, nbins, local_n0, 0.);
         initialize_grid(thisGrid->XHeIII, nbins, local_n0, 0.);
@@ -367,7 +355,6 @@ void deallocate_grid(grid_t *thisGrid, confObj_t thisInput)
     if(thisGrid->cum_nion != NULL) fftw_free(thisGrid->cum_nion);
     if(thisGrid->cum_nrec != NULL) fftw_free(thisGrid->cum_nrec);
     if(thisGrid->cum_nabs != NULL) fftw_free(thisGrid->cum_nabs);
-    if(thisGrid->frac_Q != NULL) fftw_free(thisGrid->frac_Q);
     
     if(thisGrid->XHII != NULL) fftw_free(thisGrid->XHII);
     if(thisGrid->nrec != NULL) fftw_free(thisGrid->nrec);
@@ -383,8 +370,6 @@ void deallocate_grid(grid_t *thisGrid, confObj_t thisInput)
         if(thisGrid->cum_nrec_HeII != NULL) fftw_free(thisGrid->cum_nrec_HeII);
         if(thisGrid->cum_nabs_HeI != NULL) fftw_free(thisGrid->cum_nabs_HeI);
         if(thisGrid->cum_nabs_HeII != NULL) fftw_free(thisGrid->cum_nabs_HeII);
-        if(thisGrid->frac_Q_HeI != NULL) fftw_free(thisGrid->frac_Q_HeI);
-        if(thisGrid->frac_Q_HeII != NULL) fftw_free(thisGrid->frac_Q_HeII);
         if(thisGrid->XHeII != NULL) fftw_free(thisGrid->XHeII);
         if(thisGrid->XHeIII != NULL) fftw_free(thisGrid->XHeIII);
         if(thisGrid->nrec_HeI != NULL) fftw_free(thisGrid->nrec_HeI);

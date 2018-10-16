@@ -347,7 +347,6 @@ void update_web_model(grid_t *thisGrid, confObj_t simParam, photIonlist_t *photI
 {
     const double f = simParam->f;
 
-    printf("thisGrid->mean_photHI = %e\n", thisGrid->mean_photHI);
     thisGrid->mean_photHI = 0.;
     
     if(simParam->photHI_model == 1)
@@ -356,6 +355,7 @@ void update_web_model(grid_t *thisGrid, confObj_t simParam, photIonlist_t *photI
         {
             set_mfp_Miralda2000(simParam);
             printf("\n M2000: mfp(photHI = %e) = %e Mpc at z = %e", simParam->photHI_bg, simParam->mfp, simParam->redshift);
+            printf("\n grid->mean_mfp = %e\t f = %e\n", thisGrid->mean_mfp, f);
             if(f*thisGrid->mean_mfp < simParam->mfp || simParam->photHI_bg < 1.e-12)
             {
                 simParam->mfp = f*thisGrid->mean_mfp;

@@ -21,7 +21,6 @@ typedef struct
     fftw_complex *cum_nion;
     fftw_complex *cum_nrec;
     fftw_complex *cum_nabs;
-    fftw_complex *frac_Q;
 
     fftw_complex *XHII;
     fftw_complex *nrec;
@@ -40,8 +39,6 @@ typedef struct
     fftw_complex *cum_nrec_HeII;
     fftw_complex *cum_nabs_HeI;
     fftw_complex *cum_nabs_HeII;
-    fftw_complex *frac_Q_HeI;
-    fftw_complex *frac_Q_HeII;
     
     fftw_complex *XHeII;
     fftw_complex *XHeIII;

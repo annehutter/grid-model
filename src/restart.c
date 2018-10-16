@@ -16,10 +16,11 @@
 
 #define MAXLEN 1024
 
-int32_t save_restart_file(confObj_t simParam, grid_t *grid, int32_t cycle, int32_t snap, char *restartFile, int32_t myRank)
+int32_t save_restart_file(confObj_t simParam, grid_t *grid, int32_t cycle, int32_t snap, int32_t myRank)
 {
     FILE *outfile;
     char fname[MAXLEN];
+    char *restartFile = simParam->restart_file;
 
     if (myRank == 0)
     { 
@@ -33,6 +34,8 @@ int32_t save_restart_file(confObj_t simParam, grid_t *grid, int32_t cycle, int32
         
         fwrite(&cycle, sizeof(int32_t), 1, outfile);
         fwrite(&snap, sizeof(int32_t), 1, outfile); 
+        fwrite(&(simParam->redshift), sizeof(double), 1, outfile);
+        fwrite(&(simParam->redshift_prev_snap), sizeof(double), 1, outfile);
         fwrite(&(simParam->grid_size), sizeof(int), 1, outfile);
         fwrite(&(simParam->num_snapshots), sizeof(int), 1, outfile);
         fwrite(&(simParam->input_doubleprecision), sizeof(int), 1, outfile);
@@ -52,6 +55,9 @@ int32_t save_restart_file(confObj_t simParam, grid_t *grid, int32_t cycle, int32
     snprintf(fname, MAXLEN, "%s_XHII", restartFile);
     save_to_file(grid->XHII, grid, fname);
 
+    snprintf(fname, MAXLEN, "%s_nrec", restartFile);
+    save_to_file(grid->nrec, grid, fname);
+    
     snprintf(fname, MAXLEN, "%s_cum_nion", restartFile);
     save_to_file(grid->cum_nion, grid, fname);
 
@@ -63,6 +69,12 @@ int32_t save_restart_file(confObj_t simParam, grid_t *grid, int32_t cycle, int32
 
     if (simParam->solve_He == 1)
     {
+        snprintf(fname, MAXLEN, "%s_nrec_HeI", restartFile);
+        save_to_file(grid->nrec_HeI, grid, fname);
+        
+        snprintf(fname, MAXLEN, "%s_nrec_HeII", restartFile);
+        save_to_file(grid->nrec_HeII, grid, fname);
+  
         snprintf(fname, MAXLEN, "%s_cum_nion_HeI", restartFile);
         save_to_file(grid->cum_nion_HeI, grid, fname);
 
@@ -84,13 +96,15 @@ int32_t save_restart_file(confObj_t simParam, grid_t *grid, int32_t cycle, int32
         snprintf(fname, MAXLEN, "%s_cum_nabs_HeII", restartFile);
         save_to_file(grid->cum_nabs_HeII, grid, fname);    
     }
+    
     return EXIT_SUCCESS;
 }
 
-int32_t read_restart_file(confObj_t simParam, grid_t *grid, int32_t *start_cycle, int32_t *snap, char *restartFile) 
+int32_t read_restart_file(confObj_t simParam, grid_t *grid, int32_t *start_cycle, int32_t *snap) 
 {
     FILE *infile;
     char fname[MAXLEN];
+    char *restartFile = simParam->restart_file;
     int restart_gridsize, restart_numsnap, restart_doubleprecision, restart_photHImodel, restart_solveHe;
 
     snprintf(fname, MAXLEN, "%s_info", restartFile);
@@ -105,6 +119,8 @@ int32_t read_restart_file(confObj_t simParam, grid_t *grid, int32_t *start_cycle
     ++(*start_cycle); // So we want to start on the next one.
 
     fread(snap, sizeof(int32_t), 1, infile); // Since the snapshot doesn't necessarily have to change on each iteration, don't increment it here.
+    fread(&(simParam->redshift), sizeof(double), 1, infile);
+    fread(&(simParam->redshift_prev_snap), sizeof(double), 1, infile);
     fread(&restart_gridsize, sizeof(int), 1, infile);
     fread(&restart_numsnap, sizeof(int), 1, infile);
     fread(&restart_doubleprecision, sizeof(int), 1, infile);
@@ -130,42 +146,51 @@ int32_t read_restart_file(confObj_t simParam, grid_t *grid, int32_t *start_cycle
     }
 
     snprintf(fname, MAXLEN, "%s_photHI", restartFile);
-    read_array(grid->photHI, grid, fname, simParam->input_doubleprecision);
+    read_array(grid->photHI, grid, fname, 1);
 
     snprintf(fname, MAXLEN, "%s_XHII", restartFile);
-    read_array(grid->XHII, grid, fname, simParam->input_doubleprecision);
+    read_array(grid->XHII, grid, fname, 1);
 
+    snprintf(fname, MAXLEN, "%s_nrec", restartFile);
+    read_array(grid->nrec, grid, fname, 1);
+    
     snprintf(fname, MAXLEN, "%s_cum_nion", restartFile);
-    read_array(grid->cum_nion, grid, fname, simParam->input_doubleprecision);
+    read_array(grid->cum_nion, grid, fname, 1);
 
     snprintf(fname, MAXLEN, "%s_cum_nrec", restartFile);
-    read_array(grid->cum_nrec, grid, fname, simParam->input_doubleprecision);
+    read_array(grid->cum_nrec, grid, fname, 1);
 
     snprintf(fname, MAXLEN, "%s_cum_nabs", restartFile);
-    read_array(grid->cum_nabs, grid, fname, simParam->input_doubleprecision);
+    read_array(grid->cum_nabs, grid, fname, 1);
 
     if (simParam->solve_He == 1)
     {
+        snprintf(fname, MAXLEN, "%s_nrec__HeI", restartFile);
+        read_array(grid->nrec_HeI, grid, fname, 1);
+
+        snprintf(fname, MAXLEN, "%s_nrec_HeII", restartFile);
+        read_array(grid->nrec_HeII, grid, fname, 1);
+        
         snprintf(fname, MAXLEN, "%s_cum_nion_HeI", restartFile);
-        read_array(grid->cum_nion_HeI, grid, fname, simParam->input_doubleprecision);
+        read_array(grid->cum_nion_HeI, grid, fname, 1);
 
         snprintf(fname, MAXLEN, "%s_cum_nion_HeII", restartFile);
-        read_array(grid->cum_nion_HeII, grid, fname, simParam->input_doubleprecision);
+        read_array(grid->cum_nion_HeII, grid, fname, 1);
 
         snprintf(fname, MAXLEN, "%s_cum_nrec_HeI", restartFile);
-        read_array(grid->cum_nrec_HeI, grid, fname, simParam->input_doubleprecision);
+        read_array(grid->cum_nrec_HeI, grid, fname, 1);
 
         snprintf(fname, MAXLEN, "%s_cum_nrec_HeI", restartFile);
-        read_array(grid->cum_nrec_HeI, grid, fname, simParam->input_doubleprecision);
+        read_array(grid->cum_nrec_HeI, grid, fname, 1);
 
         snprintf(fname, MAXLEN, "%s_cum_nrec_HeII", restartFile);
-        read_array(grid->cum_nrec_HeII, grid, fname, simParam->input_doubleprecision);
+        read_array(grid->cum_nrec_HeII, grid, fname, 1);
 
         snprintf(fname, MAXLEN, "%s_cum_nabs_HeI", restartFile);
-        read_array(grid->cum_nabs_HeI, grid, fname, simParam->input_doubleprecision);
+        read_array(grid->cum_nabs_HeI, grid, fname, 1);
 
         snprintf(fname, MAXLEN, "%s_cum_nabs_HeII", restartFile);
-        read_array(grid->cum_nabs_HeII, grid, fname, simParam->input_doubleprecision);    
+        read_array(grid->cum_nabs_HeII, grid, fname, 1);    
     }
 
     return EXIT_SUCCESS;

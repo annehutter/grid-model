@@ -31,17 +31,19 @@
 #include "input_redshifts.h"
 #include "input_grid.h"
 #include "checks.h"
+#include "restart.h"
 
 #include "cifog.h"
  
-int cifog_init(char *iniFile, confObj_t *simParam, double **redshift_list, grid_t **grid,  integral_table_t **integralTable, photIonlist_t **photIonBgList, int *num_cycles, const int myRank)
-{
-    //-------------------------------------------------------------------------------
-    // reading input files and prepare grid
-    //-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
+// reading input files and prepare grid
+//-------------------------------------------------------------------------------
     
+int cifog_init(char *iniFile, confObj_t *simParam, double **redshift_list, grid_t **grid,  integral_table_t **integralTable, photIonlist_t **photIonBgList, int *num_cycles, const int restart, const int myRank)
+{
     //read paramter file
     *simParam = readConfObj(iniFile);
+    (*simParam)->restart = restart;
         
     if((*simParam)->calc_ion_history == 1)
     {
@@ -102,7 +104,8 @@ int cifog_init(char *iniFile, confObj_t *simParam, double **redshift_list, grid_
 int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcelist_t *sourcelist, const integral_table_t *integralTable, photIonlist_t *photIonBgList, const int num_cycles, const int myRank)
 {
     double zstart = 0., zend = 0., delta_redshift = 0.;
-    int snap=-1;
+    int snap = -1, cycleStart = 0;
+    int status = 0;
     
     if(myRank==0) printf("\nThis run computes %d times the ionization field (num_cycles)\n", num_cycles);
     if(simParam->calc_ion_history == 1)
@@ -118,11 +121,22 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
         }
     } 
     
+    if(simParam->restart == 1)
+    {
+        printf("\n\n\nREADING RESTART FILES!!!!\n\n\n\n");
+        status = read_restart_file(simParam, grid, &cycleStart, &snap);
+        if(status != EXIT_SUCCESS)
+        {
+            printf("Could not read restart files.\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    
     //-------------------------------------------------------------------------------
     // start the loop
     //-------------------------------------------------------------------------------
     
-    for(int cycle=0; cycle<num_cycles; cycle++)
+    for(int cycle=cycleStart; cycle<num_cycles; cycle++)
     {
         if(redshift_list != NULL)
         {
@@ -139,6 +153,16 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
         }
         
         cifog_step(simParam, grid, sourcelist, integralTable, photIonBgList, cycle, snap, myRank);
+        
+        if(simParam->write_restart_file == 1 && cycle < num_cycles-1)
+        {
+            status = save_restart_file(simParam, grid, cycle, snap, myRank);
+            if(status != EXIT_SUCCESS)
+            {
+                  printf("Could not save restart file\n");
+                  exit(EXIT_FAILURE);
+            }
+        }
     }
     
     return EXIT_SUCCESS;

@@ -95,6 +95,7 @@ struct confObj_struct {
     char           *out_XHeIII_file;
     
     //Restart
+    int            restart;
     int            write_restart_file;
     char           *restart_file;
     double         walltime;

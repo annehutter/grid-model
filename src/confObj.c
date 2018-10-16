@@ -295,6 +295,7 @@ confObj_new(parse_ini_t ini)
     
     
     //Restart
+    config->restart = 0;
     getFromIni(&(config->write_restart_file), parse_ini_get_int32,
                ini, "writeRestartFiles", "Restart");
     getFromIni(&(config->restart_file), parse_ini_get_string,
