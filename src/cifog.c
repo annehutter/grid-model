@@ -101,8 +101,9 @@ int cifog_init(char *iniFile, confObj_t *simParam, double **redshift_list, grid_
     return EXIT_SUCCESS;
 }
  
-int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcelist_t *sourcelist, const integral_table_t *integralTable, photIonlist_t *photIonBgList, const int num_cycles, const int myRank)
+int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcelist_t *sourcelist, const integral_table_t *integralTable, photIonlist_t *photIonBgList, const int num_cycles, const int myRank, const int size)
 {
+    double t1 = 0., t2 = 0., tcycle = 0., tcycle_max = 0.;
     double zstart = 0., zend = 0., delta_redshift = 0.;
     int snap = -1, cycleStart = 0;
     int status = 0;
@@ -138,6 +139,11 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
     
     for(int cycle=cycleStart; cycle<num_cycles; cycle++)
     {
+#ifdef __MPI
+        t1 = MPI_Wtime();
+#else
+        t1 = time(NULL);
+#endif
         if(redshift_list != NULL)
         {
             simParam->redshift_prev_snap = redshift_list[2*cycle];
@@ -154,13 +160,37 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
         
         cifog_step(simParam, grid, sourcelist, integralTable, photIonBgList, cycle, snap, myRank);
         
-        if(simParam->write_restart_file == 1 && cycle < num_cycles-1)
+#ifdef __MPI
+        MPI_Barrier(MPI_COMM_WORLD);
+        t2 = MPI_Wtime();
+#else
+        t2 = time(NULL);
+#endif
+    
+#ifdef __MPI
+        double tcycle_rank = t2 - t1;
+        MPI_Allreduce(&tcycle_rank, &tcycle, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+#else
+        tcycle = t2 - t1;
+#endif
+        tcycle = tcycle / (double)size;
+        if(tcycle > tcycle_max) tcycle_max = tcycle;
+        
+        if(myRank == 0) printf("\n TCYCLE = %e s\t TCYCLE_MAX = %e\n", tcycle, tcycle_max);
+        
+        if(simParam->write_restart_file == 1)
         {
-            status = save_restart_file(simParam, grid, cycle, snap, myRank);
-            if(status != EXIT_SUCCESS)
+            if((cycle < num_cycles-1 && simParam->walltime == 0.) 
+            || ((cycle - cycleStart + 2) * tcycle_max > simParam->walltime*60.))
             {
-                  printf("Could not save restart file\n");
-                  exit(EXIT_FAILURE);
+                printf("\n WRITING RESTART FILES \n");
+                status = save_restart_file(simParam, grid, cycle, snap, myRank);
+                if(status != EXIT_SUCCESS)
+                {
+                      printf("Could not save restart file\n");
+                      exit(EXIT_FAILURE);
+                }
+                if((cycle - cycleStart + 2) * tcycle_max > simParam->walltime*60.) cycle = num_cycles-1;
             }
         }
     }

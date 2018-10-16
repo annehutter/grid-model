@@ -35,9 +35,7 @@
 #include "cifog.h"
 
 int main (int argc, /*const*/ char * argv[]) { 
-#ifdef __MPI
     int size = 1;
-#endif
     int myRank = 0;
 
     char iniFile[MAXLENGTH];
@@ -96,7 +94,7 @@ int main (int argc, /*const*/ char * argv[]) {
 
     cifog_init(iniFile, &simParam, &redshift_list, &grid, &integralTable, &photIonBgList, &num_cycles, restart, myRank);
     
-    cifog(simParam, redshift_list, grid, sourcelist, integralTable, photIonBgList, num_cycles, myRank);
+    cifog(simParam, redshift_list, grid, sourcelist, integralTable, photIonBgList, num_cycles, myRank, size);
     
     cifog_deallocate(simParam, redshift_list, grid, integralTable, photIonBgList, myRank);
 
