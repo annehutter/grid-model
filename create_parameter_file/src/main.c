@@ -35,29 +35,29 @@ int main()
     for(int i=0; i<10; i++) string[i] = '\0';
     printf("\n\n");
     
+    int            simulationType;
+    int            calc_ion_history;
     int            num_snapshots;
     char           redshift_file[1000];
     double         redshift_prev_snap;
     double         redshift;
     double         evol_time;
+    int            snapshot_start;
 
+    //Cosmology
+    double         h;
+    double         omega_b;
+    double         omega_m;
+    double         omega_l;
+    double         sigma8;
+    double         Y;
+    
+    //BubbleModel
     double         lin_scales;
     double         inc_log_scales;
     double         max_scale;
     int            ion_sphere;
-    
-    int            default_mean_density;
-    int            use_web_model;
-    int            calc_ion_history;
-    int            photHI_model;
-    int            calc_mfp;
-    
-    int            recomb;
-    
-    int            const_recomb;
-    int            calc_recomb;
-    int            solve_He;
-
+        
     //Input
     int            grid_size;
     double         box_size;
@@ -68,32 +68,26 @@ int main()
     char           igm_density_file[1000];
     int            dens_in_overdensity;
     double         mean_density;
+    int            default_mean_density;
 
     char           igm_clump_file[1000];
     
     char           sources_file[1000];
     char           nion_file[1000];
     
-    //Output
-    char           out_XHII_file[1000];
-    int            write_photHI_file;
-    char           out_photHI_file[1000];
-    
-    //Cosmology
-    double         h;
-    double         omega_b;
-    double         omega_m;
-    double         omega_l;
-    double         sigma8;
-    double         Y;
-    
     //Photoionization
-    char           photHI_bg_file[1000];
+    int            use_web_model;
+    int            photHI_model;
+    int            calc_mfp;
     double         photHI_bg;
+    char           photHI_bg_file[1000];
     double         mfp;
     double         source_slope_index = 5.;
 
     //Recombinations
+    int            recomb;
+    int            const_recomb;
+    int            calc_recomb;
     double         dnrec_dt;
     char           recomb_table[1000];
     double         zmin, zmax, dz;
@@ -101,6 +95,7 @@ int main()
     double         dcellmin, dcellmax, ddcell;
     
     //Helium
+    int            solve_He;
     char           sources_HeI_file[1000];
     char           nion_HeI_file[1000];
     char           sources_HeII_file[1000];
@@ -109,8 +104,17 @@ int main()
     double         dnrec_HeI_dt;
     double         dnrec_HeII_dt;
     
+    //Output
+    char           out_XHII_file[1000];
+    int            write_photHI_file;
+    char           out_photHI_file[1000];
     char           out_XHeII_file[1000];
     char           out_XHeIII_file[1000];
+    
+    //Restart
+    int            write_restart_file;
+    char           restart_file[1000];
+    double         walltime;
     
     
     //-------------------------------------------------------------------------------
@@ -122,19 +126,21 @@ int main()
     //-------------------------------------------------------------------------------
     printf("\nTYPE OF SIMULATION\n");
     
-    printf("Do you want to follow the evolution of the ionized regions (type '1') or compute the ionization field directly from the gas density and ionizing photon distribution (type '0') ?\n");
-    scanf("%d", &calc_ion_history);
-    if(calc_ion_history == 0)
+    printf("What type of simulation would you like to run?\n1) compute the ionization field from a single snapshot at a fixed redshift assuming the sources emitted for t Myrs (type '0')\n2) compute the evolution of ionization fields from a single snapshot across a given redshift span (type '1')\n3) compute the evolution of ionization fields from multiple snapshots across redshift (type '2')");
+    scanf("%d", &simulationType);
+    
+    if(simulationType == 0)
     {
-        num_snapshots = 1;
+        num_snapshots = 0;
         for(int i=0; i<1000; i++) redshift_file[i] = '\0';
         strcat(redshift_file, "None");
-        
+        redshift_prev_snap = 0;
+        snapshot_start = -1;
+
         printf("\nREDSHIFT & EVOLUTION TIME\n");
-        
-        printf("Which redshift do you want to consider? (double)\n");
+
+        printf("Which redshift are you considering?\n");
         scanf("%lf", &redshift);
-        redshift_prev_snap = redshift;
         
         printf("What is the evolution time of the ionized regions you want to consider? Please specify in Myrs (double)\n");
         scanf("%lf", &evol_time);
@@ -144,54 +150,54 @@ int main()
             printf("This time is not valid, it is smaller than 0. or larger than the age of the Universe\nPlease revise!\n");
             exit(0);
         }
-
     }
-    else if(calc_ion_history == 1)
+    else if(simulationType == 1)
     {
+        for(int i=0; i<1000; i++) redshift_file[i] = '\0';
+        strcat(redshift_file, "None");        
         evol_time = 0.;
-        
+        snapshot_start = -1;
+
         printf("\nREDSHIFT INTERVALS\n");
 
         printf("How many steps (including the initial AND final redshift, as well as all redshifts at which you provide input files) do you want to consider?\n");
         scanf("%d", &num_snapshots);
         
-        printf("Do you provide input files at multiple redshifts?\n");
-        scanf("%s", string);
-        if(strcmp(string, "No") == 0 || strcmp(string, "no") == 0)
+        printf("At which redshift starts your simulation? (double)\n");
+        scanf("%lf", &redshift_prev_snap);
+        
+        printf("And at which redshift does it end? (double)\n");
+        scanf("%lf", &redshift);
+    }
+    else if(simulationType == 2)
+    {
+        redshift = 0.;
+        redshift_prev_snap = 0.;
+        evol_time = 0.;
+        
+        printf("How many steps (including the initial AND final redshift, as well as all redshifts at which you provide input files) do you want to consider?\n");
+        scanf("%d", &num_snapshots);
+        
+        printf("You need to provide a file which lists from high to low redshifts in each line:\n <redshift> <0/1>\nwhereas 0 means no input files at this redshift and 1 means input files are provided at this redshift. Please specify the address of this file now\n");
+        scanf("%s", redshift_file);
+        
+        if(file_exist(redshift_file) == 0)
         {
-            for(int i=0; i<1000; i++) redshift_file[i] = '\0';
-            strcat(redshift_file, "None");
-            
-            printf("At which redshift starts your simulation? (double)\n");
-            scanf("%lf", &redshift_prev_snap);
-            
-            printf("And at which redshift does it end? (double)\n");
-            scanf("%lf", &redshift);
+            printf("WARNING:  Don't forget to create that file or check the address!\n");
         }
-        else if(strcmp(string, "Yes") == 0 || strcmp(string, "yes") == 0)
+ 
+        printf("Please specify the first snapshot number of your input files (density, clumping factor, sources), i.e. _00i\n");
+        scanf("%d", &snapshot_start);
+        if(snapshot_start <= 0)
         {
-            printf("You need to provide a file which lists from high to low redshifts in each line:\n <redshift> <0/1>\nwhereas 0 means no input files at this redshift and 1 means input files are provided at this redshift. Please specify the address of this file now\n");
-            scanf("%s", redshift_file);
-            
-            if(file_exist(redshift_file) == 0)
-            {
-                printf("WARNING:  Don't forget to create that file or check the address!\n");
-            }
-            
-            redshift = 0.;
-            redshift_prev_snap = 0.;
+            simulationType = 3;
+            snapshot_start = -1;
         }
-        else{
-            printf("Input string is not valid.\n");
-            exit(0);
-        }
-        for(int i=0; i<10; i++) string[i] = '\0';
-
     }
     else
     {
-        printf("Input value is not valid.\n");
-        exit(0);
+        printf("This is not a valid input.\n");
+        exit(EXIT_FAILURE);
     }
     
     
@@ -559,6 +565,29 @@ int main()
         strcat(out_XHeII_file, "None");
         for(int i=0; i<1000; i++) out_XHeIII_file[i] = '\0';
         strcat(out_XHeIII_file, "None");
+    }
+    
+    //-------------------------------------------------------------------------------
+    // Restart option
+    //-------------------------------------------------------------------------------
+    
+    printf("\nRESTART OPTIONS\n");
+    
+    printf("Do you want to store restart files, from which the simulation could be resumed? Yes=1, No=0\n");
+    scanf("%d", &write_restart_file);
+    if(write_restart_file == 1)
+    {
+        printf("basename for restart files:");
+        scanf("%s", restart_file);
+        
+        printf("If the simulation should be only run for a certain time and restart files written before, provide the run time in minutes, otherwise tupe '0' and restart files are written after each output.\n");
+        scanf("%lf", &walltime);
+    }
+    else
+    {
+        for(int i=0; i<1000; i++) restart_file[i] = '\0';
+        strcat(restart_file, "None");
+        walltime = 0.;
     }
     
     //-------------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 Description
 ===========
 
-Code to compute ionization field from density fields and source catalogues (or number of ionizing photon grids). A detailed description of the underlying model can be found in `Hutter (2018) <http://adsabs.harvard.edu/abs/2018MNRAS.477.1549H>`__
+Code to compute ionization field from density fields and source catalogues (or number of ionizing photon grids). A detailed description of the underlying model can be found in `Hutter (2018) <http://adsabs.harvard.edu/abs/2018MNRAS.477.1549H>`__.
 
 When you should use this code
 =============================
@@ -118,7 +118,7 @@ Parameter file
 - ``numSnapshots``: number of outputs (**Note**: output is automatically created for all redshifts where input files change)
 - ``redshiftFile``: redshifts of in- and outputs: 1 for new input files & 0 for no new input file but output file
 
-**EvovleBySnapshot**
+**EvolveBySnapshot**
 ....................
 
 - ``numSnapshots``: number of outputs (**Note**: output is automatically created for all redshifts where input files change)
