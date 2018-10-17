@@ -89,32 +89,50 @@ The program will guide you through the different options and generate the parame
 Parameter file
 ''''''''''''''
 
-**General**
+**Type**
 ...........
 
-- ``calcIonHistory``: set to 1 if ionization history should be calculated (either from a single snapshot from redshift_prevSnapshot to redshift, or from the given redshift_file), otherwise 0.
+- ``simulationType``: possible options for simulation types are:
+    - **FIXED_REDSHIFT**: ionization field after ``evolutionTime`` is computed from a single density field and source list or field
+    - **EVOLVE_REDSHIT**: a single density field at ``redshift_start`` is evolved to ``redshift_end``, and ``numSnapshots`` ionization fields are written linearly in redshift
+    - **EVOLVE_ALL**: evolution of ionization field is computed from density and source files at multiple redshifts specified in ``redshiftFile``; output redshifts of the ionization fields can also be specified in ``redshiftFile``; input files need to end on ``_00i`` and start from ``0``
+    - **EVOLVE_BY_SNAPSHOT**: same as **EVOLVE_ALL** with input files also ending on ``_00i`` but can start from any ``i`` value specified in ``snapshot_start``
+    
+**FixedRedshift**
+.................
+
+- ``redshift``: redshift of the density field and source list or field
+- ``evolutionTime``: evolution time in Myrs
+
+**EvolveRedshift**
+..................
+
+- ``numSnapshots``: number of outputs (**Note**: output is automatically created for all redshifts where input files change)
+- ``redshift_start``: redshift of the density field and source list or field
+- ``redshift_end``: redshift until which the ionization should be evolved
+
+**EvolveAll**
+.............
+
 - ``numSnapshots``: number of outputs (**Note**: output is automatically created for all redshifts where input files change)
 - ``redshiftFile``: redshifts of in- and outputs: 1 for new input files & 0 for no new input file but output file
-- ``redshift_prevSnapshot``: redshift to start the calculation, if no redshift_file is provided
-- ``finalRedshift``: final redshift (for calcIonHistory = 1), or redshift of output (for calcIonHistory = 0)
-- ``evolutionTime``: evolution time in Myrs if output for a single snapshot is chosen (calcIonHistory = 0) 
 
-- ``size_linear_scale``: comoving size in h^{-1} Mpc until which tophat kernel should be increased linearly
-- ``first_increment_in_logscale``: increment of the tophat kernel beyond linear increase
-- ``max_scale``: maximum tophat kernel size in h^{-1} Mpc
-- ``useIonizedSphereModel``: set to 1 if entire smoothing sphere should be marked as ionized, otherwise only central cell is flagged as ionized
+**EvovleBySnapshot**
+....................
 
-- ``useDefaultMeanDensity``: set to 1 if default cosmological density value should be used (recommended), otherwise set to 0 if "meanDensity" is used
+- ``numSnapshots``: number of outputs (**Note**: output is automatically created for all redshifts where input files change)
+- ``redshiftFile``: redshifts of in- and outputs: 1 for new input files & 0 for no new input file but output file
+- ``snapshot_start``: snapshot number of density and source files from which the simulation should start
 
-- ``useWebModel``: set to 1 if the residual HI fraction in ionized regions should be computed (this mode will require to choose a photHI model), otherwise 0
-- ``photHImodel``: choose photoionization model (0 = constant photoionization rate (``photHI_bg``); 1 = photoionization depends on distance from ionizing sources; 2 = photoionization rate depends on mean free path)
-- ``calcMeanFreePath``: set to 1 if mfp is calculated from the size of the ionized regions and/or as in Miralda 2000, otherwise 0 (only applicable for constantPhotHI = 0)
-- ``constantRecombinations``: set to 1 if rembination rate should be constant spatially, otherwise 0
-- ``calcRecombinations``: set to 1 if number of recombinations should be calculated, otherwise 0
+**Cosmology**
+.............
 
-- ``solveForHelium``: set to 1 if HeII and HeIII fields should be computed, otherwise 0
-
-- ``paddedBox``: set to the factor by how much your volume is increased by padding if a padded box is used, otherwise 0
+- ``h``: H = 100*h km/s/Mpc
+- ``omega_b``: baryon density parameter
+- ``omega_m``: matter density parameter
+- ``omega_l``: lambda density parameter
+- ``sigma8``: sigma8
+- ``Y``: mass fraction of Helium in the primordial gas (assumed to consist of H and He)
 
 **Input**
 .........
@@ -128,41 +146,74 @@ Parameter file
 - ``inputIgmDensityFile``: name of density file containing 3D density grid (if multiple then just the basename and neglecting extensions _00i)
 - ``densityInOverdensity``: set to 1 if density is in terms of overdensity i.e. rho/mean(rho), otherwise 0
 - ``meanDensity``: assumed mean density, density is evolved as dens(z) = meanDensity*(1+z)^3 (only effective when ``useDefaultMeanDensity=0``)
+- ``useDefaultMeanDensity``: set to 1 if default cosmological density value should be used (recommended), otherwise set to 0 if "meanDensity" is used
 
 - ``inputIgmClumpFile``: name of clumping factor file, which is used to calculate the HI fraction at the listed outputs
 
 - ``inputSourcesFile``: (if existing) file containing the sources (first line: #sources; every other line: x, y, z, Nion [s^-1], ID, fesc)
 - ``inputNionFile``: (if existing) name of file containing 3D grid of Nion [s^-1]
 
-**Output**
-..........
+- ``paddedBox``: set to the factor by how much your volume is increased by padding if a padded box is used, otherwise 0
 
-- ``output_XHII_file``: basename for output of XHII fields
-- ``write_photHI_file``: set to 1 if photoionization file should be written
-- ``output_photHI_file``: basename for output of HI photoionization fields
+**BubbleModel**
+.........
 
-**Cosmology**
-.............
+- ``size_linear_scale``: comoving size in h^{-1} Mpc until which tophat kernel should be increased linearly
+- ``first_increment_in_logscale``: increment of the tophat kernel beyond linear increase
+- ``max_scale``: maximum tophat kernel size in h^{-1} Mpc
+- ``useIonizedSphereModel``: set to 1 if entire smoothing sphere should be marked as ionized, otherwise only central cell is flagged as ionized
 
-- ``h``: H = 100*h km/s/Mpc
-- ``omega_b``: baryon density parameter
-- ``omega_m``: matter density parameter
-- ``omega_l``: lambda density parameter
-- ``sigma8``: sigma8
-- ``Y``: mass fraction of Helium in the primordial gas (assumed to consist of H and He)
-
-**Photoionization**
+**PhotoionizationModel**
 ...................
+- ``useWebModel``: set to 1 if the residual HI fraction in ionized regions should be computed (this mode will require to choose a photHI model), otherwise 0
+- ``photHImodel``: possible options for photoionization models are:
+    - **PHOTHI_CONST**: photoionization rate is set to a constant value ``photHI_bg``
+    - **PHOTHI_GIVEN**: photoionization rate depends on distance from ionizing sources but is normalised such that the mean is given by the values specified in ``photHI_bg_file``
+    - **PHOTHI_FLUX**: photoionization depends on distance from ionizing sources
+    - **PHOTHI_MFP**: photoionization rate depends on mean free path
+- ``calcMeanFreePath``: set to 1 if mfp is calculated from the size of the ionized regions and/or as in Miralda 2000, otherwise 0 (only applicable for constantPhotHI = 0)
+
+**PhotoionizationConst**
+........................
+
+- ``photHI_bg``: photoionization background value
+
+**PhotoionizationGiven**
+........................
 
 - ``photHI_bg_file``: name of file with a list of redshift, HI photoionization rates, HI photoheating rates, Q
-- ``photHI_bg``: photoionization background value
+
+**PhotoionizationFlux**
+.......................
+
 - ``meanFreePathInIonizedMedium``: mfp in physical Mpc (only applicable for calcMeanFreePath = 0)
 - ``sourceSlopeIndex``: spectral index of the spectrum of the ionizing sources, i.e. alpha for L_nu ~ nu^-alpha
 
-**Recombinations**
-..................
+**PhotoionizationMfp**
+.......................
 
-- ``dnrec_dt``: recombination rate when option ``constantRecombinations = 0`` is chosen.
+- ``sourceSlopeIndex``: spectral index of the spectrum of the ionizing sources, i.e. alpha for L_nu ~ nu^-alpha
+
+**RecombinationModel**
+......................
+
+- ``calcRecombinations``: set to 1 if number of recombinations should be calculated, otherwise 0
+- ``recombinationModel``: possible options for recombination models are:
+    - **RECOMB_DEFAULT**: density dependent recombination rate is assumed
+    - **RECOMB_CONST**: a constant recombination rate ``dnrec_dt`` is assumed
+    - **RECOMB_TABLE**: recombinations are computed according to the model in Miralda et al. (2000): CURRENTLY NO TABLES AVAILABLE
+
+**RecombinationDefault**
+......................
+
+**RecombinationConst**
+......................
+
+- ``dnrec_dt``: constant recombination rate in #/Myr
+
+**RecombinationTable**
+......................
+
 - ``recombinationTable``: (table of recombination values, only change if you know exactly what you are doing! Below are the parameters of the table)
 - ``zmin``: minimum redshift of recombination table
 - ``zmax``: maximum redshift of recombination table
@@ -177,14 +228,27 @@ Parameter file
 **Helium**
 ..........
 
+- ``solveForHelium``: set to 1 if HeII and HeIII fields should be computed, otherwise 0
 - ``inputSourcesHeIFile``: (if existing) file containing the sources (x, y, z, Nion_HeI [s^-1], ID, fesc)
 - ``inputNionHeIFile``: (if existing) name of file containing 3D grid of Nion_HeI [s^-1]
 - ``inputSourcesHeIFile``: (if existing) file containing the sources (x, y, z, Nion_HeII [s^-1], ID, fesc)
 - ``inputNionHeIFile``: (if existing) name of file containing 3D grid of Nion_HeII [s^-1]
 
+**Output**
+..........
+
+- ``output_XHII_file``: basename for output of XHII fields
+- ``write_photHI_file``: set to 1 if photoionization file should be written
+- ``output_photHI_file``: basename for output of HI photoionization fields
 - ``output_XHeII_file``: output name for XHeII fields
 - ``output_XHeIII_file``: output name for XHeIII fields
 
+**Restart**
+...........
+
+- ``writeRestartFiles``: set to 1 if restart fiels should be written, otherwise 0
+- ``restartFiles``: basename for restart files
+- ``walltime``: CPU walltime until the program is ceased and restart files are written
 
 Options
 =======
