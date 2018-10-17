@@ -47,6 +47,7 @@ confObj_new(parse_ini_t ini)
         config->calc_ion_history = 0;
         config->num_snapshots = 1;
         config->redshift_file = NULL;
+        config->snapshot_start = -1;
         config->redshift_prev_snap = config->redshift;
         getFromIni(&(config->redshift), parse_ini_get_double,
                   ini, "redshift", "FixedRedshift");
@@ -60,6 +61,7 @@ confObj_new(parse_ini_t ini)
         getFromIni(&(config->num_snapshots), parse_ini_get_int32,
                   ini, "numSnapshots", "EvolveRedshift");  
         config->redshift_file = NULL;
+        config->snapshot_start = -1;
         getFromIni(&(config->redshift_prev_snap), parse_ini_get_double,
                   ini, "redshift_start", "EvolveRedshift");
         getFromIni(&(config->redshift), parse_ini_get_double,
@@ -74,6 +76,21 @@ confObj_new(parse_ini_t ini)
                   ini, "numSnapshots", "EvolveAll");    
         getFromIni(&(config->redshift_file), parse_ini_get_string,
                   ini, "redshiftFile", "EvolveAll");
+        config->snapshot_start = -1;
+        config->redshift = 0.;
+        config->redshift_prev_snap = 0.;
+        config->evol_time = 0.;
+    }
+    else if(strcmp(config->sim_type, "EVOLVE_BY_SNAPSHOT") == 0)
+    {
+        printf("EVOLVE_BY_SNAPSHOT\n");
+        config->calc_ion_history = 1;
+        getFromIni(&(config->num_snapshots), parse_ini_get_int32,
+                  ini, "numSnapshots", "EvolveBySnapshot");    
+        getFromIni(&(config->redshift_file), parse_ini_get_string,
+                  ini, "redshiftFile", "EvolveBySnapshot");
+        getFromIni(&(config->snapshot_start), parse_ini_get_int32,
+                  ini, "snapshot_start", "EvolveBySnapshot");  
         config->redshift = 0.;
         config->redshift_prev_snap = 0.;
         config->evol_time = 0.;

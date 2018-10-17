@@ -27,6 +27,7 @@ struct confObj_struct {
     char           *sim_type;
     int            calc_ion_history;
     int            num_snapshots;
+    int            snapshot_start;
     char           *redshift_file;
     double         redshift_prev_snap;
     double         redshift;

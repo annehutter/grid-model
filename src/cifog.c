@@ -105,20 +105,24 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
 {
     double t1 = 0., t2 = 0., tcycle = 0., tcycle_max = 0.;
     double zstart = 0., zend = 0., delta_redshift = 0.;
-    int snap = -1, cycleStart = 0;
+    int snap = -1, cycleStart = 0, cycle_offset = 0;
     int status = 0;
     
     if(myRank==0) printf("\nThis run computes %d times the ionization field (num_cycles)\n", num_cycles);
     if(simParam->calc_ion_history == 1)
     {
-        zstart = simParam->redshift_prev_snap;
-        zend = simParam->redshift;
-        
         if(redshift_list == NULL)
         {
-            simParam->redshift_prev_snap = zstart;
+            zstart = simParam->redshift_prev_snap;
+            zend = simParam->redshift;
             delta_redshift = (zstart-zend)/(double)num_cycles;
             simParam->redshift = zstart - delta_redshift;
+        }
+        else if(simParam->snapshot_start >= 0)
+        {
+            printf("\nshifting snap\n");
+            cycle_offset = simParam->snapshot_start;
+            snap += simParam->snapshot_start;
         }
     } 
     
@@ -158,7 +162,7 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
             simParam->redshift_prev_snap -= delta_redshift;
         }
         
-        cifog_step(simParam, grid, sourcelist, integralTable, photIonBgList, cycle, snap, myRank);
+        cifog_step(simParam, grid, sourcelist, integralTable, photIonBgList, cycle, cycle_offset, snap, myRank);
         
 #ifdef __MPI
         MPI_Barrier(MPI_COMM_WORLD);
@@ -198,7 +202,7 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
     return EXIT_SUCCESS;
 }
 
-int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const integral_table_t *integralTable, photIonlist_t *photIonBgList, const int cycle, int snap, const int myRank)
+int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const integral_table_t *integralTable, photIonlist_t *photIonBgList, const int cycle, const int cycle_offset, int snap, const int myRank)
 {
     const double f = simParam->f;
     char photHIFile[MAXLENGTH], XionFile[MAXLENGTH];
@@ -382,7 +386,7 @@ int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const
     
     //write ionization field to file
     for(int i=0; i<MAXLENGTH; i++) XionFile[i] = '\0';
-    sprintf(XionFile, "%s_%02d", simParam->out_XHII_file, cycle);
+    sprintf(XionFile, "%s_%02d", simParam->out_XHII_file, cycle + cycle_offset);
     if(myRank==0) printf("\n++++\nwriting HI ionization field to file %s ... ", XionFile);
     save_to_file(grid->XHII, grid, XionFile);
     if(myRank==0) printf("done\n+++\n");
@@ -403,14 +407,14 @@ int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const
         
         //write ionization field to file
         for(int i=0; i<MAXLENGTH; i++) XionFile[i] = '\0';
-        sprintf(XionFile, "%s_%02d", simParam->out_XHeII_file, cycle);
+        sprintf(XionFile, "%s_%02d", simParam->out_XHeII_file, cycle + cycle_offset);
         if(myRank==0) printf("\n++++\nwriting HeI ionization field to file %s ... ", XionFile);
         save_to_file(grid->XHeII, grid, XionFile);
         if(myRank==0) printf("done\n+++\n");
     
         //write ionization field to file
         for(int i=0; i<MAXLENGTH; i++) XionFile[i] = '\0';
-        sprintf(XionFile, "%s_%02d", simParam->out_XHeIII_file, cycle);
+        sprintf(XionFile, "%s_%02d", simParam->out_XHeIII_file, cycle + cycle_offset);
         if(myRank==0) printf("\n++++\nwriting HeII ionization field to file %s ... ", XionFile);
         save_to_file(grid->XHeIII, grid, XionFile);
         if(myRank==0) printf("done\n+++\n");
@@ -420,7 +424,7 @@ int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const
     {
         //write photoionization rate field to file
         for(int i=0; i<MAXLENGTH; i++) photHIFile[i] = '\0';
-        sprintf(photHIFile, "%s_%02d", simParam->out_photHI_file, cycle);
+        sprintf(photHIFile, "%s_%02d", simParam->out_photHI_file, cycle + cycle_offset);
         if(myRank==0) printf("\n++++\nwriting HI photoionization field to file... ");
         save_to_file(grid->photHI, grid, photHIFile);
         if(myRank==0) printf("done\n+++\n");
