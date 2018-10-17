@@ -93,6 +93,7 @@ Parameter file
 ...........
 
 - ``simulationType``: possible options for simulation types are:
+
       - **FIXED_REDSHIFT**: ionization field after ``evolutionTime`` is computed from a single density field and source list or field
       - **EVOLVE_REDSHIT**: a single density field at ``redshift_start`` is evolved to ``redshift_end``, and ``numSnapshots`` ionization fields are written linearly in redshift
       - **EVOLVE_ALL**: evolution of ionization field is computed from density and source files at multiple redshifts specified in ``redshiftFile``; output redshifts of the ionization fields can also be specified in ``redshiftFile``; input files need to end on ``_00i`` and start from ``0``
