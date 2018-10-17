@@ -94,10 +94,10 @@ Parameter file
 
 - ``simulationType``: possible options for simulation types are:
 
-      - **FIXED_REDSHIFT**: ionization field after ``evolutionTime`` is computed from a single density field and source list or field
-      - **EVOLVE_REDSHIT**: a single density field at ``redshift_start`` is evolved to ``redshift_end``, and ``numSnapshots`` ionization fields are written linearly in redshift
-      - **EVOLVE_ALL**: evolution of ionization field is computed from density and source files at multiple redshifts specified in ``redshiftFile``; output redshifts of the ionization fields can also be specified in ``redshiftFile``; input files need to end on ``_00i`` and start from ``0``
-      - **EVOLVE_BY_SNAPSHOT**: same as **EVOLVE_ALL** with input files also ending on ``_00i`` but can start from any ``i`` value specified in ``snapshot_start``
+    - **FIXED_REDSHIFT**: ionization field after ``evolutionTime`` is computed from a single density field and source list or field
+    - **EVOLVE_REDSHIT**: a single density field at ``redshift_start`` is evolved to ``redshift_end``, and ``numSnapshots`` ionization fields are written linearly in redshift
+    - **EVOLVE_ALL**: evolution of ionization field is computed from density and source files at multiple redshifts specified in ``redshiftFile``; output redshifts of the ionization fields can also be specified in ``redshiftFile``; input files need to end on ``_00i`` and start from ``0``
+    - **EVOLVE_BY_SNAPSHOT**: same as **EVOLVE_ALL** with input files also ending on ``_00i`` but can start from any ``i`` value specified in ``snapshot_start``
     
 **FixedRedshift**
 .................
@@ -168,6 +168,7 @@ Parameter file
 ...................
 - ``useWebModel``: set to 1 if the residual HI fraction in ionized regions should be computed (this mode will require to choose a photHI model), otherwise 0
 - ``photHImodel``: possible options for photoionization models are:
+
     - **PHOTHI_CONST**: photoionization rate is set to a constant value ``photHI_bg``
     - **PHOTHI_GIVEN**: photoionization rate depends on distance from ionizing sources but is normalised such that the mean is given by the values specified in ``photHI_bg_file``
     - **PHOTHI_FLUX**: photoionization depends on distance from ionizing sources
@@ -200,6 +201,7 @@ Parameter file
 
 - ``calcRecombinations``: set to 1 if number of recombinations should be calculated, otherwise 0
 - ``recombinationModel``: possible options for recombination models are:
+
     - **RECOMB_DEFAULT**: density dependent recombination rate is assumed
     - **RECOMB_CONST**: a constant recombination rate ``dnrec_dt`` is assumed
     - **RECOMB_TABLE**: recombinations are computed according to the model in Miralda et al. (2000): CURRENTLY NO TABLES AVAILABLE
