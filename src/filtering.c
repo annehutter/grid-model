@@ -343,7 +343,7 @@ void copy_grid_array(fftw_complex *Xion_tmp, fftw_complex *Xion, grid_t *thisGri
     }
 }
 
-void update_web_model(grid_t *thisGrid, confObj_t simParam, photIonlist_t *photIonBgList)
+void update_web_model(grid_t *thisGrid, confObj_t simParam, photIonlist_t *photIonBgList, int thisRank)
 {
     const double f = simParam->f;
 
@@ -354,13 +354,12 @@ void update_web_model(grid_t *thisGrid, confObj_t simParam, photIonlist_t *photI
         if(simParam->calc_mfp == 1)
         {
             set_mfp_Miralda2000(simParam);
-            printf("\n M2000: mfp(photHI = %e) = %e Mpc at z = %e", simParam->photHI_bg, simParam->mfp, simParam->redshift);
-            printf("\n grid->mean_mfp = %e\t f = %e\n", thisGrid->mean_mfp, f);
+            if(thisRank==0) printf("\n  The Miralda (2000) mean free path at z = %e is %e Mpc for a photoionization background of %e s^-1.", simParam->redshift, simParam->mfp, simParam->photHI_bg);
+            if(thisRank==0) printf("\n  The mean free path from the ionization maps is %e Mpc. The factor f is %e", thisGrid->mean_mfp, f);
             if(f*thisGrid->mean_mfp < simParam->mfp || simParam->photHI_bg < 1.e-12)
             {
                 simParam->mfp = f*thisGrid->mean_mfp;
             }
-            printf("\n mfp = %e Mpc at z = %e", simParam->mfp, simParam->redshift);
         }
         compute_photHI(thisGrid, simParam, 0);
     }
@@ -377,15 +376,15 @@ void update_web_model(grid_t *thisGrid, confObj_t simParam, photIonlist_t *photI
         if(simParam->calc_mfp == 1)
         {
             set_mfp_Miralda2000(simParam);
-            printf("\n M2000: mfp(photHI = %e) = %e Mpc at z = %e", simParam->photHI_bg, simParam->mfp, simParam->redshift);
+            if(thisRank==0) printf("\n  The Miralda (2000) mean free path at z = %e is %e Mpc for a photoionization background of %e s^-1.", simParam->redshift, simParam->mfp, simParam->photHI_bg);
             if(f*thisGrid->mean_mfp < simParam->mfp || simParam->photHI_bg < 1.e-12)
             {
                 simParam->mfp = f*thisGrid->mean_mfp;
             }
-            printf("\n mfp = %e Mpc at z = %e", simParam->mfp, simParam->redshift);
         }
         compute_photHI(thisGrid, simParam, 1);
     }
+    if(thisRank==0) printf("\n  *** The resulting mean free path at z = %e is %e Mpc ***", simParam->redshift, simParam->mfp);
     
     compute_web_ionfraction(thisGrid, simParam);
 }
@@ -413,7 +412,7 @@ void adapt_HeII_to_HeIII(grid_t *thisGrid)
     }
 }
 
-void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, photIonlist_t *photIonBgList, int specie)
+void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, photIonlist_t *photIonBgList, int specie, int thisRank)
 {
     int nbins;
     float smooth_scale;
@@ -548,8 +547,7 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, photIonlist_
     lin_bins = lin_scales/box_size*(float)nbins;
     factor_exponent = inc_log_scales/lin_bins;
     num_scales = (log(max_scale/lin_scales) + lin_bins*log(1.+factor_exponent))/log(1. + factor_exponent );
-    printf("\n #linear bins = %e\t factor_exponent = %e\t #tophat filter sizes = %d\n", lin_bins, factor_exponent, num_scales);
-    
+    if(thisRank==0) printf("\n There are %d smoothing scales with the first %d being linearly spaced. factor_exponent = %e\n", num_scales, (int)lin_bins, factor_exponent);
     
     /* ----------------------------------------- */
     /* loop over different smoothing scales      */
@@ -583,8 +581,10 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, photIonlist_
         if(inc <= lin_bins) smooth_scale = inc;
         else smooth_scale = lin_bins*pow(1. + factor_exponent, inc-lin_bins);
         
-        printf("  inc = %e\t scale = %d\t smooth_scale = %e bins or %e cMpc\n",inc, scale, smooth_scale, (float)smooth_scale/(float)nbins*box_size);
-
+#ifdef VERBOSE
+        if(thisRank==0) printf("  inc = %d\t scale = %d\t smoothing scale = %4.3e bins  or  %3.2e cMpc\n", (int)inc, scale, smooth_scale, (float)smooth_scale/(float)nbins*box_size);
+#endif
+        
         /* -------------------------------------------- */
         /* coonstruct tophat filter for smoothing scale */
         /* -------------------------------------------- */
@@ -683,7 +683,9 @@ void compute_ionization_field(confObj_t simParam, grid_t *thisGrid, photIonlist_
     /* -------------------------------------------------------- */ 
     if(simParam->use_web_model == 1 && specie == 0)
     {        
-        update_web_model(thisGrid, simParam, photIonBgList);
+        if(thisRank==0) printf("\n Apply web model...");
+        update_web_model(thisGrid, simParam, photIonBgList, thisRank);
+        if(thisRank==0) printf("\n done\n");
         combine_bubble_and_web_model(Xion_tmp, Xion, thisGrid);
     }else{
         copy_grid_array(Xion_tmp, Xion, thisGrid);

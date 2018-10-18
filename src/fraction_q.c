@@ -19,7 +19,7 @@
 
 #define SQR(X) ((X) * (X))
 
-void compute_cum_values(grid_t *thisGrid, confObj_t simParam, int specie)
+void compute_cum_values(grid_t *thisGrid, confObj_t simParam, int specie, int thisRank)
 {
     int nbins;
     int local_n0;
@@ -45,17 +45,17 @@ void compute_cum_values(grid_t *thisGrid, confObj_t simParam, int specie)
         
         if(specie != 1 && specie != 2)
         {
-            printf("\n zstart = %e\t zend = %e\t evol_time = %e + %e Myrs", simParam->redshift_prev_snap, simParam->redshift, simParam->evol_time, time_from_redshift_flatuniverse(simParam, simParam->redshift, simParam->redshift_prev_snap)/Myr_s);
+            if(thisRank==0) printf("\n This cycle starts at z = %e and ends at z = %e spanning an evolution time of %e + %e Myrs", simParam->redshift_prev_snap, simParam->redshift, simParam->evol_time, time_from_redshift_flatuniverse(simParam, simParam->redshift, simParam->redshift_prev_snap)/Myr_s);
             evol_time = simParam->evol_time*Myr_s + evol_time_fromPrevSnap;
             simParam->evol_time = evol_time/Myr_s;
         }else{
             evol_time = simParam->evol_time*Myr_s;
-            printf("\n evol_time = %e Myrs", evol_time/Myr_s);
+            if(thisRank==0) printf("\n This cycle is evolved for %e Myrs", evol_time/Myr_s);
         }
     }else{
         evol_time = simParam->evol_time*Myr_s;
         evol_time_fromPrevSnap = evol_time;
-        printf("\n evol_time = %e Myrs", evol_time/Myr_s);
+        if(thisRank==0) printf("\n This cycle is evolved for %e Myrs", evol_time/Myr_s);
     }
     
     z = simParam->redshift;
@@ -74,7 +74,7 @@ void compute_cum_values(grid_t *thisGrid, confObj_t simParam, int specie)
     const double volume = pow(box_size/(h*(double)nbins*(1.+z))*Mpc_cm,3);
     
     if(specie == 1){
-        printf("\n mean_numdensity_He at z=%e is %e cm^-3\n evol_time_fromPrevSnap = %e Myr\n", z, mean_numdensity_He, evol_time_fromPrevSnap/Myr_s);
+        if(thisRank==0) printf("\n The mean He number density at z = %e is %e cm^-3\n", z, mean_numdensity_He);
 
         for(int i=0; i<local_n0; i++)
         {
@@ -93,7 +93,7 @@ void compute_cum_values(grid_t *thisGrid, confObj_t simParam, int specie)
             }
         }
     }else if(specie == 2){
-        printf("\n mean_numdensity_He at z=%e is %e cm^-3\n evol_time_fromPrevSnap = %e Myr\n", z, mean_numdensity_He, evol_time_fromPrevSnap/Myr_s);
+        if(thisRank==0) printf("\n The mean He number density at z = %e is %e cm^-3\n", z, mean_numdensity_He);
 
         for(int i=0; i<local_n0; i++)
         {
@@ -112,7 +112,7 @@ void compute_cum_values(grid_t *thisGrid, confObj_t simParam, int specie)
             }
         }
     }else{
-        printf("\n mean_numdensity_H at z=%e is %e cm^-3\n evol_time_fromPrevSnap = %e Myr\n", z, mean_numdensity_H, evol_time_fromPrevSnap/Myr_s);
+        if(thisRank==0) printf("\n The mean H number density at z = %e is %e cm^-3\n", z, mean_numdensity_H);
 
         for(int i=0; i<local_n0; i++)
         {

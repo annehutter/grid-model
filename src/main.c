@@ -90,27 +90,29 @@ int main (int argc, /*const*/ char * argv[]) {
         }
     }
 
-    if(restart == 1) printf("restarting cifog from restart files\n");
-
     cifog_init(iniFile, &simParam, &redshift_list, &grid, &integralTable, &photIonBgList, &num_cycles, restart, myRank);
     
     cifog(simParam, redshift_list, grid, sourcelist, integralTable, photIonBgList, num_cycles, myRank, size);
     
     cifog_deallocate(simParam, redshift_list, grid, integralTable, photIonBgList, myRank);
 
+#ifdef __MPI
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
     
-    if(myRank==0) printf("\nFinished\n");
+    if(myRank==0) printf("\n********\nFINISHED\n********\n");
+    
 #ifdef __MPI
     fftw_mpi_cleanup();
         
     t2 = MPI_Wtime();
-    printf("Execution took %f s\n", t2-t1);
+    if(myRank == 0) printf("\nExecution took %f s\n", t2-t1);
     MPI_Finalize();
 #else
     fftw_cleanup();
     
     t2 = time(NULL);
-    printf("Execution took %f s\n", t2-t1);
+    if(myRan == 0) printf("\nExecution took %f s\n", t2-t1);
 #endif
     
     return 0;

@@ -41,6 +41,8 @@
     
 int cifog_init(char *iniFile, confObj_t *simParam, double **redshift_list, grid_t **grid,  integral_table_t **integralTable, photIonlist_t **photIonBgList, int *num_cycles, const int restart, const int myRank)
 {
+    if(myRank==0) printf("\n********************\nINITIALIZING CIFOG\n********************\n");
+
     //read paramter file
     *simParam = readConfObj(iniFile);
     (*simParam)->restart = restart;
@@ -66,7 +68,7 @@ int cifog_init(char *iniFile, confObj_t *simParam, double **redshift_list, grid_
     
     //read redshift files with outputs
     *redshift_list = NULL;
-    if(myRank==0) printf("\n++++\nreading redshift list of files and outputs... ");
+    if(myRank==0) printf("\n++++\nReading redshift list of files and outputs... ");
     if((*simParam)->redshift_file != NULL)
     {
         *redshift_list = read_redshift_list((*simParam)->redshift_file, *num_cycles);
@@ -78,14 +80,14 @@ int cifog_init(char *iniFile, confObj_t *simParam, double **redshift_list, grid_
     
     //read files (allocate grid)
     *grid = initGrid();
-    if(myRank==0) printf("\n++++\nreading files to grid... ");
+    if(myRank==0) printf("\n++++\nInitialising grids... ");
     read_files_to_grid(*grid, (*simParam));
     if(myRank==0) printf("done\n+++\n");
     
     //read photoionization background values 
     if((*simParam)->photHI_model == 11)
     {
-        if(myRank==0) printf("\n++++\nreading photoionization background rates... ");
+        if(myRank==0) printf("\n++++\nReading photoionization background rates... ");
         *photIonBgList = read_photIonlist((*simParam)->photHI_bg_file);
         if(myRank==0) printf("done\n+++\n");
     }
@@ -93,7 +95,7 @@ int cifog_init(char *iniFile, confObj_t *simParam, double **redshift_list, grid_
     if((*simParam)->calc_recomb == 2)
     {
         //read table for recombinations
-        if(myRank==0) printf("\n++++\nread table for recombinations... ");
+        if(myRank==0) printf("\n++++\nRead table for recombinations... ");
         *integralTable = initIntegralTable((*simParam)->zmin, (*simParam)->zmax, (*simParam)->dz, (*simParam)->fmin, (*simParam)->fmax, (*simParam)->df, (*simParam)->dcellmin, (*simParam)->dcellmax, (*simParam)->ddcell);
         if(myRank==0) printf("done\n+++\n");
     }
@@ -107,8 +109,7 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
     double zstart = 0., zend = 0., delta_redshift = 0.;
     int snap = -1, cycleStart = 0, cycle_offset = 0;
     int status = 0;
-    
-    if(myRank==0) printf("\nThis run computes %d times the ionization field (num_cycles)\n", num_cycles);
+        
     if(simParam->calc_ion_history == 1)
     {
         if(redshift_list == NULL)
@@ -120,7 +121,6 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
         }
         else if(simParam->snapshot_start >= 0)
         {
-            printf("\nshifting snap\n");
             cycle_offset = simParam->snapshot_start;
             snap += simParam->snapshot_start;
         }
@@ -128,15 +128,19 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
     
     if(simParam->restart == 1)
     {
-        printf("\n\n\nREADING RESTART FILES!!!!\n\n\n\n");
         status = read_restart_file(simParam, grid, &cycleStart, &snap);
         if(status != EXIT_SUCCESS)
         {
             printf("Could not read restart files.\n");
             exit(EXIT_FAILURE);
         }
+        if(myRank==0) printf("\nSTARTING FROM RESTART FILES\nThe overall run has %d outputs for the ionization field (#CYCLES). Resuming from cycle %d and snap %d.\n", num_cycles, cycleStart, snap);
     }
-    
+    else
+    {
+        if(myRank==0) printf("\nThis run will have %d outputs for the ionization field (#CYCLES). Starting from cycle %d and snap %d.\n", num_cycles, cycleStart, snap);
+    }
+
     //-------------------------------------------------------------------------------
     // start the loop
     //-------------------------------------------------------------------------------
@@ -180,15 +184,16 @@ int cifog(confObj_t simParam, const double *redshift_list, grid_t *grid, sourcel
         tcycle = tcycle / (double)size;
         if(tcycle > tcycle_max) tcycle_max = tcycle;
         
-        if(myRank == 0) printf("\n TCYCLE = %e s\t TCYCLE_MAX = %e\n", tcycle, tcycle_max);
+        if(myRank == 0) printf("\n++++\nThe last cycle took %e s. The maximum time for a cycle is %e\n+++\n", tcycle, tcycle_max);
         
         if(simParam->write_restart_file == 1)
         {
             if((cycle < num_cycles-1 && simParam->walltime == 0.) 
             || ((cycle - cycleStart + 2) * tcycle_max > simParam->walltime*60.))
             {
-                printf("\n WRITING RESTART FILES \n");
+                if(myRank==0) printf("\n++++\nWriting restart files...");
                 status = save_restart_file(simParam, grid, cycle, snap, myRank);
+                if(myRank==0) printf(" done\n+++\n");
                 if(status != EXIT_SUCCESS)
                 {
                       printf("Could not save restart file\n");
@@ -212,26 +217,26 @@ int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const
         printf("\n******************\nSNAP %d\t CYCLE %d\n******************\n", snap, cycle);
     }
     
-    if(myRank==0) printf("\n++++\nreading sources/nion file for snap = %d... ", snap);
+    if(myRank==0) printf("\n++++\nReading sources/nion file for snap = %d... ", snap);
     read_update_nion(simParam, sourcelist, grid, snap);
     if(myRank==0) printf("done\n+++\n");
     
     if(simParam->solve_He == 1)
     {
-        if(myRank==0) printf("\n++++\nreading sources/nion file for snap = %d... ", snap);
+        if(myRank==0) printf("\n++++\nReading sources/nion file for snap = %d... ", snap);
         read_update_nion_HeI(simParam, sourcelist, grid, snap);
         if(myRank==0) printf("done\n+++\n");
         
-        if(myRank==0) printf("\n++++\nreading sources/nion file for snap = %d... ", snap);
+        if(myRank==0) printf("\n++++\nReading sources/nion file for snap = %d... ", snap);
         read_update_nion_HeII(simParam, sourcelist, grid, snap);
         if(myRank==0) printf("done\n+++\n");
     }
     
-    if(myRank==0) printf("\n++++\nreading igm density file for snap = %d... ", snap);
+    if(myRank==0) printf("\n++++\nReading igm density file for snap = %d... ", snap);
     read_update_igm_density(simParam, grid, snap);
     if(myRank==0) printf("done\n+++\n");
   
-    if(myRank==0) printf("\n++++\nreading igm clump file for snap = %d... ", snap);
+    if(myRank==0) printf("\n++++\nReading igm clump file for snap = %d... ", snap);
     read_update_igm_clump(simParam, grid, snap);
     if(myRank==0) printf("done\n+++\n");
     
@@ -249,7 +254,7 @@ int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const
             if(simParam->photHI_model == 0)
             {
                 //set photoionization rate on grid to background value
-                if(myRank==0) printf("\n++++\nsetting photoionization rate to background value... ");
+                if(myRank==0) printf("\n++++\nPHOTHI_CONST: setting photoionization rate to background value...");
                 set_value_to_photoionization_field(grid, simParam);
                 if(myRank==0) printf("\n photHI_bg = %e s^-1\n", simParam->photHI_bg);
                 if(myRank==0) printf("done\n+++\n");
@@ -260,19 +265,17 @@ int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const
             /* ----------------------------------------------------------------------------------------- */
             else if(simParam->photHI_model == 11)
             {
+                if(myRank==0) printf("\n++++\nPHOTHI_GIVEN: computing photoionization rate...");
                 //set photoionization value according to the given list
                 set_value_to_photHI_bg(simParam, get_photHI_from_redshift(photIonBgList, simParam->redshift));
                 
                 if(simParam->calc_mfp == 1)
                 {
-                    if(myRank==0) printf("\n++++\ncompute mean free path... ");
                     simParam->mfp = f*simParam->box_size/(simParam->h * (1.+simParam->redshift))/grid->nbins;
-                    if(myRank==0) printf("\n mfp = %e Mpc at z = %e\n", simParam->mfp, simParam->redshift);
-                    if(myRank==0) printf("done\n+++\n");
+                    if(myRank==0) printf("\n mean free path at z = %e is %e Mpc\n", simParam->redshift, simParam->mfp);
                 }
                 
                 //compute spatial photoionization rate according to source distribution
-                if(myRank==0) printf("\n++++\ncompute photoionization rate... ");
                 compute_photHI(grid, simParam, 1);
                 if(myRank==0) printf("done\n+++\n");
             }
@@ -282,16 +285,15 @@ int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const
             /* ----------------------------------------------------------------------------------------- */
             else if(simParam->photHI_model == 1)
             {                
+                if(myRank==0) printf("\n++++\nPHOTHI_FLUX: computing photoionization rate...");
+
                 if(simParam->calc_mfp == 1)
                 {
-                    if(myRank==0) printf("\n++++\ncompute mean free path... ");
                     simParam->mfp = f*simParam->box_size/(simParam->h * (1.+simParam->redshift))/grid->nbins;
-                    if(myRank==0) printf("\n mfp = %e Mpc at z = %e\n", simParam->mfp, simParam->redshift);
-                    if(myRank==0) printf("done\n+++\n");
+                    if(myRank==0) printf("\n mean free path at z = %e is %e Mpc\n", simParam->redshift, simParam->mfp);
                 }
                 
                 //compute spatial photoionization rate according to source distribution
-                if(myRank==0) printf("\n++++\ncompute photoionization rate... ");
                 compute_photHI(grid, simParam, 0);
                 if(myRank==0) printf("done\n+++\n");
             }
@@ -301,7 +303,7 @@ int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const
             /* ------------------------------------------------------- */
             else if(simParam->photHI_model == 2)
             {                
-                if(myRank==0) printf("\n++++\nset photoionization rate according to ionized regions... ");
+                if(myRank==0) printf("\n++++\nPHOTHI_MFP: set photoionization rate according to ionized regions... ");
                 if(cycle != 0){
                     compute_photHI_ionizedRegions(grid, simParam);
                 }else{
@@ -314,7 +316,7 @@ int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const
             {
                 if(myRank==0)
                 {
-                    printf("\n+++\nno supported photoionization rate model. Photoionization model is required for the web model. Abborting...\n");
+                    printf("\n+++\nNo supported photoionization rate model. Photoionization model is required for the web model. Abborting...\n");
                     exit(EXIT_FAILURE);
                 }
             }
@@ -323,7 +325,7 @@ int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const
         /* ------------------------------------------------------- */
         /* compute HI fraction (web model)                         */
         /* ------------------------------------------------------- */
-        if(myRank==0) printf("\n++++\napply web model... ");
+        if(myRank==0) printf("\n++++\nApply web model... ");
         compute_web_ionfraction(grid, simParam);
         if(myRank==0) printf("done\n+++\n");
         
@@ -334,7 +336,7 @@ int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const
         if(simParam->calc_mfp == -1)
         {
             //compute mean free paths
-            if(myRank==0) printf("\n++++\ncompute mean free paths... ");
+            if(myRank==0) printf("\n++++\nCompute mean free paths... ");
             compute_web_mfp(grid, simParam);
             if(myRank==0) printf("done\n+++\n");
         }
@@ -346,14 +348,14 @@ int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const
     if(simParam->calc_recomb == 1 && simParam->const_recomb == 0)
     {
         //compute number of recombinations (HII, HeII & HeIII)
-        if(myRank==0) printf("\n++++\ncompute number of recombinations... ");
+        if(myRank==0) printf("\n++++\nCompute number of recombinations... ");
         compute_number_recombinations(grid, simParam);
         if(myRank==0) printf("done\n+++\n");
     }
     else if(simParam->calc_recomb == 2 && simParam->const_recomb == 0)
     {
         //compute number of recombinations (HII, HeII & HeIII)
-        if(myRank==0) printf("\n++++\ncompute number of recombinations... ");
+        if(myRank==0) printf("\n++++\nCompute number of recombinations... ");
         compute_number_recombinations_M2000(grid, simParam, simParam->recomb_table, integralTable);
         if(myRank==0) printf("done\n+++\n");
     }
@@ -365,7 +367,7 @@ int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const
     if(simParam->const_recomb == 1)
     {
         //compute number of recombinations (HII, HeII & HeIII)
-        if(myRank==0) printf("\n++++\ncompute number of recombinations... ");
+        if(myRank==0) printf("\n++++\nCompute number of recombinations... ");
         compute_number_recombinations_const(grid, simParam);
         if(myRank==0) printf("done\n+++\n");
     }
@@ -376,12 +378,12 @@ int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const
     
     //compute fraction Q
     if(myRank==0) printf("\n++++\nHII: computing relation between number of ionizing photons and absorptions... ");
-    compute_cum_values(grid, simParam, 0);
+    compute_cum_values(grid, simParam, 0, myRank);
     if(myRank==0) printf("done\n+++\n");
     
     //apply filtering
     if(myRank==0) printf("\n++++\nHII: apply tophat filter routine for ionization field... ");
-    compute_ionization_field(simParam, grid, photIonBgList, 0);
+    compute_ionization_field(simParam, grid, photIonBgList, 0, myRank);
     if(myRank==0) printf("done\n+++\n");
     
     //write ionization field to file
@@ -395,27 +397,27 @@ int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const
     {
         //compute fraction Q
         if(myRank==0) printf("\n++++\nHeII/HeIII: computing relation between number of ionizing photons and absorptions... ");
-        compute_cum_values(grid, simParam, 1);
-        compute_cum_values(grid, simParam, 2);
+        compute_cum_values(grid, simParam, 1, myRank);
+        compute_cum_values(grid, simParam, 2, myRank);
         if(myRank==0) printf("done\n+++\n");
     
         //apply filtering
         if(myRank==0) printf("\n++++\nHeII/HeIII: apply tophat filter routine for ionization field... ");
-        compute_ionization_field(simParam, grid, photIonBgList, 1);
-        compute_ionization_field(simParam, grid, photIonBgList, 2);
+        compute_ionization_field(simParam, grid, photIonBgList, 1, myRank);
+        compute_ionization_field(simParam, grid, photIonBgList, 2, myRank);
         if(myRank==0) printf("done\n+++\n");
         
         //write ionization field to file
         for(int i=0; i<MAXLENGTH; i++) XionFile[i] = '\0';
         sprintf(XionFile, "%s_%02d", simParam->out_XHeII_file, cycle + cycle_offset);
-        if(myRank==0) printf("\n++++\nwriting HeI ionization field to file %s ... ", XionFile);
+        if(myRank==0) printf("\n++++\nWriting HeI ionization field to file %s ... ", XionFile);
         save_to_file(grid->XHeII, grid, XionFile);
         if(myRank==0) printf("done\n+++\n");
     
         //write ionization field to file
         for(int i=0; i<MAXLENGTH; i++) XionFile[i] = '\0';
         sprintf(XionFile, "%s_%02d", simParam->out_XHeIII_file, cycle + cycle_offset);
-        if(myRank==0) printf("\n++++\nwriting HeII ionization field to file %s ... ", XionFile);
+        if(myRank==0) printf("\n++++\nWriting HeII ionization field to file %s ... ", XionFile);
         save_to_file(grid->XHeIII, grid, XionFile);
         if(myRank==0) printf("done\n+++\n");
     }
@@ -425,7 +427,7 @@ int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const
         //write photoionization rate field to file
         for(int i=0; i<MAXLENGTH; i++) photHIFile[i] = '\0';
         sprintf(photHIFile, "%s_%02d", simParam->out_photHI_file, cycle + cycle_offset);
-        if(myRank==0) printf("\n++++\nwriting HI photoionization field to file... ");
+        if(myRank==0) printf("\n++++\nWriting HI photoionization field to file... ");
         save_to_file(grid->photHI, grid, photHIFile);
         if(myRank==0) printf("done\n+++\n");
     }
@@ -438,25 +440,28 @@ int cifog_deallocate(confObj_t simParam, double *redshift_list, grid_t *grid, in
     //--------------------------------------------------------------------------------
     // deallocating grids
     //--------------------------------------------------------------------------------
+  
+    if(myRank==0) printf("\n********************\nFINALIZING CIFOG\n********************\n");
+
     if(simParam->calc_recomb == 2)
     {
         //read table for recombinations
-        if(myRank==0) printf("\n++++\ndeallocating table for recominsations... ");
+        if(myRank==0) printf("\n++++\nDeallocating table for recominsations... ");
         free(integralTable);
         if(myRank==0) printf("done\n+++\n");
     }
 
-    if(myRank==0) printf("\n++++\ndeallocating background photionization rate list... ");
+    if(myRank==0) printf("\n++++\nDeallocating background photionization rate list... ");
     deallocate_photIonlist(photIonBgList);
     if(myRank==0) printf("done\n+++\n");
 
     //deallocate grid
-    if(myRank==0) printf("\n++++\ndeallocating grid ...");
+    if(myRank==0) printf("\n++++\nDeallocating grid ...");
     deallocate_grid(grid, simParam);
     if(myRank==0) printf("done\n+++\n");
     
     //deallocate redshift list
-    if(myRank==0) printf("\n++++\ndeallocating redshift list ...");
+    if(myRank==0) printf("\n++++\nDeallocating redshift list ...");
     deallocateRedshift_list(redshift_list);
     if(myRank==0) printf("done\n+++\n");
     

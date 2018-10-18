@@ -52,12 +52,8 @@ void *get_directory(char *filename)
         {
                 printf("There is no file:'%s'\n", filename); /* You decide here */
         }
-
-        if (token == NULL) 
-        {
-                printf("No directory indicated\n"); /* You decide here */
-        }
-        else
+        
+        if(token != NULL)
         {
             length = strlen(token);
             directory = malloc(length);

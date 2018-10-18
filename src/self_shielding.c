@@ -418,7 +418,9 @@ void compute_photHI(grid_t *thisGrid, confObj_t simParam, int rescale)
         }
         else
         {
+#ifdef VERBOSE
             printf("\n mfp too small to do fft mapping...\t");
+#endif
             replace_convolve_fft_photHI(thisGrid, simParam, nion, factor_photHI);
         }
 
@@ -453,9 +455,11 @@ void compute_photHI(grid_t *thisGrid, confObj_t simParam, int rescale)
         fftw_free(nion);
     }
 
+#ifdef VERBOSE
     printf("\n mfp = %e Mpc\tmfp_index = %e cells\tfactork = %e", simParam->mfp, mfp_index, factor_k);
     printf("\n mean photHI (accounting for all cells) = %e", simParam->photHI_bg);
     printf("\n actual mean photHI (accounting only for ionized regions) = %e\n",calc_mean_photoionization_ionized_field(thisGrid));
+#endif
 }
 
 void set_value_to_photoionization_field(grid_t *thisGrid, confObj_t simParam)
@@ -502,12 +506,14 @@ void compute_photHI_ionizedRegions(grid_t *thisGrid, confObj_t simParam)
         }
         thisGrid->mean_photHI = get_mean_grid(thisGrid->photHI, nbins, local_n0);
     }
+#ifdef VERBOSE
     printf("\n mean photHI (accounting for all cells) = %e", thisGrid->mean_photHI);
+#endif
 }
 
 void compute_web_ionfraction(grid_t *thisGrid, confObj_t simParam)
 {
-      int nbins;
+    int nbins;
     ptrdiff_t local_n0;
     int cell;
     
