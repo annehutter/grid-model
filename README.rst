@@ -17,6 +17,7 @@ Why should you use it
 1. **Modular** The code is written modular fashion, i.e. different modules such as *computing helium*, *accounting for recombinations* or *computing the residual HI fraction* can be switched on or off or chosen.
 2. **MPI Parallel** The code can be run on multiple cores and distributed memory.
 3. **Residual HI fractions, recombinations & Helium** The code can compute residual HI fractions in ionized regions according to the chosen photoionization model. It accounts for HII recombinations, and has the option to compute the HeII and HeIII ionization fields (accounting also for HeII and HeIII recombinations).
+4. **Library** The code can be used as a library in other code. For an example see the `The Reionization using Semi-Analytical Galaxy Evolution model <https://github.com/jacobseiler/rsage>`__.
 
 Installation
 ============
@@ -80,7 +81,7 @@ Generation of the parameter file
 The parameter file can be adapted manually. However, since options can become complex, it is recommended to use program loacted under ``/create_parameter_file`` for the first runs, until options become more familiar.
 ::
 
-    $ cd /create_inputfile
+    $ cd /create_parameter_file
     $ make
     $ ./create_parameter_file
     
@@ -173,7 +174,7 @@ Parameter file
     - **PHOTHI_GIVEN**: photoionization rate depends on distance from ionizing sources but is normalised such that the mean is given by the values specified in ``photHI_bg_file``
     - **PHOTHI_FLUX**: photoionization depends on distance from ionizing sources
     - **PHOTHI_MFP**: photoionization rate depends on mean free path
-- ``calcMeanFreePath``: set to 1 if mfp is calculated from the size of the ionized regions and/or as in Miralda 2000, otherwise 0 (only applicable for constantPhotHI = 0)
+- ``calcMeanFreePath``: set to 1 if mfp is calculated from the size of the ionized regions and/or as in `Miralda_Escude et al. (2000) <http://adsabs.harvard.edu/abs/2000ApJ...530....1M>`__, otherwise 0 (only applicable for constantPhotHI = 0)
 
 **PhotoionizationConst**
 ........................
@@ -204,7 +205,7 @@ Parameter file
 
     - **RECOMB_DEFAULT**: density dependent recombination rate is assumed
     - **RECOMB_CONST**: a constant recombination rate ``dnrec_dt`` is assumed
-    - **RECOMB_TABLE**: recombinations are computed according to the model in Miralda et al. (2000): CURRENTLY NO TABLES AVAILABLE
+    - **RECOMB_TABLE**: recombinations are computed according to the model in `Miralda_Escude et al. (2000) <http://adsabs.harvard.edu/abs/2000ApJ...530....1M>`__: CURRENTLY NO TABLES AVAILABLE
 
 **RecombinationDefault**
 ......................
@@ -256,6 +257,17 @@ Parameter file
 Options
 =======
 
+Simulation types
+----------------
+
+- **FIXED_REDSHIT**: The ionization field is computed from the number of ionizing photons and absorption events of a single snapshot at a given redshift. Free parameter is the evolution time which determines for how long the ionizing sources emit their ionizing photons.
+
+- **EVOLVE_REDSHIFT**: A series of ionization fields is computed from a single snapshot at redshift *z_begin*, tracing the evolution of the ionized regions. Free parameters are the number of ionization fields to be stored and the redshift of the last output *z_end*.
+
+- **EVOLVE_ALL**: The evolution of the ionization field is computed from multiple snapshots. Input and output redshifts are specified in the ``redshiftFile``. Input files need to end on ``_00i`` and start from ``0``.
+
+- **EVOLVE_BY_SNAPSHOT**: The evolution of the ionization field is computed from multiple snapshots. Input and output redshifts are specified in the ``redshiftFile``. Input files need to end on ``_00i`` and start ``i`` value needs to be specified.
+
 Helium
 ------
 
@@ -271,11 +283,23 @@ Before executing you may want to adjust the (in the directory) included iniFile,
 HI photoionization models
 -------------------------
 
-0. ``photHI_model = 0``: This model assumes a spatially constant photoionization rate that is set by ``photHI_bg``.
+- **PHOTHI_CONST**: This model assumes a spatially constant photoionization rate that is set by ``photHI_bg``.
 
-1. ``photHI_model = 1``: This model assumes the photoionization rate to drop of as exp(-r/mfp)/r^2, whereas mfp is the mean mean free path of or in the ionized regions.
+- **PHOTHI_GIVEN**: This model assumes the photoionization rate to drop of as exp(-r/mfp)/r^2, whereas mfp is the average mean free path of or in the ionized regions. The resulting photoionization rate is normalised to a given mean photoionization rate value given in the ``photHI_bg_file``.
 
-2. ``photHI_model = 2``: This model computes the photoionization rate according to the mean free path of each cell. The mean free path corresponds to the filtering scale at which the cell became ionized.
+- **PHOTHI_FLUX**: This model assumes the photoionization rate to drop of as exp(-r/mfp)/r^2, whereas mfp is the average mean free path of or in the ionized regions. mfp can be chosen if the mean free path is not calculated from the ionization fields (``calcMeanFreePath = 0``).
+
+- **PHOTHI_MFP**: This model computes the photoionization rate according to the mean free path of each cell. The mean free path corresponds to the filtering scale at which the cell became ionized.
+
+Recombination models
+--------------------
+
+- **RECOMB_DEFAULT**: This model computes the recombination rate in each cell accounting for its density and ionization history.
+
+- **RECOMB_CONST**: This model assumes a fixed recombination rate ``dnrec_dt`` and computes the recombination rate accounting purely the ionization history.
+
+- **RECOMB_TABLE**: This model computes the recombination rates according to the model described in `Miralda_Escude et al. (2000) <http://adsabs.harvard.edu/abs/2000ApJ...530....1M>`__
+
 
 Analysis
 ========

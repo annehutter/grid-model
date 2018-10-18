@@ -354,7 +354,7 @@ void update_web_model(grid_t *thisGrid, confObj_t simParam, photIonlist_t *photI
         if(simParam->calc_mfp == 1)
         {
             set_mfp_Miralda2000(simParam);
-            if(thisRank==0) printf("\n  The Miralda (2000) mean free path at z = %e is %e Mpc for a photoionization background of %e s^-1.", simParam->redshift, simParam->mfp, simParam->photHI_bg);
+            if(thisRank==0) printf("\n  The Miralda-Escude et al. (2000) mean free path at z = %e is %e Mpc for a photoionization background of %e s^-1.", simParam->redshift, simParam->mfp, simParam->photHI_bg);
             if(thisRank==0) printf("\n  The mean free path from the ionization maps is %e Mpc. The factor f is %e", thisGrid->mean_mfp, f);
             if(f*thisGrid->mean_mfp < simParam->mfp || simParam->photHI_bg < 1.e-12)
             {
@@ -376,7 +376,7 @@ void update_web_model(grid_t *thisGrid, confObj_t simParam, photIonlist_t *photI
         if(simParam->calc_mfp == 1)
         {
             set_mfp_Miralda2000(simParam);
-            if(thisRank==0) printf("\n  The Miralda (2000) mean free path at z = %e is %e Mpc for a photoionization background of %e s^-1.", simParam->redshift, simParam->mfp, simParam->photHI_bg);
+            if(thisRank==0) printf("\n  The Miralda-Escude et al. (2000) mean free path at z = %e is %e Mpc for a photoionization background of %e s^-1.", simParam->redshift, simParam->mfp, simParam->photHI_bg);
             if(f*thisGrid->mean_mfp < simParam->mfp || simParam->photHI_bg < 1.e-12)
             {
                 simParam->mfp = f*thisGrid->mean_mfp;
