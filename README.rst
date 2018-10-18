@@ -74,7 +74,13 @@ The first test case can then be run by
 
     $ ./cifog iniFile128.ini
 
-``iniFile128.ini`` contains all input parameters that are needed for any runs. For a different simulation the code does not need to be recompiled but just this parameter file iniFile.ini to be adapted.
+``iniFile128.ini`` contains all input parameters that are needed for any runs. For a different simulation the code does not need to be recompiled but only the parameter file iniFile.ini to be adapted.
+
+A simulation can be resumed from its restart files by
+::
+
+    $ ./cifog -c iniFile128.ini
+    
 
 Generation of the parameter file
 ````````````````````````````````
