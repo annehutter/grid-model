@@ -36,7 +36,7 @@ int main()
     printf("\n\n");
     
     int            simulationType;
-    int            calc_ion_history;
+    char           simulation_type_name[1000];
     int            num_snapshots;
     char           redshift_file[1000];
     double         redshift_prev_snap;
@@ -57,6 +57,7 @@ int main()
     double         inc_log_scales;
     double         max_scale;
     int            ion_sphere;
+    int            padded_box;
         
     //Input
     int            grid_size;
@@ -78,6 +79,7 @@ int main()
     //Photoionization
     int            use_web_model;
     int            photHI_model;
+    char           photHI_model_name[1000];
     int            calc_mfp;
     double         photHI_bg;
     char           photHI_bg_file[1000];
@@ -85,8 +87,8 @@ int main()
     double         source_slope_index = 5.;
 
     //Recombinations
-    int            recomb;
-    int            const_recomb;
+    int            recomb_model;
+    char           recomb_model_name[1000];
     int            calc_recomb;
     double         dnrec_dt;
     char           recomb_table[1000];
@@ -126,11 +128,13 @@ int main()
     //-------------------------------------------------------------------------------
     printf("\nTYPE OF SIMULATION\n");
     
-    printf("What type of simulation would you like to run?\n1) compute the ionization field from a single snapshot at a fixed redshift assuming the sources emitted for t Myrs (type '0')\n2) compute the evolution of ionization fields from a single snapshot across a given redshift span (type '1')\n3) compute the evolution of ionization fields from multiple snapshots across redshift (type '2')");
+    printf("What type of simulation would you like to run?\n1) compute the ionization field from a single snapshot at a fixed redshift assuming the sources emitted for t Myrs (type '0')\n2) compute the evolution of ionization fields from a single snapshot across a given redshift span (type '1')\n3) compute the evolution of ionization fields from multiple snapshots across redshift (type '2')\n");
     scanf("%d", &simulationType);
     
     if(simulationType == 0)
     {
+        for(int i=0; i<1000; i++) simulation_type_name[i] = '\0';
+        strcat(simulation_type_name, "FIXED_REDSHIFT");
         num_snapshots = 0;
         for(int i=0; i<1000; i++) redshift_file[i] = '\0';
         strcat(redshift_file, "None");
@@ -153,6 +157,8 @@ int main()
     }
     else if(simulationType == 1)
     {
+        for(int i=0; i<1000; i++) simulation_type_name[i] = '\0';
+        strcat(simulation_type_name, "EVOLVE_REDSHIFT");
         for(int i=0; i<1000; i++) redshift_file[i] = '\0';
         strcat(redshift_file, "None");        
         evol_time = 0.;
@@ -171,6 +177,8 @@ int main()
     }
     else if(simulationType == 2)
     {
+        for(int i=0; i<1000; i++) simulation_type_name[i] = '\0';
+        strcat(simulation_type_name, "EVOLVE_ALL");
         redshift = 0.;
         redshift_prev_snap = 0.;
         evol_time = 0.;
@@ -190,6 +198,8 @@ int main()
         scanf("%d", &snapshot_start);
         if(snapshot_start <= 0)
         {
+            for(int i=0; i<1000; i++) simulation_type_name[i] = '\0';
+            strcat(simulation_type_name, "EVOLVE_BY_SNAPSHOT");
             simulationType = 3;
             snapshot_start = -1;
         }
@@ -200,6 +210,7 @@ int main()
         exit(EXIT_FAILURE);
     }
     
+    printf("simulationType = %s\n", simulation_type_name);
     
     //-------------------------------------------------------------------------------
     // Filtering characteristics
@@ -262,31 +273,41 @@ int main()
     printf("\nRECOMBINATIONS\n");
     
     printf("Do you want to consider recombinations? Yes = 1, No = 0\n");
-    scanf("%d", &recomb);
+    scanf("%d", &calc_recomb);
     
-    if(recomb == 1){
+    if(calc_recomb == 1){
         printf("Do you want to use the web model to compute the number of recombinations (1) or assume a constant number of recombinations (0)? \n");
-        scanf("%d", &calc_recomb);
+        scanf("%d", &recomb_model);
         
-        for(int i=0; i<1000; i++) recomb_table[i] = '\0';
-        if(calc_recomb == 1)
+        if(recomb_model == 1)
         {
             printf("Do you want to compute the number of recombinations approximately from the rate equations (1) or using the subgrid density model in Miralda_Escude 2000 (2)?\n");
-            scanf("%d", &calc_recomb);
-            if(calc_recomb == 2)
-            {
-                printf("Please type in the directory where the file with the nrec values is located. The file can be obtained from the github repository.\n");
-                scanf("%s", recomb_table);
-            }
+            scanf("%d", &recomb_model);
             
-            const_recomb = 0;
             dnrec_dt = 0.;
             dnrec_HeI_dt = 0.;
             dnrec_HeII_dt = 0.;
+            
+            if(recomb_model == 1)
+            {
+                for(int i=0; i<1000; i++) recomb_model_name[i] = '\0';
+                strcat(recomb_model_name, "RECOMB_DEFAULT");
+            }
+            else if(recomb_model == 2)
+            {
+                for(int i=0; i<1000; i++) recomb_model_name[i] = '\0';
+                strcat(recomb_model_name, "RECOMB_TABLE");
+            }
+            else
+            {
+                printf("This is not a valid input.\n");
+                exit(EXIT_FAILURE);
+            }
         }
-        else
-        {
-            const_recomb = 1;
+        else if(recomb_model == 0)
+        {            
+            for(int i=0; i<1000; i++) recomb_model_name[i] = '\0';
+            strcat(recomb_model_name, "RECOMB_CONST");
             
             printf("Which rate of recombinations for HII (dnrec/dt) do you want to assume (in Myrs^-1)?\n");
             scanf("%lf", &dnrec_dt);
@@ -300,14 +321,30 @@ int main()
                 scanf("%lf", &dnrec_HeII_dt);
             }
         }
+        else
+        {
+            printf("This input is not valid.\n");
+            exit(EXIT_FAILURE);
+        }
     }
     else
     {
-        const_recomb = 0;
         dnrec_dt = 0.;
         dnrec_HeI_dt = 0.;
         dnrec_HeII_dt = 0.;
     }
+    
+    for(int i=0; i<1000; i++) recomb_table[i] = '\0';
+    strcat(recomb_table, "nrec_values_batch_z3_30_0.01_f-9_9_0.1_d-4_4_0.1.dat");
+    zmin = 3.;
+    zmax = 30.;
+    dz = 0.01;
+    fmin = -9.;
+    fmax = 9.;
+    df = 0.1;
+    dcellmin = -4.;
+    dcellmax = 4.;
+    ddcell = 0.1;
     
     //-------------------------------------------------------------------------------
     // Web model
@@ -320,7 +357,6 @@ int main()
     {
         photHI_model = 0;
         calc_mfp = 0;
-        calc_recomb = 0;
         
         for(int i=0; i<1000; i++) 
         {
@@ -333,10 +369,12 @@ int main()
     {
         printf("\nPHOTOIONIZATION RATE\n");
 
-        printf("Do you want to assume a constant photoionization field? Yes = 0, No = 1\n");
+        printf("Do you want to assume a constant photoionization field? Yes = 1, No = 0\n");
         scanf("%d",&photHI_model);
-        if(photHI_model == 0)
+        if(photHI_model == 1)
         {
+            for(int i=0; i<1000; i++) photHI_model_name[i] = '\0';
+            strcat(photHI_model_name, "PHOTHI_CONST");
             photHI_model = 0;
             calc_mfp = 0;
             strcat(photHI_bg_file,"None");
@@ -344,14 +382,16 @@ int main()
             printf("Which value do you want to assume for the photoionization background (in s^-1)?\n");
             scanf("%lf", &photHI_bg);
         }
-        else if(photHI_model > 0)
-        {
-            printf("How do you want to calculate the photoionization rate? Assuming a mean free path and apply a r^-2 kernel (1), or derive it from the number of ionizing photons in the ionized regions given the largest filtering scale (2)?\n");
-            scanf("%d",&photHI_model);
+        else if(photHI_model == 0)
+        {   
+            photHI_bg = 0.;
+
+            printf("How do you want to calculate the photoionization rate? \n1) Assuming a mean free path and apply a r^-2 kernel (type '1') or \n2) derive it from the number of ionizing photons in the ionized regions given the largest filtering scale (type '2')?\n");
+            scanf("%d", &photHI_model);
 
             if(photHI_model == 1)
             {
-                printf("Do you want to calculate the mean free path from the size of the ionized regions and Miralda-Escude 2000 (type 1) or set a value (type 0)?\n");
+                printf("Do you want to calculate the mean free path from the size of the ionized regions and Miralda-Escude 2000 (type '1') or set a value (type '0')?\n");
                 scanf("%d", &calc_mfp);
                 
                 if(calc_mfp == 1)
@@ -363,16 +403,31 @@ int main()
                     printf("Which mean free path in the ionized medium to you want to assume (in Mpc)?\n");
                     scanf("%lf", &mfp); 
                 }
+                    
+                printf("Should the mean value of the photoionization rate be given by \n1) the ionizing emissivity of the sources (type '1') or\n2) a redshift specific value (you will need to provide a table with redshift and photoionization rate values) (type '2')\n");
+                scanf("%d", &photHI_model);
                 
-//                 printf("Please provide a list of the photoionization values at different redshifts (z,photIonHI,photHeatHI,Q). Specify the address of this file:\n");
-//                 scanf("%s", photHI_bg_file);
-                photHI_bg = 0.;
+                if(photHI_model == 1)
+                {
+                    for(int i=0; i<1000; i++) photHI_model_name[i] = '\0';
+                    strcat(photHI_model_name, "PHOTHI_FLUX");
+                    strcat(photHI_bg_file, "None");
+                }
+                else if(photHI_model == 2)
+                {
+                    for(int i=0; i<1000; i++) photHI_model_name[i] = '\0';
+                    strcat(photHI_model_name, "PHOTHI_GIVEN");
+                    
+                    printf("Please provide the address of the photoionization background file. First column is redshift, second column is HI photoinoization rate, third column is photoheating rates, and fourth column is Q.\n");
+                    scanf("%s", photHI_bg_file);                    
+                }
             }
             else if(photHI_model == 2)
             {
+                for(int i=0; i<1000; i++) photHI_model_name[i] = '\0';
+                strcat(photHI_model_name, "PHOTHI_MFP");
                 mfp = 0.;
                 strcat(photHI_bg_file, "None");
-                photHI_bg = 0.;
             }
             else
             {
@@ -394,18 +449,6 @@ int main()
         printf("This input is not valid\n");
         exit(0);
     }
-    
-    strcat(recomb_table, "nrec_values_batch_z3_30_0.01_f-9_9_0.1_d-4_4_0.1.dat");
-    if(file_exist(recomb_table) == 0) printf("WARNING:  Don't forget to create that file or check the address!\n");
-    zmin = 3.;
-    zmax = 30.;
-    dz = 0.01;
-    fmin = -9.;
-    fmax = 9.;
-    df = 0.1;
-    dcellmin = -4.;
-    dcellmax = 4.;
-    ddcell = 0.1;
     
     //-------------------------------------------------------------------------------
     // Cosmology
@@ -434,6 +477,9 @@ int main()
     scanf("%d", &grid_size);
     printf("And what is the size of your simulation box in h^-1 Mpc?\n");
     scanf("%lf", &box_size);
+    
+    printf("Please provde the number of cells within which your simulation box should be padded (e.g. if your box has no periodic boundaries), otherwise set it to zero\n");
+    scanf("%d", &padded_box);
     
     printf("Are your file in double (1) or single (0) precision?\n");
     scanf("%d", &input_doubleprecision);
@@ -580,7 +626,7 @@ int main()
         printf("basename for restart files:");
         scanf("%s", restart_file);
         
-        printf("If the simulation should be only run for a certain time and restart files written before, provide the run time in minutes, otherwise tupe '0' and restart files are written after each output.\n");
+        printf("If the simulation should be only run for a certain time and restart files written before, provide the run time in minutes, otherwise type '0' and restart files are written after each output.\n");
         scanf("%lf", &walltime);
     }
     else
@@ -594,76 +640,85 @@ int main()
     // WRITE FILE
     //-------------------------------------------------------------------------------
     
+    printf("simulationType = %s\n", simulation_type_name);
+    
     printf("Please state the address and filename of the inputfile you want to generate:\n");
     scanf("%s", string);
         
     file = fopen(string, "wt");
     
-    fprintf(file, "[General]\n");
-    fprintf(file, "calcIonHistory = %d\n", calc_ion_history);
+    fprintf(file, "[Type]\n");
+    fprintf(file, "simulationType = %s\n", simulation_type_name);
+    fprintf(file, "# possible options: FIXED_REDSHIFT, EVOLVE_REDSHIFT, EVOLVE_ALL, EVOLVE_BY_SNAPSHOT\n");
+    
+    fprintf(file, "\n[FixedRedshift]\n");
+    fprintf(file, "redshift = %f\n", redshift);
+    fprintf(file, "evolutionTime = %f\n", evol_time);
+    fprintf(file, "[EvolveRedshift]\n");
+    fprintf(file, "numSnapshots = %d\n", num_snapshots);
+    fprintf(file, "redshift_start = %f\n", redshift_prev_snap);
+    fprintf(file, "redshift_end = %f\n", redshift);
+    fprintf(file, "[EvolveAll]\n");
     fprintf(file, "numSnapshots = %d\n", num_snapshots);
     fprintf(file, "redshiftFile = %s\n", redshift_file);
-    fprintf(file, "redshift_prevSnapshot = %f\n", redshift_prev_snap);
-    fprintf(file, "finalRedshift = %f\n", redshift);
-    fprintf(file, "evolutionTime = %f\n\n", evol_time);
+    fprintf(file, "[EvolveBySnapshot]\n");
+    fprintf(file, "numSnapshots = %d\n", num_snapshots);
+    fprintf(file, "redshiftFile = %s\n", redshift_file);
+    fprintf(file, "snapshot_start = %d\n", snapshot_start);
     
-    fprintf(file, "size_linear_scale = %f\n", lin_scales);
-    fprintf(file, "first_increment_in_logscale = %f\n", inc_log_scales);
-    fprintf(file, "max_scale = %f\n", max_scale);
-    fprintf(file, "useIonizeSphereModel = %d\n\n", ion_sphere);
-    
-    fprintf(file, "useDefaultMeanDensity = %d\n\n", default_mean_density);
-    
-    fprintf(file, "useWebModel = %d\n", use_web_model);
-    fprintf(file, "photHImodel = %d\n", photHI_model);
-    fprintf(file, "calcMeanFreePath = %d\n", calc_mfp);
-    fprintf(file, "constantRecombinations = %d\n", const_recomb);
-    fprintf(file, "calcRecombinations = %d\n\n", calc_recomb);
-    
-    fprintf(file, "solveForHelium = %d\n\n\n", solve_He);
-    
-    
-    fprintf(file, "[Input]\n");
-    fprintf(file, "gridsize = %d\n", grid_size);
-    fprintf(file, "boxsize = %f\n\n", box_size);
-
-    fprintf(file, "inputFilesAreInDoublePrecision = %d\n", input_doubleprecision);
-    fprintf(file, "inputFilesAreComoving = %d\n\n", inputfiles_comoving);
-    
-    fprintf(file, "inputIgmDensityFile = %s\n", igm_density_file);
-    fprintf(file, "densityInOverdensity = %d\n", dens_in_overdensity);
-    fprintf(file, "meanDensity = %e\n\n", mean_density);
-    
-    fprintf(file, "inputIgmClumpFile = %s\n", igm_clump_file);
-    
-    fprintf(file, "inputSourcesFile = %s\n", sources_file);
-    fprintf(file, "inputNionFile = %s\n\n\n", nion_file);
-
-    
-    fprintf(file, "[Output]\n");
-    fprintf(file, "output_XHII_file = %s\n", out_XHII_file);
-    fprintf(file, "write_photHI_file = %d\n", write_photHI_file);
-    fprintf(file, "output_photHI_file = %s\n\n\n", out_photHI_file);
-    
-    
-    fprintf(file, "[Cosmology]\n");
+    fprintf(file, "\n[Cosmology]\n");
     fprintf(file, "hubble_h = %f\n", h);
     fprintf(file, "omega_b = %f\n", omega_b);
     fprintf(file, "omega_m = %f\n", omega_m);
     fprintf(file, "omega_l = %f\n", omega_l);
     fprintf(file, "sigma8 = %f\n", sigma8);
-    fprintf(file, "Y = %f\n\n\n", Y);
+    fprintf(file, "Y = %f\n", Y);
     
+    fprintf(file, "\n[Input]\n");
+    fprintf(file, "gridsize = %d\n", grid_size);
+    fprintf(file, "boxsize = %f\n\n", box_size);
+    fprintf(file, "inputFilesAreInDoublePrecision = %d\n", input_doubleprecision);
+    fprintf(file, "inputFilesAreComoving = %d\n\n", inputfiles_comoving);
+    fprintf(file, "inputIgmDensityFile = %s\n", igm_density_file);
+    fprintf(file, "densityInOverdensity = %d\n", dens_in_overdensity);
+    fprintf(file, "meanDensity = %e\n\n", mean_density);
+    fprintf(file, "useDefaultMeanDensity = %d\n\n", default_mean_density);
+    fprintf(file, "inputIgmClumpFile = %s\n", igm_clump_file);
+    fprintf(file, "inputSourcesFile = %s\n", sources_file);
+    fprintf(file, "inputNionFile = %s\n\n", nion_file);
+    fprintf(file, "paddedBox = %d\n", padded_box);
     
-    fprintf(file, "[Photoionization]\n");
-    fprintf(file, "photHI_bg_file = %s\n", photHI_bg_file);
+    fprintf(file, "\n[BubbleModel]\n");
+    fprintf(file, "size_linear_scale = %f\n", lin_scales);
+    fprintf(file, "first_increment_in_logscale = %f\n", inc_log_scales);
+    fprintf(file, "max_scale = %f\n", max_scale);
+    fprintf(file, "useIonizeSphereModel = %d\n\n", ion_sphere);
+    
+    fprintf(file, "\n[PhotoionizationModel]\n");
+    fprintf(file, "useWebModel = %d\n", use_web_model);
+    fprintf(file, "photHImodel = %s\n", photHI_model_name);
+    fprintf(file, "# possible options: PHOTHI_CONST, PHOTHI_GIVEN, PHOTHI_FLUX, PHOTHI_MFP\n");
+    fprintf(file, "calcMeanFreePath = %d\n", calc_mfp);
+    
+    fprintf(file, "\n[PhotoionizationConst]\n");
     fprintf(file, "photHI_bg = %e\n", photHI_bg);
+    fprintf(file, "[PhotoionizationGiven]\n");
+    fprintf(file, "photHI_bg_file = %s\n", photHI_bg_file);
     fprintf(file, "meanFreePathInIonizedMedium = %e\n", mfp);
-    fprintf(file, "sourceSlopeIndex = %e\n\n\n", source_slope_index);
-    
-    
-    fprintf(file, "[Recombinations]\n");
+    fprintf(file, "[PhotoionizationFlux]\n");
+    fprintf(file, "meanFreePathInIonizedMedium = %e\n", mfp);
+    fprintf(file, "sourceSlopeIndex = %e\n", source_slope_index);
+    fprintf(file, "[PhotoionizationMfp]\n");
+    fprintf(file, "sourceSlopeIndex = %e\n", source_slope_index);
+
+    fprintf(file, "\n[RecombinationModel]\n");
+    fprintf(file, "calcRecombinations = %d\n", calc_recomb);
+    fprintf(file, "recombinationModel = %s\n", recomb_model_name);
+    fprintf(file, "# possible options: RECOMB_DEFAULT, RECOMB_CONST, RECOMB_TABLE\n");
+    fprintf(file, "\n[RecombinationDefault]\n");
+    fprintf(file, "[RecombinationConst]\n");
     fprintf(file, "dnrec_dt = %e\n", dnrec_dt);
+    fprintf(file, "[RecombinationTable]\n");
     fprintf(file, "recombinationTable = %s\n", recomb_table);
     fprintf(file, "zmin = %f\n", zmin);
     fprintf(file, "zmax = %f\n", zmax);
@@ -673,20 +728,28 @@ int main()
     fprintf(file, "df = %f\n", df);
     fprintf(file, "dcellmin = %f\n", dcellmin);
     fprintf(file, "dcellmax = %f\n", dcellmax);
-    fprintf(file, "ddcell = %f\n\n", ddcell);
-    
-    
-    fprintf(file, "[Helium]\n");
+    fprintf(file, "ddcell = %f\n\n", ddcell);  
+            
+    fprintf(file, "\n[Helium]\n");
+    fprintf(file, "solveForHelium = %d\n", solve_He);
     fprintf(file, "inputSourcesHeIFile = %s\n", sources_HeI_file);
     fprintf(file, "inputNionHeIFile = %s\n", nion_HeI_file);
     fprintf(file, "inputSourcesHeIIFile = %s\n", sources_HeII_file);
     fprintf(file, "inputNionHeIIFile = %s\n\n", nion_HeII_file);
-    
     fprintf(file, "dnrec_HeI_dt = %e\n", dnrec_HeI_dt);
-    fprintf(file, "dnrec_HeII_dt = %e\n\n", dnrec_HeII_dt);
-
+    fprintf(file, "dnrec_HeII_dt = %e\n", dnrec_HeII_dt);
+    
+    fprintf(file, "\n[Output]\n");
+    fprintf(file, "output_XHII_file = %s\n", out_XHII_file);
+    fprintf(file, "write_photHI_file = %d\n", write_photHI_file);
+    fprintf(file, "output_photHI_file = %s\n\n\n", out_photHI_file);
     fprintf(file, "output_XHeII_file = %s\n", out_XHeII_file);
     fprintf(file, "output_XHeIII_file = %s\n", out_XHeIII_file);
+    
+    fprintf(file, "\n[Restart]\n");
+    fprintf(file, "writeRestartFiles = %d\n", write_restart_file);
+    fprintf(file, "restartFiles = %s\n", restart_file);
+    fprintf(file, "walltime = %f\n", walltime);
 
     fclose(file);
     
