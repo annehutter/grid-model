@@ -153,7 +153,7 @@ double get_nrec_history(confObj_t simParam, double dens, double clump, double ph
     double tmp;
     
     if(simParam->default_mean_density == 1){
-        mean_numdensity_H = 3.*SQR(H0)/(8.*M_PI*G)/mp_g*simParam->omega_b*CUB(1.+redshift)*(1.-simParam->Y);
+        mean_numdensity_H = 3.*SQR(simParam->h*1.e7/Mpc_cm)/(8.*M_PI*G)/mp_g*simParam->omega_b*CUB(1.+redshift)*(1.-simParam->Y);
     }else{
         mean_numdensity_H = simParam->mean_density*CUB(1.+redshift)*(1.-simParam->Y)/(1.-0.75*simParam->Y);
     }
@@ -178,7 +178,7 @@ double get_nrec_HeI_history(confObj_t simParam, double dens, double clump, doubl
     double mean_numdensity_He;
 
     if(simParam->default_mean_density == 1){
-        mean_numdensity_He = 3.*SQR(H0)/(8.*M_PI*G)/mp_g*simParam->omega_b*CUB(1.+redshift)*0.25*simParam->Y;
+        mean_numdensity_He = 3.*SQR(simParam->h*1.e7/Mpc_cm)/(8.*M_PI*G)/mp_g*simParam->omega_b*CUB(1.+redshift)*0.25*simParam->Y;
     }else{
         mean_numdensity_He = simParam->mean_density*CUB(1.+redshift)*0.25*simParam->Y/(1.-0.75*simParam->Y);
     }
@@ -195,7 +195,7 @@ double get_nrec_HeII_history(confObj_t simParam, double dens, double clump, doub
     double mean_numdensity_He;
 
     if(simParam->default_mean_density == 1){
-        mean_numdensity_He = 3.*SQR(H0)/(8.*M_PI*G)/mp_g*simParam->omega_b*CUB(1.+redshift)*0.25*simParam->Y;
+        mean_numdensity_He = 3.*SQR(simParam->h*1.e7/Mpc_cm)/(8.*M_PI*G)/mp_g*simParam->omega_b*CUB(1.+redshift)*0.25*simParam->Y;
     }else{
         mean_numdensity_He = simParam->mean_density*CUB(1.+redshift)*0.25*simParam->Y/(1.-0.75*simParam->Y);
     }
@@ -296,7 +296,7 @@ double get_nrec_history_M2000(confObj_t simParam, const integral_table_t *thisIn
     int numdcell, dcell_index;
     
     if(simParam->default_mean_density == 1){
-        correctFact = (1.-0.75*simParam->Y)*(3.*SQR(H0))/(8.*M_PI*G*SQR(simParam->h))/1.8791e-29;
+        correctFact = (1.-0.75*simParam->Y)*(3.*SQR(simParam->h*1.e7/Mpc_cm))/(8.*M_PI*G*SQR(simParam->h))/1.8791e-29;
 
     }else{
         correctFact = (1.-0.75*simParam->Y)*simParam->mean_density/(1.8791e-29/mp_g*simParam->h*simParam->h*simParam->omega_b);
@@ -872,7 +872,7 @@ double redshift_integrand(double x, void * p)
     double dens_cell = params->dens_cell;
     confObj_t simParam = params->simParam;
 
-    double tmp = H0*sqrt((simParam->omega_b*CUB(1.+x)+simParam->omega_l))*(1.+x);
+    double tmp = simParam->h*1.e7/Mpc_cm*sqrt((simParam->omega_b*CUB(1.+x)+simParam->omega_l))*(1.+x);
     
 //     printf("tmp = %e\t%e\t%e\t%e\n", tmp, dens_cell, x, 2.*SQR(frac*7.61/((1.+x)*dens_cell)));
     return exp(2.*SQR(frac*7.61/((1.+x)*dens_cell)))*amplitude_norm_pdf(x)/tmp;

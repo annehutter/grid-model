@@ -10,8 +10,6 @@ extern const double G;		//gravitational constant in cm^3/(gramm s^2)
 extern const double Mpc_cm;
 extern const double Myr_s;
 
-extern const double H0;
-
 extern const double me_g;
 extern const double mp_g;		//mass of proton [gramms]
 

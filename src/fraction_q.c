@@ -59,18 +59,18 @@ void compute_cum_values(grid_t *thisGrid, confObj_t simParam, int specie, int th
     }
     
     z = simParam->redshift;
-    
+    h = simParam->h;
+
     //compute mean hydrogen & helium number density
     if(simParam->default_mean_density == 1){
-        mean_numdensity_H = 3.*SQR(H0)/(8.*M_PI*G)/mp_g*simParam->omega_b*(1.+z)*(1.+z)*(1.+z)*(1.-simParam->Y);
-        mean_numdensity_He = 3.*SQR(H0)/(8.*M_PI*G)/mp_g*simParam->omega_b*(1.+z)*(1.+z)*(1.+z)*0.25*simParam->Y;
+        mean_numdensity_H = 3.*SQR(h*1.e7/Mpc_cm)/(8.*M_PI*G)/mp_g*simParam->omega_b*(1.+z)*(1.+z)*(1.+z)*(1.-simParam->Y);
+        mean_numdensity_He = 3.*SQR(h*1.e7/Mpc_cm)/(8.*M_PI*G)/mp_g*simParam->omega_b*(1.+z)*(1.+z)*(1.+z)*0.25*simParam->Y;
     }else{
         mean_numdensity_H = simParam->mean_density*(1.+z)*(1.+z)*(1.+z)*(1.-simParam->Y)/(1.-0.75*simParam->Y);
         mean_numdensity_He = simParam->mean_density*(1.+z)*(1.+z)*(1.+z)*0.25*simParam->Y/(1.-0.75*simParam->Y);
     }
 
     //compute number of ionizing photons and absorptions in each cell
-    h = simParam->h;
     const double volume = pow(box_size/(h*(double)nbins*(1.+z))*Mpc_cm,3);
     
     if(specie == 1){

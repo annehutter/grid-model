@@ -10,8 +10,6 @@ const double G = 6.67408e-8;		//gravitational constant in cm^3/(gramm s^2)
 const double Mpc_cm = 3.0857e24;		//Mpc [cm]
 const double Myr_s = 1.e6*365.*24.*60.*60.;	//Myr [s]
 
-const double H0 = 2.3e-18;			//Hubble [s]
-
 const double me_g = 9.11e-28;			//mass of eletron [gramms]
 const double mp_g = 1.673e-24;		//mass of proton [gramms]
 

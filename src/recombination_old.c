@@ -393,7 +393,7 @@ double redshift_integrand(double x, void * p)
 	double dens_cell = params->dens_cell;
 	confObj_t simParam = params->simParam;
 
-	double tmp = H0*sqrt((simParam->omega_b*CUB(1.+x)+simParam->omega_l))*(1.+x);
+	double tmp = simParam->h*1.e7/Mpc_cm*sqrt((simParam->omega_b*CUB(1.+x)+simParam->omega_l))*(1.+x);
 	
 // 	printf("tmp = %e\t%e\t%e\t%e\n", tmp, dens_cell, x, 2.*SQR(frac*7.61/((1.+x)*dens_cell)));
 	return exp(2.*SQR(frac*7.61/((1.+x)*dens_cell)))*amplitude_norm_pdf(x)/tmp;

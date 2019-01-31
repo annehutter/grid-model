@@ -83,7 +83,7 @@ double calc_local_mfp(confObj_t simParam, double dens, double photHI, double tem
 	
 	factor = pow(3./(8.*M_PI)*omega_b,0.5)*pow((M_PI*gamma_gas*boltzman_cgs*(8.-5.*Y)*fg*temperature)/(4.*mp_g),-0.5)*pow(1.+redshift,-1.5)*(1.-modPhotHI);
 // 	printf("factor = %e\n", factor);
-	mfp = 1./(H0*CUB(1.+redshift)*factor*calc_integral_mfp(*params,0.)*Mpc_cm);
+	mfp = 1./(simParam->h*1.e7*CUB(1.+redshift)*factor*calc_integral_mfp(*params,0.));
 	
 	free(params);
 	

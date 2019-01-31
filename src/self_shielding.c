@@ -43,7 +43,7 @@ double ss_calc_densSS(confObj_t simParam, double photHI, double temperature, dou
     double rho;
     
     if(simParam->default_mean_density == 1){
-        rho = 3.*SQR(H0)/(8.*M_PI*G)/SQR(h);
+        rho = 3.*SQR(1.e7/Mpc_cm)/(8.*M_PI*G);
     }else{
         rho = simParam->mean_density*mp_g;
     }
@@ -619,7 +619,7 @@ double calc_factor_photoionization_ionfraction(grid_t *thisGrid, confObj_t simPa
         
     //compute mean hydrogen & helium number density
     if(simParam->default_mean_density == 1){
-        mean_numdensity_H = 3.*SQR(H0)/(8.*M_PI*G)/mp_g*simParam->omega_b*(1.+z)*(1.+z)*(1.+z)*(1.-simParam->Y);
+        mean_numdensity_H = 3.*SQR(simParam->h*1.e7/Mpc_cm)/(8.*M_PI*G)/mp_g*simParam->omega_b*(1.+z)*(1.+z)*(1.+z)*(1.-simParam->Y);
     }else{
         mean_numdensity_H = simParam->mean_density*(1.+z)*(1.+z)*(1.+z)*(1.-simParam->Y)/(1.-0.75*simParam->Y);
     }

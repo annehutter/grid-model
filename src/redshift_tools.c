@@ -19,7 +19,7 @@
 
 double time_from_redshift_flatuniverse(confObj_t simParam, double zmin, double zmax)
 {
-	double prefactor = 2./(3*H0*sqrt(simParam->omega_l));
+	double prefactor = 2.*Mpc_cm/(3*simParam->h*1.e7*sqrt(simParam->omega_l));
 	double tmp = sqrt(simParam->omega_l/simParam->omega_m);
 	
 	return prefactor*(asinh(tmp*pow(1.+zmin, -1.5)) - asinh(tmp*pow(1.+zmax, -1.5)));
