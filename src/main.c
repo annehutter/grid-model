@@ -112,7 +112,7 @@ int main (int argc, /*const*/ char * argv[]) {
     fftw_cleanup();
     
     t2 = time(NULL);
-    if(myRan == 0) printf("\nExecution took %f s\n", t2-t1);
+    if(myRank == 0) printf("\nExecution took %f s\n", t2-t1);
 #endif
     
     return 0;

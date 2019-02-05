@@ -28,7 +28,7 @@ else
     
 #     python analysis_tools/cross_ion_dens.py $iniFile $inputIsDouble $directory/cross_ion_dens/ps_ion_dens
 
-    python analysis_tools/zion_dens.py $iniFile $inputIsDouble 0 $directory/cross_zion_dens/
+#     python analysis_tools/zion_dens.py $iniFile $inputIsDouble 0 $directory/cross_zion_dens/
 #     python analysis_tools/zion_dens.py $iniFile $inputIsDouble 1 $directory/cross_zion_dens/
 #     python analysis_tools/zion_dens.py $iniFile $inputIsDouble 2 $directory/cross_zion_dens/
 #     
@@ -37,6 +37,7 @@ else
 #     python analysis_tools/cross_zion_dens.py $iniFile $inputIsDouble 2 $directory/cross_zion_dens/
     
 #     python analysis_tools/size_distribution.py $iniFile $inputIsDouble $directory/ion_bubbledistr/bubbledistr
+    python analysis_tools/size_distribution_neutral.py $iniFile $inputIsDouble $directory/neutral_bubbledistr/neutral_bubbledistr
     
 #     python analysis_tools/ionhist_cosmicweb.py $iniFile $inputIsDouble 0.5 1 $directory/ionhist_cosmicweb/ionhist_cosmicweb
 fi
