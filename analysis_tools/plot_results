@@ -7,7 +7,7 @@ else
     
     directory=$(python analysis_tools/get_and_create_outputdir.py $iniFile 2>&1)
 
-#     python analysis_tools/hist_ion.py $iniFile $inputIsDouble $directory/hist_ion
+     python analysis_tools/hist_ion.py $iniFile $inputIsDouble $directory/hist_ion
     
 #     python analysis_tools/21cm.py $iniFile $inputIsDouble $directory/21cm/ps_21cm
     
@@ -28,7 +28,7 @@ else
     
 #     python analysis_tools/cross_ion_dens.py $iniFile $inputIsDouble $directory/cross_ion_dens/ps_ion_dens
 
-    python analysis_tools/zion_dens.py $iniFile $inputIsDouble 0 $directory/cross_zion_dens/
+#    python analysis_tools/zion_dens.py $iniFile $inputIsDouble 0 $directory/cross_zion_dens/
 #     python analysis_tools/zion_dens.py $iniFile $inputIsDouble 1 $directory/cross_zion_dens/
 #     python analysis_tools/zion_dens.py $iniFile $inputIsDouble 2 $directory/cross_zion_dens/
 #     
