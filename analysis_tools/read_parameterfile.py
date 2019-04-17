@@ -30,7 +30,10 @@ def read_inifile(inifile):
         lines = f.read().split("\n")
     return lines
     
+simulationtype_str = 'simulationType'
+
 redshiftfile_str = 'redshiftFile'
+snapshotstart_str = 'snapshotStart'
 
 solve_he_str = 'solveForHelium'
 padded_str = 'paddedBox'
