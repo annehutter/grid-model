@@ -26,6 +26,12 @@ lines = rp.read_inifile(inifile)
 
 redshiftfile = rp.identify_string(lines, rp.redshiftfile_str, rp.splitting_str) #sys.argv[4]
 
+simulationtype = rp.identify_string(lines, rp.simulationtype_str, rp.splitting_str)
+if(simulationtype == "EVOLVE_BY_SNAPSHOT"):
+  snapshotstart = rp.identify_int(lines, rp.snapshotstart_str, rp.splitting_str)
+else:
+  snapshotstart = 0
+  
 solve_he = rp.identify_int(lines, rp.solve_he_str, rp.splitting_str)
 
 ionfile = rp.identify_string(lines, rp.ionfile_str, rp.splitting_str) #sys.argv[1]
@@ -91,14 +97,14 @@ for specie in range(numSpecie):
     minimum = 1.e10
     maximum = 1.e-10
 
-    counter = 0
+    counter = snapshotstart
     for i in range(len(redshift)-1):
         z = redshift[i+1]
 
-        if(i<10):
-            infile = inputfile + '_0' + str(i)
+        if(i + snapshotstart < 10):
+            infile = inputfile + '_0' + str(i + snapshotstart)
         else:
-            infile = inputfile + '_' + str(i)
+            infile = inputfile + '_' + str(i + snapshotstart)
         if(os.path.isfile(infile) == False):
             continue
             
@@ -109,7 +115,7 @@ for specie in range(numSpecie):
         print "z =", z, "\tXHII =", meanIon[i]
 
         if(snap[i] != 0):
-            if(counter <10):
+            if(counter < 10):
                 dinfile = densfile + '_00' + str(counter)
             else:
                 dinfile = densfile + '_0' + str(counter)
@@ -141,10 +147,10 @@ for specie in range(numSpecie):
             
         plt.plot(kmid_bins[1:-1], powerspec[1:-1]*kmid_bins[1:-1]**3*k, color=rgba)
         
-        if(i<10):
-            outputfile_dat = outputfile_tmp+"_0"+str(i)+".dat"
+        if(i + snapshotstart < 10):
+            outputfile_dat = outputfile_tmp+"_0"+str(i + snapshotstart)+".dat"
         else:
-            outputfile_dat = outputfile_tmp+"_"+str(i)+".dat"
+            outputfile_dat = outputfile_tmp+"_"+str(i + snapshotstart)+".dat"
         np.savetxt(outputfile_dat,np.c_[kmid_bins, powerspec, p_err])
         
 

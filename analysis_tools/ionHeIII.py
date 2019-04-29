@@ -26,6 +26,12 @@ lines = rp.read_inifile(inifile)
 
 redshiftfile = rp.identify_string(lines, rp.redshiftfile_str, rp.splitting_str) #sys.argv[4]
 
+simulationtype = rp.identify_string(lines, rp.simulationtype_str, rp.splitting_str)
+if(simulationtype == "EVOLVE_BY_SNAPSHOT"):
+  snapshotstart = rp.identify_int(lines, rp.snapshotstart_str, rp.splitting_str)
+else:
+  snapshotstart = 0
+ 
 solve_he = rp.identify_int(lines, rp.solve_he_str, rp.splitting_str)
 
 if(solve_he > 0):
@@ -73,10 +79,10 @@ if(solve_he > 0):
     for i in range(len(redshift)-1):
         z = redshift[i+1]
 
-        if(i<10):
-            infile = ionfile + '_0' + str(i)
+        if(i + snapshotstart < 10):
+            infile = ionfile + '_0' + str(i + snapshotstart)
         else:
-            infile = ionfile + '_' + str(i)
+            infile = ionfile + '_' + str(i + snapshotstart)
         if(os.path.isfile(infile) == False):
             continue
     
@@ -105,9 +111,9 @@ if(solve_he > 0):
         #plt.plot(kmid_bins[1:-1], np.log10(powerspec[1:-1]*kmid_bins[1:-1]**3*k), color=rgba)
         
         if(i<10):
-            outputfile_dat = outputfile+"_0"+str(i)+".dat"
+            outputfile_dat = outputfile+"_0"+str(i + snapshotstart)+".dat"
         else:
-            outputfile_dat = outputfile+"_"+str(i)+".dat"
+            outputfile_dat = outputfile+"_"+str(i + snapshotstart)+".dat"
         np.savetxt(outputfile_dat,np.c_[kmid_bins, powerspec, p_err])
         np.savetxt(outputfile_dat + '_hist', np.c_[(0.5*(edges[1:]+edges[:-1])), hist])
 

@@ -28,6 +28,12 @@ lines = rp.read_inifile(inifile)
 
 redshiftfile = rp.identify_string(lines, rp.redshiftfile_str, rp.splitting_str)
 
+simulationtype = rp.identify_string(lines, rp.simulationtype_str, rp.splitting_str)
+if(simulationtype == "EVOLVE_BY_SNAPSHOT"):
+  snapshotstart = rp.identify_int(lines, rp.snapshotstart_str, rp.splitting_str)
+else:
+  snapshotstart = 0
+  
 solve_he = rp.identify_int(lines, rp.solve_he_str, rp.splitting_str)
 
 if(specie > 0 and solve_he == 0):
@@ -89,7 +95,7 @@ else:
 
 zion = np.reshape(zion, (gridsize, gridsize, gridsize))
 
-counter = 0
+counter = snapshotstart
 for i in range(len(redshift)-1):    
     #-----------------------
     # density field

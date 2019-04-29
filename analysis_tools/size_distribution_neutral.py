@@ -24,6 +24,12 @@ lines = rp.read_inifile(inifile)
 
 redshiftfile = rp.identify_string(lines, rp.redshiftfile_str, rp.splitting_str)
 
+simulationtype = rp.identify_string(lines, rp.simulationtype_str, rp.splitting_str)
+if(simulationtype == "EVOLVE_BY_SNAPSHOT"):
+  snapshotstart = rp.identify_int(lines, rp.snapshotstart_str, rp.splitting_str)
+else:
+  snapshotstart = 0
+  
 solve_he = rp.identify_int(lines, rp.solve_he_str, rp.splitting_str)
 
 ionfile = rp.identify_string(lines, rp.ionfile_str, rp.splitting_str)
@@ -93,10 +99,10 @@ for specie in range(numSpecie):
     for i in range(len(redshift)-1):
         z = redshift[i+1]
             
-        if(i<10):
-            infile = inputfile + '_0' + str(i)
+        if(i + snapshotstart < 10):
+            infile = inputfile + '_0' + str(i + snapshotstart)
         else:
-            infile = inputfile + '_' + str(i)
+            infile = inputfile + '_' + str(i + snapshotstart)
         if(os.path.isfile(infile) == False):
             continue
     
@@ -109,10 +115,10 @@ for specie in range(numSpecie):
         
         if(distance[0] == None):
             continue
-        if(i<10):
-            outputfile_dat = outputfile_tmp + "_0" + str(i) + ".dat"
+        if(i + snapshotstart < 10):
+            outputfile_dat = outputfile_tmp + "_0" + str(i + snapshotstart) + ".dat"
         else:
-            outputfile_dat = outputfile_tmp + "_" + str(i) + ".dat"
+            outputfile_dat = outputfile_tmp + "_" + str(i + snapshotstart) + ".dat"
         np.savetxt(outputfile_dat, np.c_[distance, histogram])
         
         plt.xscale('log')

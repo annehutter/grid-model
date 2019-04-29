@@ -17,6 +17,12 @@ lines = rp.read_inifile(inifile)
 
 redshiftfile = rp.identify_string(lines, rp.redshiftfile_str, rp.splitting_str) #sys.argv[4]
 
+simulationtype = rp.identify_string(lines, rp.simulationtype_str, rp.splitting_str)
+if(simulationtype == "EVOLVE_BY_SNAPSHOT"):
+  snapshotstart = rp.identify_int(lines, rp.snapshotstart_str, rp.splitting_str)
+else:
+  snapshotstart = 0
+  
 ionfile = rp.identify_string(lines, rp.ionfile_str, rp.splitting_str) #sys.argv[1]
 densfile = rp.identify_string(lines, rp.densfile_str, rp.splitting_str)
 double_precision = rp.identify_int(lines, rp.double_precision_str, rp.splitting_str)
@@ -46,14 +52,14 @@ outputfile = outputfile + '_th' + str(threshold) + '_res' + str(n) + '.dat'
 f = open(outputfile,'w')
 
 cosmic = None
-counter = 0
+counter = snapshotstart
 for i in range(len(redshift)-1):
     z = redshift[i+1]
     
-    if(i<10):
-        infile = ionfile + '_0' + str(i)
+    if(i + snapshotstart < 10):
+        infile = ionfile + '_0' + str(i + snapshotstart)
     else:
-        infile = ionfile + '_' + str(i)
+        infile = ionfile + '_' + str(i + snapshotstart)
     if(os.path.isfile(infile) == False):
         continue
     
@@ -64,7 +70,7 @@ for i in range(len(redshift)-1):
     print "z =", z, "\tXHII =", mean_ionfrac
 
     if(snap[i] != 0):
-        if(counter <10):
+        if(counter < 10):
             dinfile = densfile + '_00' + str(counter)
         else:
             dinfile = densfile + '_0' + str(counter)

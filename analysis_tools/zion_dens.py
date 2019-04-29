@@ -34,6 +34,12 @@ lines = rp.read_inifile(inifile)
 
 redshiftfile = rp.identify_string(lines, rp.redshiftfile_str, rp.splitting_str)
 
+simulationtype = rp.identify_string(lines, rp.simulationtype_str, rp.splitting_str)
+if(simulationtype == "EVOLVE_BY_SNAPSHOT"):
+  snapshotstart = rp.identify_int(lines, rp.snapshotstart_str, rp.splitting_str)
+else:
+  snapshotstart = 0
+  
 solve_he = rp.identify_int(lines, rp.solve_he_str, rp.splitting_str)
 
 if(specie > 0 and solve_he == 0):
@@ -102,17 +108,17 @@ if (len(densfile_table) > len(ionfile_table)):
 assert(len(ionfile_table)==len(redshift)-1)
 assert(len(densfile_table)<=len(redshift)-1)
 
-counter = 0
+counter = snapshotstart
 for i in range(len(redshift)-1):
     z = redshift[i+1]
 
     #-----------------------
     # ionization field
     #-----------------------
-    if(i<10):
-        infile = ionfile + '_0' + str(i)
+    if(i + snapshotstart < 10):
+        infile = ionfile + '_0' + str(i + snapshotstart)
     else:
-        infile = ionfile + '_' + str(i)
+        infile = ionfile + '_' + str(i + snapshotstart)
         
     infile = ionfile_table[i]
     if(os.path.isfile(infile) == False):
@@ -126,7 +132,7 @@ for i in range(len(redshift)-1):
     # density field
     #-----------------------
     if(snap[i] != 0):
-        if(counter <10):
+        if(counter < 10):
             dinfile = densfile + '_00' + str(counter)
         else:
             dinfile = densfile + '_0' + str(counter)

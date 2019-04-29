@@ -145,6 +145,12 @@ lines = rp.read_inifile(inifile)
 
 redshiftfile = rp.identify_string(lines, rp.redshiftfile_str, rp.splitting_str)
 
+simulationtype = rp.identify_string(lines, rp.simulationtype_str, rp.splitting_str)
+if(simulationtype == "EVOLVE_BY_SNAPSHOT"):
+  snapshotstart = rp.identify_int(lines, rp.snapshotstart_str, rp.splitting_str)
+else:
+  snapshotstart = 0
+
 ionfile = rp.identify_string(lines, rp.ionfile_str, rp.splitting_str)
 double_precision = rp.identify_int(lines, rp.double_precision_str, rp.splitting_str)
 isPadded = rp.identify_int(lines, rp.padded_str, rp.splitting_str)
@@ -191,10 +197,10 @@ for i in range(len(redshift)-1):
     str_redshift = "z = " + str("%5.3f"%redshift[i+1])
     str_time = "t = " + str("%4.0f"%(time[i+1]/1.e6)) + " Myr"
     
-    if(i<10):
-        infile = ionfile + '_0' + str(i)
+    if(i + snapshotstart < 10):
+        infile = ionfile + '_0' + str(i + snapshotstart)
     else:
-        infile = ionfile + '_' + str(i)
+        infile = ionfile + '_' + str(i + snapshotstart)
     if(os.path.isfile(infile) == False):
         continue
     
@@ -207,12 +213,12 @@ for i in range(len(redshift)-1):
     plot_field(infile, i, toPlot, cut_slice, str_time, str_redshift, str_mean)
     
     if(solve_he == 1):
-        if(i<10):
-            HeIIinfile = HeIIionfile + '_0' + str(i)
-            HeIIIinfile = HeIIIionfile + '_0' + str(i)
+        if(i + snapshotstart < 10):
+            HeIIinfile = HeIIionfile + '_0' + str(i + snapshotstart)
+            HeIIIinfile = HeIIIionfile + '_0' + str(i + snapshotstart)
         else:
-            HeIIinfile = HeIIionfile + '_' + str(i)
-            HeIIIinfile = HeIIIionfile + '_' + str(i)
+            HeIIinfile = HeIIionfile + '_' + str(i + snapshotstart)
+            HeIIIinfile = HeIIIionfile + '_' + str(i + snapshotstart)
         if(os.path.isfile(HeIIinfile) == False or os.path.isfile(HeIIIinfile) == False):
             continue
         
