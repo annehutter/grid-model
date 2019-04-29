@@ -22,10 +22,13 @@ outputfile = sys.argv[3]
 
 lines = rp.read_inifile(inifile)
 
-simulationtype = rp.identify_string(lines, rp.simulationtype_str, rp.splitting_str)
-
 redshiftfile = rp.identify_string(lines, rp.redshiftfile_str, rp.splitting_str) #sys.argv[4]
-snapshotstart = 0#rp.identify_int(lines, rp.snapshotstart_str, rp.splitting_str)
+
+simulationtype = rp.identify_string(lines, rp.simulationtype_str, rp.splitting_str)
+if(simulationtype == "EVOLVE_BY_SNAPSHOT"):
+  snapshotstart = rp.identify_int(lines, rp.snapshotstart_str, rp.splitting_str)
+else:
+  snapshotstart = 0
 
 ionfile = rp.identify_string(lines, rp.ionfile_str, rp.splitting_str) #sys.argv[1]
 densfile = rp.identify_string(lines, rp.densfile_str, rp.splitting_str)
@@ -70,7 +73,7 @@ counter = 0
 for i in range(len(redshift)-1):
     z = redshift[i+1]
 
-    if(i<10):
+    if(i + snapshotstart < 10):
         infile = ionfile + '_0' + str(i + snapshotstart)
     else:
         infile = ionfile + '_' + str(i + snapshotstart)
