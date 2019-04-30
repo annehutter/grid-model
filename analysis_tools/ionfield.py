@@ -34,9 +34,9 @@ def plot_field(infile, i, toPlot, cut_slice, str_time, str_redshift, str_meanIon
     
     font = FontProperties()
     font.set_weight('bold')
-    t1 = plt.text(3., 75., str_time, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2})
-    t2 = plt.text(68., 75., str_redshift, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2})
-    t3 = plt.text(3., 3., str_meanIon, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2})
+    t1 = plt.text(0.04, 0.96, str_time, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2}, horizontalalignment='left', verticalalignment='top', transform = ax.transAxes)
+    t2 = plt.text(0.96, 0.96, str_redshift, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2}, horizontalalignment='right', verticalalignment='top', transform = ax.transAxes)
+    t3 = plt.text(0.04, 0.04, str_meanIon, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2}, horizontalalignment='left', verticalalignment='bottom', transform = ax.transAxes)
 
     directory = rp.get_directory(inifile)
     ininame = os.path.splitext(path_leaf(inifile))[0]
@@ -70,9 +70,9 @@ def plot_field_HeII(infile, i, toPlot, cut_slice, str_time, str_redshift, str_me
 
     font = FontProperties()
     font.set_weight('bold')
-    t1 = plt.text(3., 75., str_time, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2})
-    t2 = plt.text(68., 75., str_redshift, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2})
-    t3 = plt.text(3., 3., str_meanIon, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2})
+    t1 = plt.text(0.04, 0.96, str_time, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2}, horizontalalignment='left', verticalalignment='top', transform = ax.transAxes)
+    t2 = plt.text(0.96, 0.96, str_redshift, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2}, horizontalalignment='right', verticalalignment='top', transform = ax.transAxes)
+    t3 = plt.text(0.04, 0.04, str_meanIon, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2}, horizontalalignment='left', verticalalignment='bottom', transform = ax.transAxes)
         
     directory = rp.get_directory(inifile)
     ininame = os.path.splitext(path_leaf(inifile))[0]
@@ -106,9 +106,9 @@ def plot_field_HeIII(infile, i, toPlot, cut_slice, str_time, str_redshift, str_m
 
     font = FontProperties()
     font.set_weight('bold')
-    t1 = plt.text(3., 75., str_time, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2})
-    t2 = plt.text(68., 75., str_redshift, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2})
-    t3 = plt.text(3., 3., str_meanIon, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2})
+    t1 = plt.text(0.04, 0.96, str_time, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2}, horizontalalignment='left', verticalalignment='top', transform = ax.transAxes)
+    t2 = plt.text(0.96, 0.96, str_redshift, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2}, horizontalalignment='right', verticalalignment='top', transform = ax.transAxes)
+    t3 = plt.text(0.04, 0.04, str_meanIon, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2}, horizontalalignment='left', verticalalignment='bottom', transform = ax.transAxes)
         
     directory = rp.get_directory(inifile)
     ininame = os.path.splitext(path_leaf(inifile))[0]

@@ -33,7 +33,7 @@ def read_inifile(inifile):
 simulationtype_str = 'simulationType'
 
 redshiftfile_str = 'redshiftFile'
-snapshotstart_str = 'snapshotStart'
+snapshotstart_str = 'snapshot_start'
 
 solve_he_str = 'solveForHelium'
 padded_str = 'paddedBox'

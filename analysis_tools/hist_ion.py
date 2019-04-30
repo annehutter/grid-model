@@ -35,6 +35,12 @@ lines = rp.read_inifile(inifile)
 
 redshiftfile = rp.identify_string(lines, rp.redshiftfile_str, rp.splitting_str) #sys.argv[4]
 
+simulationtype = rp.identify_string(lines, rp.simulationtype_str, rp.splitting_str)
+if(simulationtype == "EVOLVE_BY_SNAPSHOT"):
+  snapshotstart = rp.identify_int(lines, rp.snapshotstart_str, rp.splitting_str)
+else:
+  snapshotstart = 0
+  
 ionfile = rp.identify_string(lines, rp.ionfile_str, rp.splitting_str) #sys.argv[1]
 densfile = rp.identify_string(lines, rp.densfile_str, rp.splitting_str)
 double_precision = rp.identify_int(lines, rp.double_precision_str, rp.splitting_str)
@@ -70,12 +76,12 @@ if(solve_he == 1):
     hist_mass_HeIIion = np.zeros(len(redshift)-1)
     hist_mass_HeIIIion = np.zeros(len(redshift)-1)
 
-counter = 0
+counter = snapshotstart
 for i in range(len(redshift)-1):
-    if(i<10):
-        infile = ionfile + '_0' + str(i)
+    if(i + snapshotstart < 10):
+        infile = ionfile + '_0' + str(i + snapshotstart)
     else:
-        infile = ionfile + '_' + str(i)
+        infile = ionfile + '_' + str(i + snapshotstart)
     
     if(snap[i] != 0):
         if(counter <10):
@@ -84,30 +90,36 @@ for i in range(len(redshift)-1):
             dinfile = densfile + '_0' + str(counter)
         counter = counter + 1
             
-    if(os.path.isfile(infile) == True and os.path.isfile(dinfile) == True):
+    if(os.path.isfile(infile) == True):
         hist_ion[i] = compute_meanIon(infile, isPadded, inputIsDouble, gridsize)
-        hist_mass_ion[i] = compute_meanMassIon(infile, dinfile, double_precision, isPadded, inputIsDouble, gridsize)
-    elif(i>0):
+    elif(i > 0):
         print "!!! replacing value at z=", redshift[i+1], "with previous value at", redshift[i]
         hist_ion[i] = hist_ion[i-1]
-        hist_mass_ion[i] = hist_mass_ion[i-1] 
     else:
         print "!!! replacing value at z=", redshift[i+1], "with previous value 0"
         hist_ion[i] = 0.
+        
+    if(os.path.isfile(infile) == True and os.path.isfile(dinfile) == True):
+        hist_mass_ion[i] = compute_meanMassIon(infile, dinfile, double_precision, isPadded, inputIsDouble, gridsize)
+    elif(i > 0):
+        print "!!! replacing value at z=", redshift[i+1], "with previous value at", redshift[i]
+        hist_mass_ion[i] = hist_mass_ion[i-1] 
+    else:
+        print "!!! replacing value at z=", redshift[i+1], "with previous value 0"
         hist_mass_ion[i] = 0.
-    
+        
     if(solve_he == 1):
-        if(i<10):
-            HeIIinfile = HeIIionfile + '_0' + str(i)
-            HeIIIinfile = HeIIIionfile + '_0' + str(i)
+        if(i + snapshotstart < 10):
+            HeIIinfile = HeIIionfile + '_0' + str(i + snapshotstart)
+            HeIIIinfile = HeIIIionfile + '_0' + str(i + snapshotstart)
         else:
-            HeIIinfile = HeIIionfile + '_' + str(i)
-            HeIIIinfile = HeIIIionfile + '_' + str(i)
+            HeIIinfile = HeIIionfile + '_' + str(i + snapshotstart)
+            HeIIIinfile = HeIIIionfile + '_' + str(i + snapshotstart)
             
         if(os.path.isfile(HeIIinfile) == True and os.path.isfile(dinfile) == True):
             hist_HeIIion[i] = compute_meanIon(HeIIinfile, isPadded, inputIsDouble, gridsize)
             hist_mass_HeIIion[i] = compute_meanMassIon(HeIIinfile, dinfile, double_precision, isPadded, inputIsDouble, gridsize)
-        elif(i>0):
+        elif(i > 0):
             print "!!! replacing value at z=", redshift[i+1], "with previous value at", redshift[i]
             hist_HeIIion[i] = hist_HeIIion[i-1]
             hist_mass_HeIIion[i] = hist_mass_HeIIion[i-1] 
@@ -119,7 +131,7 @@ for i in range(len(redshift)-1):
         if(os.path.isfile(HeIIIinfile) == True and os.path.isfile(dinfile) == True):
             hist_HeIIIion[i] = compute_meanIon(HeIIIinfile, isPadded, inputIsDouble, gridsize)
             hist_mass_HeIIIion[i] = compute_meanMassIon(HeIIIinfile, dinfile, double_precision, isPadded, inputIsDouble, gridsize)
-        elif(i>0):
+        elif(i > 0):
             print "!!! replacing value at z=", redshift[i+1], "with previous value at", redshift[i]
             hist_HeIIIion[i] = hist_HeIIIion[i-1]
             hist_mass_HeIIIion[i] = hist_mass_HeIIIion[i-1] 
