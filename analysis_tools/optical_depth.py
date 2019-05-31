@@ -139,7 +139,6 @@ for i in range(nbins-1):
     termi = (omega_m * (1. + z[i])**3 + omega_l)**0.5
     termf = (omega_m * (1. + z[i+1])**3 + omega_l)**0.5
 
-    print i, z[i], xHII[i], xHeII[i], xHeIII[i]
     if(i > 0):
         tau[i] = tau[i-1] + prefactor * (xHII[i] * (1.-Y) + (xHeII[i] + 2. * xHeIII[i]) * 0.25 * Y) * (termf - termi)
     else:
