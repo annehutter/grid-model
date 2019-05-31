@@ -12,8 +12,6 @@ def identify_string(lines, word, splitting_str):
 def identify_float(lines, word, splitting_str):
     for i, line in enumerate(lines):
         if word in line:
-            print word
-            print line.split(splitting_str)
             return np.float(line.split(splitting_str)[1])
 
 def identify_int(lines, word, splitting_str):

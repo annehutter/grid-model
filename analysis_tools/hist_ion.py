@@ -83,6 +83,8 @@ for i in range(len(redshift)-1):
     else:
         infile = ionfile + '_' + str(i + snapshotstart)
     
+    print infile
+    
     if(snap[i] != 0):
         if(counter <10):
             dinfile = densfile + '_00' + str(counter)
@@ -93,19 +95,19 @@ for i in range(len(redshift)-1):
     if(os.path.isfile(infile) == True):
         hist_ion[i] = compute_meanIon(infile, isPadded, inputIsDouble, gridsize)
     elif(i > 0):
-        print "!!! replacing value at z=", redshift[i+1], "with previous value at", redshift[i]
+        print "!!! XHII: replacing value at z=", redshift[i+1], "with previous value at", redshift[i]
         hist_ion[i] = hist_ion[i-1]
     else:
-        print "!!! replacing value at z=", redshift[i+1], "with previous value 0"
+        print "!!! XHII: replacing value at z=", redshift[i+1], "with previous value 0"
         hist_ion[i] = 0.
         
     if(os.path.isfile(infile) == True and os.path.isfile(dinfile) == True):
         hist_mass_ion[i] = compute_meanMassIon(infile, dinfile, double_precision, isPadded, inputIsDouble, gridsize)
     elif(i > 0):
-        print "!!! replacing value at z=", redshift[i+1], "with previous value at", redshift[i]
+        print "!!! XmHII: replacing value at z=", redshift[i+1], "with previous value at", redshift[i]
         hist_mass_ion[i] = hist_mass_ion[i-1] 
     else:
-        print "!!! replacing value at z=", redshift[i+1], "with previous value 0"
+        print "!!! XmHII: replacing value at z=", redshift[i+1], "with previous value 0"
         hist_mass_ion[i] = 0.
         
     if(solve_he == 1):
@@ -173,8 +175,11 @@ if(redshift_range <= 1.0):
 elif(redshift_range <= 5.0):
     xmaxL = 0.5
     xminL = 0.1
-else:
+elif(redshift_range <= 10.0):
     xmaxL = 1.
+    xminL = 0.5
+else:
+    xmaxL = 2.
     xminL = 0.5
 
 logchi_range = np.log10(1.-hist_ion[0]) - np.log10(1.-hist_ion[len(hist_ion)-1]) 

@@ -105,7 +105,7 @@ else:
     XHeII = XHII
     XHeIII = np.zeros(len(XHII))
 
-prefactor = clight * sigmaT * H0 * omega_b / (4. * np.pi * G * mp)
+prefactor = clight * sigmaT * H0 * omega_b / (4. * np.pi * G * mp * omega_m)
 
 dz = 0.2
 zhigh = np.max(redshift) + 1
@@ -118,18 +118,28 @@ xHII = np.zeros(nbins)
 xHeII = np.zeros(nbins)
 xHeIII = np.zeros(nbins)
 
-for i in range(nbins):
-    xHII[i] = get_X(XHII, redshift, z[i])
-    xHeII[i] = get_X(XHeII, redshift, z[i])
-    if(z[i] <=3.):
-        xHeIII[i] = 1.
-    else:
-        xHeIII[i] = 0.
+if(XmHII[0] <= 0.):
+    for i in range(nbins):
+        xHII[i] = get_X(XHII, redshift, z[i])
+        xHeII[i] = get_X(XHeII, redshift, z[i])
+        if(z[i] <=3.):
+            xHeIII[i] = 1.
+        else:
+            xHeIII[i] = 0.
+else:
+    for i in range(nbins):
+        xHII[i] = get_X(XmHII, redshift, z[i])
+        xHeII[i] = get_X(XmHeII, redshift, z[i])
+        if(z[i] <=3.):
+            xHeIII[i] = 1.
+        else:
+            xHeIII[i] = 0.
 
 for i in range(nbins-1):
     termi = (omega_m * (1. + z[i])**3 + omega_l)**0.5
     termf = (omega_m * (1. + z[i+1])**3 + omega_l)**0.5
 
+    print i, z[i], xHII[i], xHeII[i], xHeIII[i]
     if(i > 0):
         tau[i] = tau[i-1] + prefactor * (xHII[i] * (1.-Y) + (xHeII[i] + 2. * xHeIII[i]) * 0.25 * Y) * (termf - termi)
     else:
@@ -159,8 +169,11 @@ if(redshift_range <= 1.0):
 elif(redshift_range <= 5.0):
     xmaxL = 0.5
     xminL = 0.1
-else:
+elif(redshift_range <= 10.0):
     xmaxL = 1.
+    xminL = 0.5
+else:
+    xmaxL = 2.
     xminL = 0.5
 
 print tau

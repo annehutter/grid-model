@@ -134,7 +134,6 @@ void compute_cum_values(grid_t *thisGrid, confObj_t simParam, int specie, int th
                 }
             }
         }
-        if(thisRank==0) printf("nion = %e\t cumNion = %e\n", creal(thisGrid->nion[521554]), creal(thisGrid->cum_nion[521554]));
     }
 }
 
