@@ -121,7 +121,7 @@ void compute_cum_values(grid_t *thisGrid, confObj_t simParam, int specie, int th
                 for(int k=0; k<nbins; k++)
                 {
                     Nion = creal(thisGrid->nion[i*nbins*nbins+j*nbins+k])*evol_time_fromPrevSnap;
-//                     if(Nion>0) printf("%d %d %d: Nion = %e\n", i, j, k, Nion);
+//                     if(Nion>0) printf("rank %d: %d %d %d: Nion = %e\n", thisRank, i, j, k, Nion);
 
                     thisGrid->cum_nion[i*nbins*nbins+j*nbins+k] += Nion + 0.*I;
 
@@ -134,6 +134,7 @@ void compute_cum_values(grid_t *thisGrid, confObj_t simParam, int specie, int th
                 }
             }
         }
+        if(thisRank==0) printf("nion = %e\t cumNion = %e\n", creal(thisGrid->nion[521554]), creal(thisGrid->cum_nion[521554]));
     }
 }
 

@@ -385,7 +385,9 @@ int cifog_step(confObj_t simParam, grid_t *grid, sourcelist_t *sourcelist, const
     if(myRank==0) printf("\n++++\nHII: apply tophat filter routine for ionization field... ");
     compute_ionization_field(simParam, grid, photIonBgList, 0, myRank);
     if(myRank==0) printf("done\n+++\n");
-    
+        
+    if(myRank==0) printf("nion = %e\t cumNion = %e\n", creal(grid->nion[521554]), creal(grid->cum_nion[521554]));
+
     //write ionization field to file
     for(int i=0; i<MAXLENGTH; i++) XionFile[i] = '\0';
     sprintf(XionFile, "%s_%02d", simParam->out_XHII_file, cycle + cycle_offset);

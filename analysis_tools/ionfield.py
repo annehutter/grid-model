@@ -25,7 +25,8 @@ def plot_field(infile, i, toPlot, cut_slice, str_time, str_redshift, str_meanIon
     image = plt.imshow(toPlot[:,:,cut_slice:cut_slice+1].mean(axis=-1),origin='lower',interpolation='nearest',  extent=[0,boxsize,0,boxsize], cmap="afmhot_r")
 
     plt.clim([-8.,0.])
-    
+    #plt.clim([0.,1.])
+
     ax = plt.gca()
     ax.set_xlabel('x  [h$^{-1}$ Mpc]')
     ax.set_ylabel('y  [h$^{-1}$ Mpc]')
@@ -209,6 +210,7 @@ for i in range(len(redshift)-1):
     print "z =", redshift[i+1], "\tXHII =", np.mean(ion, dtype=np.float64)
 
     toPlot = np.log10(1.-ion)
+    #toPlot = ion
     str_mean = "$\langle\chi_\mathrm{HI}\\rangle$ =" + str("%4.2f"%(np.mean(1.-ion, dtype=np.float64)))
     plot_field(infile, i, toPlot, cut_slice, str_time, str_redshift, str_mean)
     
