@@ -13,6 +13,7 @@ from matplotlib import rc
 from grid import *
 import read_parameterfile as rp
 import read_fields as rf
+import observations as ob
 
 def compute_meanIon(infile, isPadded, inputIsDouble, gridsize):
     ion = rf.read_ion(infile, isPadded, inputIsDouble, gridsize)
@@ -208,7 +209,10 @@ ymajorLocator   = mt.MultipleLocator(ymaxL)
 ymajorFormatter = mt.FormatStrFormatter(ystring)
 yminorLocator   = mt.MultipleLocator(yminL)
 
-ax1.plot(z, tau, linestyle='-', color='black', label='$\langle\chi_\mathrm{HI}\\rangle$')
+ax1.plot(z, tau, linestyle='-', color='black', label=None)
+
+ax1.plot(z, ob.tau*np.ones(len(z)), color='gray', linestyle='--', label='Planck 2018')
+ax1.fill_between(z, ob.tau_lowlim*np.ones(len(z)), ob.tau_uplim*np.ones(len(z)), facecolor='gray', alpha=0.5)
 
 ax1.yaxis.set_major_locator(ymajorLocator)
 ax1.yaxis.set_major_formatter(ymajorFormatter)
@@ -222,7 +226,7 @@ ax1.set_xlabel('Redshift z')
 ax1.set_ylabel('Optical depth $\\tau$')
 
 ax1.set_xlim((0., z[len(z)-2]))
-#plt.legend(bbox_to_anchor=(0.75, 0.88), loc=2, borderaxespad=0., frameon=True, labelspacing=0.4, handlelength=3, prop={'size':11})
+plt.legend(bbox_to_anchor=(0.68, 0.2), loc=2, borderaxespad=0., frameon=True, labelspacing=0.4, handlelength=3, prop={'size':11})
 
 #----------------------------------------------
 fig.savefig(outputfile + '.png', format='png', dpi=512)#, transparent=True)

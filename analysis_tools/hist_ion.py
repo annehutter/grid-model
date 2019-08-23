@@ -13,6 +13,7 @@ from matplotlib import rc
 from grid import *
 import read_parameterfile as rp
 import read_fields as rf
+import observations as ob
 
 def compute_meanIon(infile, isPadded, inputIsDouble, gridsize):
     ion = rf.read_ion(infile, isPadded, inputIsDouble, gridsize)
@@ -224,15 +225,36 @@ if(solve_he == 1):
     plt.plot(redshift[1:], np.log10(hist_HeIIIion), linestyle='-', color='green', label='$\langle\chi_\mathrm{HeIII}\\rangle$')
     plt.plot(redshift[1:], np.log10(hist_mass_HeIIIion), linestyle='--', color='green', label='$\langle\chi_\mathrm{HeIII}\\rangle^{(m)}$')
 
+print ob.XHI_QSO_Fan2006_z
+err_linewidth = 0.7
+
+# QSOs
+ax1.errorbar(ob.XHI_QSO_Fan2006_z, ob.XHI_QSO_Fan2006_XHI, yerr=(ob.XHI_QSO_Fan2006_XHI-ob.XHI_QSO_Fan2006_XHImin, ob.XHI_QSO_Fan2006_XHImax-ob.XHI_QSO_Fan2006_XHI), elinewidth=err_linewidth, barsabove=True, linestyle='None', marker='s', markersize=2, color='green', label='QSOs')
+ax1.errorbar(ob.XHI_QSO_Fan2006_lowlim_z, ob.XHI_QSO_Fan2006_lowlim_XHI, yerr=(ob.XHI_QSO_Fan2006_lowlim_XHI-ob.XHI_QSO_Fan2006_lowlim_XHImin, ob.XHI_QSO_Fan2006_lowlim_XHImax-ob.XHI_QSO_Fan2006_lowlim_XHI), lolims=True, elinewidth=err_linewidth, barsabove=True, linestyle='None', marker='s', markersize=2, capsize=1, color='green', label=None)
+
+#GRBs
+ax1.errorbar(ob.XHI_GRB_Totani2014_z, ob.XHI_GRB_Totani2014_XHI, yerr=(ob.XHI_GRB_Totani2014_XHI-ob.XHI_GRB_Totani2014_XHImin, ob.XHI_GRB_Totani2014_XHImax-ob.XHI_GRB_Totani2014_XHI), elinewidth=err_linewidth, barsabove=True, linestyle='None', marker='^', markersize=2, color='orange', label='GRBs')
+ax1.errorbar(ob.XHI_GRB_Totani2014_uplim_z, ob.XHI_GRB_Totani2014_uplim_XHI, yerr=0.3, uplims=True, elinewidth=err_linewidth, barsabove=True, linestyle='None', marker='^', markersize=2, capsize=1, color='orange', label=None)
+
+#LyaLF
+ax1.errorbar(ob.XHI_LyaLF_Konno2018_z, ob.XHI_LyaLF_Konno2018_XHI, yerr=(ob.XHI_LyaLF_Konno2018_XHI-ob.XHI_LyaLF_Konno2018_XHImin, ob.XHI_LyaLF_Konno2018_XHImax-ob.XHI_LyaLF_Konno2018_XHI), elinewidth=err_linewidth, barsabove=True, linestyle='None', marker='o', markersize=2, color='blue', label='LAEs')
+ax1.errorbar(ob.XHI_LyaLF_Malhotra2004_z, ob.XHI_LyaLF_Malhotra2004_uplim_XHI, yerr=0.3, uplims=True, elinewidth=err_linewidth, barsabove=True, linestyle='None', marker='^', markersize=2, capsize=1, color='blue', label=None)
+ax1.errorbar(ob.XHI_LyaLF_Ota2010_z, ob.XHI_LyaLF_Ota2010_uplim_XHI, yerr=0.3, uplims=True, elinewidth=err_linewidth, barsabove=True, linestyle='None', marker='p', markersize=2, capsize=1, color='blue', label=None)
+ax1.errorbar(ob.XHI_LyaLF_Ouchi2010_z, ob.XHI_LyaLF_Ouchi2010_uplim_XHI, yerr=0.3, uplims=True, elinewidth=err_linewidth, barsabove=True, linestyle='None', marker='D', markersize=2, capsize=1, color='blue', label=None)
+ax1.errorbar(ob.XHI_LyaLF_Kashikawa2011_z, ob.XHI_LyaLF_Kashikawa2011_uplim_XHI, yerr=0.3, uplims=True, elinewidth=err_linewidth, barsabove=True, linestyle='None', marker='s', markersize=2, capsize=1, color='blue', label=None)
+
+ax1.errorbar(ob.XHI_LAEACF_Ouchi2010_z, ob.XHI_LAEACF_Ouchi2010_uplim_XHI, yerr=0.3, uplims=True, elinewidth=err_linewidth, barsabove=True, linestyle='None', marker='+', markersize=3, capsize=1, color='blue', label=None)
+
+ax1.errorbar(ob.XHI_LAEfrac_z, ob.XHI_LAEfrac_lowlim_XHI, yerr=0.3, lolims=True, elinewidth=err_linewidth, barsabove=True, linestyle='None', marker='x', markersize=3, capsize=1, color='blue', label=None)
+
 ax1.yaxis.set_major_locator(ymajorLocator)
 ax1.yaxis.set_major_formatter(ymajorFormatter)
 ax1.yaxis.set_minor_locator(yminorLocator)
 ax1.xaxis.set_major_locator(majorLocator)
 ax1.xaxis.set_major_formatter(majorFormatter)
 ax1.xaxis.set_minor_locator(minorLocator)
-		
-ax1.set_xlabel('z')
 
+ax1.set_xlabel('z')
 ax1.set_ylabel('Log $\langle\chi\\rangle$')
 
 plt.legend(bbox_to_anchor=(0.75, 0.88), loc=2, borderaxespad=0., frameon=True, labelspacing=0.4, handlelength=3, prop={'size':11})
@@ -241,18 +263,25 @@ plt.legend(bbox_to_anchor=(0.75, 0.88), loc=2, borderaxespad=0., frameon=True, l
 ax0 = plt.subplot(gs[0], sharex=ax1)
 plt.setp(ax0.get_xticklabels(), visible=False)
 
-factor_range = hist_mass_ion[0]/hist_ion[0] - hist_mass_ion[len(hist_mass_ion)-1]/hist_ion[len(hist_ion)-1]
+if(hist_mass_ion[0] > 0. and hist_ion[0] > 0.):
+    start = 0
+else:
+    start = 1
+    
+factor_range = hist_mass_ion[start]/hist_ion[start] - hist_mass_ion[len(hist_mass_ion)-1]/hist_ion[len(hist_ion)-1]
 
 if(solve_he == 1):
-    factor_min = np.min([hist_mass_ion[0]/hist_ion[0], hist_mass_ion[len(hist_mass_ion)-1]/hist_ion[len(hist_ion)-1], hist_mass_HeIIion[0]/hist_HeIIion[0], hist_mass_HeIIion[len(hist_mass_HeIIion)-1]/hist_HeIIion[len(hist_HeIIion)-1], hist_mass_HeIIIion[0]/hist_HeIIIion[0], hist_mass_HeIIIion[len(hist_mass_HeIIIion)-1]/hist_HeIIIion[len(hist_HeIIIion)-1]])
-    factor_max = np.max([hist_mass_ion[0]/hist_ion[0], hist_mass_ion[len(hist_mass_ion)-1]/hist_ion[len(hist_ion)-1], hist_mass_HeIIion[0]/hist_HeIIion[0], hist_mass_HeIIion[len(hist_mass_HeIIion)-1]/hist_HeIIion[len(hist_HeIIion)-1], hist_mass_HeIIIion[0]/hist_HeIIIion[0], hist_mass_HeIIIion[len(hist_mass_HeIIIion)-1]/hist_HeIIIion[len(hist_HeIIIion)-1]])
+    factor_min = np.min([hist_mass_ion[start]/hist_ion[start], hist_mass_ion[len(hist_mass_ion)-1]/hist_ion[len(hist_ion)-1], hist_mass_HeIIion[start]/hist_HeIIion[start], hist_mass_HeIIion[len(hist_mass_HeIIion)-1]/hist_HeIIion[len(hist_HeIIion)-1], hist_mass_HeIIIion[start]/hist_HeIIIion[start], hist_mass_HeIIIion[len(hist_mass_HeIIIion)-1]/hist_HeIIIion[len(hist_HeIIIion)-1]])
+    factor_max = np.max([hist_mass_ion[start]/hist_ion[start], hist_mass_ion[len(hist_mass_ion)-1]/hist_ion[len(hist_ion)-1], hist_mass_HeIIion[start]/hist_HeIIion[start], hist_mass_HeIIion[len(hist_mass_HeIIion)-1]/hist_HeIIion[len(hist_HeIIion)-1], hist_mass_HeIIIion[start]/hist_HeIIIion[start], hist_mass_HeIIIion[len(hist_mass_HeIIIion)-1]/hist_HeIIIion[len(hist_HeIIIion)-1]])
     factor_range = factor_max - factor_min
         
+print factor_range
+
 if(factor_range <= 1.0):
     ymaxL = 0.2
     yminL = 0.05
     ystring = '%0.1f'
-elif(factor_range <= 3.0):
+elif(factor_range <= 5.0):
     ymaxL = 0.5
     yminL = 0.1
     ystring = '%0.1f'
