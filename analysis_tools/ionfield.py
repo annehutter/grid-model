@@ -19,7 +19,7 @@ def path_leaf(path):
     head, tail = ntpath.split(path)
     return tail or ntpath.basename(head)
 
-def plot_field(infile, i, toPlot, cut_slice, str_time, str_redshift, str_meanIon):
+def plot_field(infile, i, toPlot, cut_slice, str_time, str_redshift, str_meanIon, outputfile):
     fig = plt.figure()
 
     image = plt.imshow(toPlot[:,:,cut_slice:cut_slice+1].mean(axis=-1),origin='lower',interpolation='nearest',  extent=[0,boxsize,0,boxsize], cmap="afmhot_r")
@@ -39,24 +39,25 @@ def plot_field(infile, i, toPlot, cut_slice, str_time, str_redshift, str_meanIon
     t2 = plt.text(0.96, 0.96, str_redshift, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2}, horizontalalignment='right', verticalalignment='top', transform = ax.transAxes)
     t3 = plt.text(0.04, 0.04, str_meanIon, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2}, horizontalalignment='left', verticalalignment='bottom', transform = ax.transAxes)
 
-    directory = rp.get_directory(inifile)
-    ininame = os.path.splitext(path_leaf(inifile))[0]
-    if(directory==''):
-        newdir = 'results_' + ininame
-    else:
-        newdir = directory + '/results_' + ininame
-    newdir = newdir + '/HI_fields/'
-    basename = newdir + os.path.splitext(path_leaf(infile))[0]
+    #directory = rp.get_directory(inifile)
+    #ininame = os.path.splitext(path_leaf(inifile))[0]
+    #if(directory==''):
+        #newdir = 'results_' + ininame
+    #else:
+        #newdir = directory + '/results_' + ininame
+    #newdir = newdir + '/HI_fields/'
+    #basename = newdir + os.path.splitext(path_leaf(infile))[0]
         
     if(i<10):
-        outfile = basename + '_0' + str(i) + '_x' + str(cut_slice) + '.png'
+        outfile = outputfile + '/XHI_0' + str(i) + '_x' + str(cut_slice) + '.png'
     else:
-        outfile = basename + '_' + str(i) + '_x' + str(cut_slice) + '.png'
+        outfile = outputfile + '/XHI_' + str(i) + '_x' + str(cut_slice) + '.png'
         
+    print 'saving ', outfile
     plt.savefig(outfile,format='png', dpi=512, transparent=True)
     plt.close()
 
-def plot_field_HeII(infile, i, toPlot, cut_slice, str_time, str_redshift, str_meanIon):
+def plot_field_HeII(infile, i, toPlot, cut_slice, str_time, str_redshift, str_meanIon, outputfile):
     fig = plt.figure()
 
     image = plt.imshow(toPlot[:,:,cut_slice:cut_slice+1].mean(axis=-1),origin='lower',interpolation='nearest',  extent=[0,boxsize,0,boxsize], cmap="afmhot_r")
@@ -75,24 +76,24 @@ def plot_field_HeII(infile, i, toPlot, cut_slice, str_time, str_redshift, str_me
     t2 = plt.text(0.96, 0.96, str_redshift, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2}, horizontalalignment='right', verticalalignment='top', transform = ax.transAxes)
     t3 = plt.text(0.04, 0.04, str_meanIon, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2}, horizontalalignment='left', verticalalignment='bottom', transform = ax.transAxes)
         
-    directory = rp.get_directory(inifile)
-    ininame = os.path.splitext(path_leaf(inifile))[0]
-    if(directory==''):
-        newdir = 'results_' + ininame
-    else:
-        newdir = directory + '/results_' + ininame
-    newdir = newdir + '/HeI_fields/'
-    basename = newdir + os.path.splitext(path_leaf(infile))[0]    
+    #directory = rp.get_directory(inifile)
+    #ininame = os.path.splitext(path_leaf(inifile))[0]
+    #if(directory==''):
+        #newdir = 'results_' + ininame
+    #else:
+        #newdir = directory + '/results_' + ininame
+    #newdir = newdir + '/HeI_fields/'
+    #basename = newdir + os.path.splitext(path_leaf(infile))[0]    
     
     if(i<10):
-        outfile = basename + '_0' + str(i) + '_x' + str(cut_slice) + '.png'
+        outfile = outputfile + 'XHeI_0' + str(i) + '_x' + str(cut_slice) + '.png'
     else:
-        outfile = basename + '_' + str(i) + '_x' + str(cut_slice) + '.png'
+        outfile = outputfile + 'XHeI_' + str(i) + '_x' + str(cut_slice) + '.png'
         
     plt.savefig(outfile,format='png', dpi=512, transparent=True)
     plt.close()
     
-def plot_field_HeIII(infile, i, toPlot, cut_slice, str_time, str_redshift, str_meanIon):
+def plot_field_HeIII(infile, i, toPlot, cut_slice, str_time, str_redshift, str_meanIon, outputfile):
     fig = plt.figure()
 
     image = plt.imshow(toPlot[:,:,cut_slice:cut_slice+1].mean(axis=-1),origin='lower',interpolation='nearest',  extent=[0,boxsize,0,boxsize], cmap="afmhot_r")
@@ -111,19 +112,19 @@ def plot_field_HeIII(infile, i, toPlot, cut_slice, str_time, str_redshift, str_m
     t2 = plt.text(0.96, 0.96, str_redshift, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2}, horizontalalignment='right', verticalalignment='top', transform = ax.transAxes)
     t3 = plt.text(0.04, 0.04, str_meanIon, fontsize=12, color="black", fontproperties=font, bbox={'facecolor':'white', 'alpha':0.7, 'edgecolor':'none', 'pad':2}, horizontalalignment='left', verticalalignment='bottom', transform = ax.transAxes)
         
-    directory = rp.get_directory(inifile)
-    ininame = os.path.splitext(path_leaf(inifile))[0]
-    if(directory==''):
-        newdir = 'results_' + ininame
-    else:
-        newdir = directory + '/results_' + ininame
-    newdir = newdir + '/HeIII_fields/'
-    basename = newdir + os.path.splitext(path_leaf(infile))[0]
+    #directory = rp.get_directory(inifile)
+    #ininame = os.path.splitext(path_leaf(inifile))[0]
+    #if(directory==''):
+        #newdir = 'results_' + ininame
+    #else:
+        #newdir = directory + '/results_' + ininame
+    #newdir = newdir + '/HeIII_fields/'
+    #basename = newdir + os.path.splitext(path_leaf(infile))[0]
     
     if(i<10):
-        outfile = basename + '_0' + str(i) + '_x' + str(cut_slice) + '.png'
+        outfile = outputfile + 'XHeII_0' + str(i) + '_x' + str(cut_slice) + '.png'
     else:
-        outfile = basename + '_' + str(i) + '_x' + str(cut_slice) + '.png'
+        outfile = outputfile + 'XHeII_' + str(i) + '_x' + str(cut_slice) + '.png'
         
     plt.savefig(outfile,format='png', dpi=512, transparent=True)
     plt.close()
@@ -141,6 +142,9 @@ def redshift_from_time_flatuniverse(zmax, time):
 inifile = sys.argv[1]
 inputIsDouble = np.int32(sys.argv[2])
 cut_slice = int(sys.argv[3])
+outputfile = sys.argv[4]
+
+print outputfile
 
 lines = rp.read_inifile(inifile)
 
@@ -212,7 +216,7 @@ for i in range(len(redshift)-1):
     toPlot = np.log10(1.-ion)
     #toPlot = ion
     str_mean = "$\langle\chi_\mathrm{HI}\\rangle$ =" + str("%4.2f"%(np.mean(1.-ion, dtype=np.float64)))
-    plot_field(infile, i, toPlot, cut_slice, str_time, str_redshift, str_mean)
+    plot_field(infile, i, toPlot, cut_slice, str_time, str_redshift, str_mean, outputfile)
     
     if(solve_he == 1):
         if(i + snapshotstart < 10):
@@ -229,10 +233,10 @@ for i in range(len(redshift)-1):
         
         toPlot_HeII = np.log10(1.-ion_HeII)
         str_mean = "$\langle\chi_\mathrm{HeI}\\rangle$ =" + str("%4.2f"%(np.mean(1.-ion_HeII, dtype=np.float64)))
-        plot_field_HeII(HeIIinfile, i, toPlot_HeII, cut_slice, str_time, str_redshift, str_mean)
+        plot_field_HeII(HeIIinfile, i, toPlot_HeII, cut_slice, str_time, str_redshift, str_mean, outputfile)
         
         toPlot_HeIII = np.log10(ion_HeIII)
         str_mean = "$\langle\chi_\mathrm{HeIII}\\rangle$ =" + str("%4.2f"%(np.mean(ion_HeIII, dtype=np.float64)))
-        plot_field_HeIII(HeIIIinfile, i, toPlot_HeIII, cut_slice, str_time, str_redshift, str_mean)
+        plot_field_HeIII(HeIIIinfile, i, toPlot_HeIII, cut_slice, str_time, str_redshift, str_mean, outputfile)
     
 
