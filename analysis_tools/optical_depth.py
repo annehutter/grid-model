@@ -122,7 +122,10 @@ xHeIII = np.zeros(nbins)
 if(XmHII[0] <= 0.):
     for i in range(nbins):
         xHII[i] = get_X(XHII, redshift, z[i])
-        xHeII[i] = get_X(XHeII, redshift, z[i])
+        if(solve_he == 1):
+          xHeII[i] = get_X(XHeII, redshift, z[i])
+        else:
+          xHeII[i] = xHII[i]
         if(z[i] <=3.):
             xHeIII[i] = 1.
         else:
@@ -130,7 +133,10 @@ if(XmHII[0] <= 0.):
 else:
     for i in range(nbins):
         xHII[i] = get_X(XmHII, redshift, z[i])
-        xHeII[i] = get_X(XmHeII, redshift, z[i])
+        if(solve_he == 1):
+          xHeII[i] = get_X(XmHeII, redshift, z[i])
+        else:
+          xHeII[i] = xHII[i]
         if(z[i] <=3.):
             xHeIII[i] = 1.
         else:

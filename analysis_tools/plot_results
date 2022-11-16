@@ -18,6 +18,9 @@ else
 
     python analysis_tools/hist_ion.py $iniFile $inputIsDouble $directory/hist_ion
     python analysis_tools/optical_depth.py $iniFile $inputIsDouble $directory/optical_depth
+    
+    python analysis_tools/hist_dens.py $iniFile $inputIsDouble $directory/hist_dens
+
 #     
 #     python analysis_tools/ion.py $iniFile $inputIsDouble $directory/ion/ps_ion
 #     python analysis_tools/neutral.py $iniFile $inputIsDouble $directory/neutral/ps_neutral
