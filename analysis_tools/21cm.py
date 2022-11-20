@@ -104,10 +104,12 @@ for i in range(len(redshift)-1):
     modes21 = ifftn(Tb)
     kmid_bins_21, powerspec_21, p_err_21 = modes_to_pspec(modes21, boxsize=boxsize)
 
-    if(minimum > np.min(powerspec_21[1:-1]*kmid_bins_21[1:-1]**3*k*T0*T0)):
-        minimum = np.min(powerspec_21[1:-1]*kmid_bins_21[1:-1]**3*k*T0*T0)
-    if(maximum < np.max(powerspec_21[1:-1]*kmid_bins_21[1:-1]**3*k*T0*T0)):
-        maximum = np.max(powerspec_21[1:-1]*kmid_bins_21[1:-1]**3*k*T0*T0)
+    if(minimum > np.min(powerspec_21[1:-1]*kmid_bins[1:-1]**3*k)):
+        if(np.min(powerspec_21[1:-1]*kmid_bins[1:-1]**3*k) > 0):
+            minimum = np.min(powerspec_21[1:-1]*kmid_bins[1:-1]**3*k)
+    if(maximum < np.max(powerspec_21[1:-1]*kmid_bins[1:-1]**3*k)):
+        if(np.max(powerspec_21[1:-1]*kmid_bins[1:-1]**3*k) < float('inf')):
+            maximum = np.max(powerspec_21[1:-1]*kmid_bins[1:-1]**3*k)
 
     plt.xscale('log')
     #plt.yscale('log')

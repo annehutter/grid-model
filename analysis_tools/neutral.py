@@ -94,9 +94,11 @@ for i in range(len(redshift)-1):
     kmid_bins, powerspec, p_err = modes_to_pspec(modesNeutral, boxsize=boxsize)
 
     if(minimum > np.min(powerspec[1:-1]*kmid_bins[1:-1]**3*k)):
-        minimum = np.min(powerspec[1:-1]*kmid_bins[1:-1]**3*k)
+        if(np.min(powerspec[1:-1]*kmid_bins[1:-1]**3*k) > 0):
+            minimum = np.min(powerspec[1:-1]*kmid_bins[1:-1]**3*k)
     if(maximum < np.max(powerspec[1:-1]*kmid_bins[1:-1]**3*k)):
-        maximum = np.max(powerspec[1:-1]*kmid_bins[1:-1]**3*k)
+        if(np.max(powerspec[1:-1]*kmid_bins[1:-1]**3*k) < float('inf')):
+            maximum = np.max(powerspec[1:-1]*kmid_bins[1:-1]**3*k)
 
     plt.xscale('log')
     #plt.yscale('log')
